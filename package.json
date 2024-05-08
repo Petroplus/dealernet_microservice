@@ -1,0 +1,112 @@
+{
+  "name": "dealernet_microservice",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "module:create": "npx nest g module",
+    "controller:create": "npx nest g controller",
+    "service:create": "npx nest g service",
+    "crud": "npx nest g resource"
+  },
+  "dependencies": {
+    "@json2csv/plainjs": "^7.0.6",
+    "@json2csv/transforms": "^7.0.6",
+    "@logtail/node": "^0.4.21",
+    "@nestjs/common": "^10.3.8",
+    "@nestjs/config": "^3.2.2",
+    "@nestjs/core": "^10.3.8",
+    "@nestjs/platform-express": "^10.3.8",
+    "@nestjs/schedule": "^4.0.2",
+    "@nestjs/swagger": "^7.3.1",
+    "@types/multer": "^1.4.11",
+    "axios": "^1.6.8",
+    "axios-retry": "^4.1.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "dotenv": "^16.4.5",
+    "nestjs-easy-context": "^10.0.0",
+    "pg": "^8.11.5",
+    "redis": "^4.6.13",
+    "rxjs": "^7.8.1",
+    "system-x64": "^2.2.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.3.2",
+    "@nestjs/schematics": "^10.1.1",
+    "@nestjs/testing": "^10.3.8",
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.12.7",
+    "@types/papaparse": "^5.3.14",
+    "@types/supertest": "^6.0.1",
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.8.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "jest": "^29.5.0",
+    "prettier": "^3.2.5",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.1.2",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.4.5"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coveragePathIgnorePatterns": [
+      "node_modules",
+      "interceptor.ts",
+      "middleware.ts",
+      "decorator.ts",
+      "exception.ts",
+      ".module.ts",
+      ".entity.ts",
+      ".view.ts",
+      "filter.ts",
+      ".mock.ts",
+      ".pipe.ts",
+      ".d.ts",
+      "<rootDir>/base-fake",
+      "<rootDir>/migrations",
+      "<rootDir>/main.ts"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    },
+    "setupFiles": [
+      "<rootDir>/setup.test.ts"
+    ]
+  }
+}

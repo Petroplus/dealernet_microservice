@@ -1,0 +1,9 @@
+{
+  "editor.formatOnSave": true,
+  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "material-icon-theme.activeIconPack": "nest",
+  "conventionalCommits.scopes": ["backend, product", "backend, satisfaction-survey"]
+}

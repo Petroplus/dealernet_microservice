@@ -1,0 +1,90 @@
+import { Logger } from '@nestjs/common';
+import axios, { CreateAxiosDefaults } from 'axios';
+import axiosRetry, { IAxiosRetryConfigExtended } from 'axios-retry';
+
+axiosRetry(axios, {
+  retries: 1,
+  shouldResetTimeout: true,
+  retryDelay: () => 1000,
+  retryCondition: () => true,
+  onRetry: (retryCount) => Logger.warn(`retry attempt: ${retryCount}`, 'axios'),
+});
+
+const api = (config?: CreateAxiosDefaults<any>, version?: string) => {
+  const api = axios.create({ timeout: 60000, ...config });
+
+  api.interceptors.request.use((request) => {
+    Logger.log(`${request?.baseURL ?? ''}${request.url}`, `${version} ${request.method.toUpperCase()}`);
+
+    const query = request.params ? `?${new URLSearchParams(request.params).toString()}` : '';
+    if (query) {
+      Logger.log(`${request?.baseURL ?? ''}${request.url}${query}`, `${version ?? 'axios'} ${request.method.toUpperCase()}`);
+    }
+    return request;
+  });
+
+  return api;
+};
+
+const petroplay_v1 = async (retry?: IAxiosRetryConfigExtended) => {
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-secret-key': process.env.PETROPLAY_SECRET_KEY,
+  };
+
+  return api({ baseURL: process.env.PETROPLAY_V1_URL, headers, 'axios-retry': retry }, 'V1');
+};
+
+const petroplay_v2 = async (retry?: IAxiosRetryConfigExtended) => {
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-secret-key': process.env.PETROPLAY_SECRET_KEY,
+  };
+
+  return api({ baseURL: process.env.PETROPLAY_V2_URL, headers, 'axios-retry': retry }, 'V2');
+};
+
+const petroplay_nbs = async (retry?: IAxiosRetryConfigExtended) => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  return api({ baseURL: process.env.PETROPLAY_NBS_URL, headers, 'axios-retry': retry }, 'NBS');
+};
+
+const petroplay_dealernet = async (retry?: IAxiosRetryConfigExtended) => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  return api({ baseURL: process.env.PETROPLAY_NBS_URL, headers, 'axios-retry': retry }, 'DEALERNET');
+};
+
+const petroplay_linx = async (retry?: IAxiosRetryConfigExtended) => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  return api({ baseURL: process.env.PETROPLAY_LINX_URL, headers, 'axios-retry': retry }, 'LINX');
+};
+
+const viacep = async () => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  return api({ baseURL: process.env.VIACEP_URL, headers }, 'VIACEP');
+};
+
+const petroplay = {
+  v1: petroplay_v1,
+  v2: petroplay_v2,
+  nbs: petroplay_nbs,
+  dealernet: petroplay_dealernet,
+  linx: petroplay_linx,
+  viacep: viacep,
+};
+
+const webClient = api();
+
+export { webClient, petroplay };
