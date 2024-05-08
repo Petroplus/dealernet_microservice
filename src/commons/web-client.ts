@@ -44,47 +44,19 @@ const petroplay_v2 = async (retry?: IAxiosRetryConfigExtended) => {
   return api({ baseURL: process.env.PETROPLAY_V2_URL, headers, 'axios-retry': retry }, 'V2');
 };
 
-const petroplay_nbs = async (retry?: IAxiosRetryConfigExtended) => {
+const dealernet = async (retry?: IAxiosRetryConfigExtended) => {
   const headers = {
-    'Content-Type': 'application/json',
+    'Content-Type': 'text/xml;charset=utf-8',
   };
 
-  return api({ baseURL: process.env.PETROPLAY_NBS_URL, headers, 'axios-retry': retry }, 'NBS');
-};
-
-const petroplay_dealernet = async (retry?: IAxiosRetryConfigExtended) => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-
-  return api({ baseURL: process.env.PETROPLAY_NBS_URL, headers, 'axios-retry': retry }, 'DEALERNET');
-};
-
-const petroplay_linx = async (retry?: IAxiosRetryConfigExtended) => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-
-  return api({ baseURL: process.env.PETROPLAY_LINX_URL, headers, 'axios-retry': retry }, 'LINX');
-};
-
-const viacep = async () => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-
-  return api({ baseURL: process.env.VIACEP_URL, headers }, 'VIACEP');
+  return api({ headers, 'axios-retry': retry }, 'DEALERNET');
 };
 
 const petroplay = {
   v1: petroplay_v1,
   v2: petroplay_v2,
-  nbs: petroplay_nbs,
-  dealernet: petroplay_dealernet,
-  linx: petroplay_linx,
-  viacep: viacep,
 };
 
 const webClient = api();
 
-export { webClient, petroplay };
+export { webClient, dealernet, petroplay };
