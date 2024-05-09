@@ -39,7 +39,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
      * Report error
      */
     if (httpStatus >= 500) {
-      this.logtailService.error(exception.message, 'ERROR', JSON.stringify(exception));
+      const ex = exception as any;
+      this.logtailService.error(ex.message, 'ERROR', JSON.stringify(ex));
+      if (ex.code == 'ECONNREFUSED') {
+        responseBody.statusCode = HttpStatus.SERVICE_UNAVAILABLE;
+        responseBody['error'] = ex.message;
+        responseBody['description'] = 'Não foi possível estabelecer uma conexão com o DMS';
+      }
       Logger.error(exception, (exception as Error).stack);
     }
 

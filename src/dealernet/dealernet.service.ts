@@ -6,6 +6,7 @@ import { XMLParser } from 'fast-xml-parser';
 
 import { webClient } from 'src/commons/web-client';
 
+import { DealernetCustomerService } from './customer/customer.service';
 import { CreateOsDTO } from './dto/create-os.dto';
 import { CreateVehicleDTO } from './dto/create-vehicle.dto';
 import { DealernetBudgetResponse } from './response/budget-response';
@@ -17,11 +18,14 @@ import { ProdutoDealernetResponse } from './response/produto-response';
 import { TMO } from './response/tmo-response';
 import { VeiculoInfo } from './response/veiculo-response';
 import { DealernetScheduleService } from './schedule/schedule.service';
+import { DealernetVehicleService } from './vehicle/vehicle.service';
 
 @Injectable()
 export class DealernetService {
   constructor(
     public readonly schedule: DealernetScheduleService,
+    public readonly customer: DealernetCustomerService,
+    public readonly vehicle: DealernetVehicleService,
   ) {}
 
   async findCustomerByDocument(api: string, user: string, key: string, document: string): Promise<PessoaInfo> {

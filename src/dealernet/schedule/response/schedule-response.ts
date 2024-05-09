@@ -8,6 +8,7 @@ export interface DealernetSchedule {
   VeiculoKM: string;
   VeiculoModelo: string;
   VeiculoAnoCodigo: string;
+  ClienteCodigo: number;
   ClienteDocumento: string;
   ClienteNome: string;
   ConsultorDocumento: string;
