@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 
 import { ScheduleService } from './schedule.service';
 import { ScheduleFilter } from './filters/schedule.filters';
@@ -9,9 +9,15 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 export class ScheduleController {
   constructor(private readonly service: ScheduleService) {}
 
-  @Get()
+  @Post()
   @ApiOperation({ summary: 'Busca os agemdamentos e enviar para Petroplay. Por padrão executa a cada 60 minutos' })
-  async find(@Query() filter: ScheduleFilter): Promise<void> {
+  async sync(@Query() filter: ScheduleFilter): Promise<void> {
     return this.service.sync(filter);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Busca o schema dos agendamentos' })
+  async schema(@Query() filter: ScheduleFilter): Promise<unknown> {
+    return this.service.schema(filter);
   }
 }

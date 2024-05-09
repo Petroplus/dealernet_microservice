@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export interface Agendamento {
+export interface DealernetSchedule {
   Chave: string;
   EmpresaDocumento: string;
   VeiculoPlaca: string;
@@ -18,13 +18,13 @@ export interface Agendamento {
   Mensagem: string;
 }
 
-export interface AgendamentoResponse {
+export interface DealernetScheduleResponse {
   Sdt_fsagendamentooutlista: {
-    SDT_FSAgendamentoOut: Agendamento;
+    SDT_FSAgendamentoOut: DealernetSchedule;
   };
 }
 
-export class AgendamentoDTOResponse {
+export class DealernetScheduleDTOResponse {
   @ApiProperty()
   Chave: string;
 
