@@ -24,3 +24,14 @@ export interface IntegrationDealernet {
   key: string;
   document?: string;
 }
+
+export interface IntegrationDealernetVehicle {
+  client_id: string;
+  veiculo_codigo: number;
+  veiculo_descricao: string;
+  maker_id: number;
+  model_id: number;
+  version_id: number;
+  year: number;
+  fuel: string;
+}

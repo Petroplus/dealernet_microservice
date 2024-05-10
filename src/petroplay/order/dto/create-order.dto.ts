@@ -19,7 +19,7 @@ export class CreateOrderDto {
   model?: string;
   version_id?: number;
   version?: string;
-  year?: string;
+  year?: string | number;
   fuel?: string;
   color?: string;
   licensePlate: string;

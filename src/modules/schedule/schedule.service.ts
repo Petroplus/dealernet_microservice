@@ -43,39 +43,45 @@ export class ScheduleService {
   }
 
   async scheduleToOs(integration: IntegrationResponse, schedules: DealernetSchedule[]): Promise<CreateOrderDto[]> {
+    const vehicles = await this.petroplay.integration.findVehicles(integration.client_id);
+
     const orders: CreateOrderDto[] = [];
     for await (const schedule of schedules) {
       const customer = await this.dialernet.customer.findById(integration.dealernet, schedule.ClienteCodigo);
       const address = customer.Endereco?.EnderecoItem;
       const phone = customer.Telefone?.TelefoneItem[0];
 
-      const vehicle = await this.dialernet.vehicleModel.findByName(integration.dealernet, schedule.VeiculoModelo);
+      const vehicle = await this.dialernet.vehicleModel
+        .findByName(integration.dealernet, schedule.VeiculoModelo)
+        .then(({ ModeloVeiculo_Codigo, ModeloVeiculo_Descricao }) =>
+          vehicles.find((v) => v.veiculo_codigo == ModeloVeiculo_Codigo && v.veiculo_descricao == ModeloVeiculo_Descricao)
+        );
 
       const dto: CreateOrderDto = {
         clientId: integration.client_id,
         customerName: schedule.ClienteNome,
-        customerDocument: schedule.ClienteDocumento.toString(),
+        customerDocument: schedule.ClienteDocumento.toString().trim(),
         phoneType: 'PHON',
-        phoneNumber: phone?.PessoaTelefone_Fone?.toString(),
-        email: customer.Pessoa_Email,
-        addressName: address?.PessoaEndereco_TipoEndereco?.trim(),
-        city: address?.PessoaEndereco_Cidade?.trim(),
-        state: address?.PessoaEndereco_Estado?.trim(),
-        neighborhood: address?.PessoaEndereco_Bairro?.trim(),
-        postal_code: address?.PessoaEndereco_CEP?.toString()?.trim(),
-        street: address?.PessoaEndereco_Logradouro?.trim(),
-        complement: address?.PessoaEndereco_Complemento?.trim(),
+        phoneNumber: phone?.PessoaTelefone_Fone?.toString().trim(),
+        email: customer.Pessoa_Email?.toString().trim(),
+        addressName: address?.PessoaEndereco_TipoEndereco?.toString().trim(),
+        city: address?.PessoaEndereco_Cidade?.toString().trim(),
+        state: address?.PessoaEndereco_Estado?.toString().trim(),
+        neighborhood: address?.PessoaEndereco_Bairro?.toString().trim(),
+        postal_code: address?.PessoaEndereco_CEP?.toString()?.toString().trim(),
+        street: address?.PessoaEndereco_Logradouro?.toString().trim(),
+        complement: address?.PessoaEndereco_Complemento?.toString().trim(),
         number: address?.PessoaEndereco_Numero?.toString()?.trim(),
-        // maker_id: undefined,
+        maker_id: vehicle?.maker_id,
         // maker: vehicle.VeiculoMarca_Descricao,
-        // model_id: undefined,
+        model_id: vehicle?.model_id,
         // model: schedule.VeiculoModelo,
-        // version_id: undefined,
+        version_id: vehicle?.version_id,
         // version: undefined,
-        // year: undefined,
-        // fuel: undefined,
+        // year: vehicle?.year,
+        // fuel: vehicle?.fuel,
         // color: vehicle.Veiculo_CorExternaDescricao,
-        licensePlate: schedule.VeiculoPlaca?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
+        licensePlate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
         mileage: Number(schedule.VeiculoKM) ?? 0,
         chassisNumber: schedule.VeiculoChassi ?? 'Não Informado',
         type: 'PACKAGE',
@@ -85,7 +91,6 @@ export class ScheduleService {
         inspection: schedule.Data.substring(0, 19),
         additionalInformation: `Dealernet
         Nome do consultor: ${schedule.ConsultorNome ?? ''}
-        Marca do veículo: ${vehicle.Marca_Descricao ?? ''}
         Modelo do veículo: ${schedule.VeiculoModelo ?? ''}
         `,
       };
