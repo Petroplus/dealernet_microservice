@@ -18,6 +18,7 @@ import { ProdutoDealernetResponse } from './response/produto-response';
 import { TMO } from './response/tmo-response';
 import { VeiculoInfo } from './response/veiculo-response';
 import { DealernetScheduleService } from './schedule/schedule.service';
+import { DealernetVehicleModelService } from './vehicle-model/vehicle-model.service';
 import { DealernetVehicleService } from './vehicle/vehicle.service';
 
 @Injectable()
@@ -26,6 +27,7 @@ export class DealernetService {
     public readonly schedule: DealernetScheduleService,
     public readonly customer: DealernetCustomerService,
     public readonly vehicle: DealernetVehicleService,
+    public readonly vehicleModel: DealernetVehicleModelService,
   ) {}
 
   async findCustomerByDocument(api: string, user: string, key: string, document: string): Promise<PessoaInfo> {

@@ -1,12 +1,13 @@
-import { Module, DynamicModule } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 
+import { DealernetCustomerModule } from './customer/customer.module';
 import { DealernetService } from './dealernet.service';
 import { DealernetScheduleModule } from './schedule/schedule.module';
-import { DealernetCustomerModule } from './customer/customer.module';
+import { DealernetVehicleModelModule } from './vehicle-model/vehicle-model.module';
 import { DealernetVehicleModule } from './vehicle/vehicle.module';
 
 @Module({
-  imports: [DealernetScheduleModule.forRoot(), DealernetCustomerModule, DealernetVehicleModule],
+  imports: [DealernetScheduleModule.forRoot(), DealernetCustomerModule, DealernetVehicleModule, DealernetVehicleModelModule],
   providers: [DealernetService],
   exports: [DealernetService],
 })

@@ -8,7 +8,7 @@ import { DealernetVehicleResponse } from './response/vehicle.response';
 
 @Injectable()
 export class DealernetVehicleService {
-  async findVehicleByPlate(connection: IntegrationDealernet, plate: string): Promise<DealernetVehicleResponse> {
+  async findByPlate(connection: IntegrationDealernet, plate: string): Promise<DealernetVehicleResponse> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
     const xmlBody = `
@@ -44,7 +44,7 @@ export class DealernetVehicleService {
 
       return veiculo;
     } catch (error) {
-      Logger.error('Erro ao fazer a requisição:', error, 'DealernetVehicleService.findVehicleByPlate');
+      Logger.error('Erro ao fazer a requisição:', error, 'DealernetVehicleService.findByPlate');
       throw error;
     }
   }

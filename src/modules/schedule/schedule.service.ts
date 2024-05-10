@@ -48,7 +48,8 @@ export class ScheduleService {
       const customer = await this.dialernet.customer.findById(integration.dealernet, schedule.ClienteCodigo);
       const address = customer.Endereco?.EnderecoItem;
       const phone = customer.Telefone?.TelefoneItem[0];
-      const vehicle: any = {}; //await this.dialernet.vehicle.findVehicleByPlate(integration.dealernet, schedule.VeiculoPlaca);
+
+      const vehicle = await this.dialernet.vehicleModel.findByName(integration.dealernet, schedule.VeiculoModelo);
 
       const dto: CreateOrderDto = {
         clientId: integration.client_id,
@@ -84,9 +85,9 @@ export class ScheduleService {
         inspection: schedule.Data.substring(0, 19),
         additionalInformation: `Dealernet
         Nome do consultor: ${schedule.ConsultorNome ?? ''}
-        Marca do veículo: ${vehicle.VeiculoMarca_Descricao ?? ''}
+        Marca do veículo: ${vehicle.Marca_Descricao ?? ''}
         Modelo do veículo: ${schedule.VeiculoModelo ?? ''}
-        Número do motor: ${vehicle.Veiculo_NumeroMotor ?? ''}`,
+        `,
       };
 
       orders.push(dto);
