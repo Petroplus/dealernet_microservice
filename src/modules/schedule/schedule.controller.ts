@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Query } from '@nestjs/common';
 
 import { ScheduleService } from './schedule.service';
-import { ScheduleFilter } from './filters/schedule.filters';
+import { ScheduleFilter } from './filters/schedule.filter';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Schedules')

@@ -7,7 +7,7 @@ import { IntegrationResponse } from 'src/petroplay/integration/entities/integrat
 import { CreateOrderDto } from 'src/petroplay/order/dto/create-order.dto';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
-import { ScheduleFilter } from './filters/schedule.filters';
+import { ScheduleFilter } from './filters/schedule.filter';
 
 @Injectable()
 export class ScheduleService {
