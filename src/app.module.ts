@@ -12,6 +12,7 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
 import { ServiceModule } from './modules/service/service.module';
 import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { PetroplayModule } from './petroplay/petroplay.module';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PetroplayModule } from './petroplay/petroplay.module';
     VehicleModule.forRoot(),
     ProductModule.forRoot(),
     ServiceModule.forRoot(),
+    OrderModule.forRoot(),
   ],
   controllers: [],
   providers: [

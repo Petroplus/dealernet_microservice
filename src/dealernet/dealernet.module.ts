@@ -5,9 +5,16 @@ import { DealernetService } from './dealernet.service';
 import { DealernetScheduleModule } from './schedule/schedule.module';
 import { DealernetVehicleModelModule } from './vehicle-model/vehicle-model.module';
 import { DealernetVehicleModule } from './vehicle/vehicle.module';
+import { DealernetOrderModule } from './order/order.module';
 
 @Module({
-  imports: [DealernetScheduleModule.forRoot(), DealernetCustomerModule, DealernetVehicleModule, DealernetVehicleModelModule],
+  imports: [
+    DealernetScheduleModule.forRoot(),
+    DealernetCustomerModule,
+    DealernetVehicleModule,
+    DealernetVehicleModelModule,
+    DealernetOrderModule,
+  ],
   providers: [DealernetService],
   exports: [DealernetService],
 })
