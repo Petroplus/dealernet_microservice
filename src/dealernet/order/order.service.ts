@@ -29,7 +29,7 @@ export class DealernetOrderService {
                     <deal:Status>${filter?.status ?? '?'}</deal:Status>
                     <deal:Acao>LST</deal:Acao>
                   <deal:Acao>LST</deal:Acao>
-                </deal:Sdt_fspessoain>
+                  </deal:Sdt_fsordemservicoin>
               </deal:WS_FastServiceApi.ORDEMSERVICO>
             </soapenv:Body>
             </soapenv:Envelope>
@@ -42,6 +42,7 @@ export class DealernetOrderService {
       const xmlData = response.data;
       const parser = new XMLParser();
       const parsedData = parser.parse(xmlData);
+
       const orders: DealernetOrder | DealernetOrder[] =
         parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista'][
           'SDT_FSOrdemServicoOut'
