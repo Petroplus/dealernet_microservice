@@ -32,6 +32,7 @@ export class DealernetProductService {
             </soapenv:Body>
             </soapenv:Envelope>
         `;
+
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     try {
       const client = await dealernet();
@@ -40,7 +41,6 @@ export class DealernetProductService {
       const xmlData = response.data;
       const parser = new XMLParser();
       const parsedData = parser.parse(xmlData);
-
       // eslint-disable-next-line prettier/prettier
       const products =
         parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.PRODUTOResponse']['Sdt_fsprodutooutlista'][

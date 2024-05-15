@@ -7,6 +7,7 @@ import { DealernetVehicleModelModule } from './vehicle-model/vehicle-model.modul
 import { DealernetVehicleModule } from './vehicle/vehicle.module';
 import { DealernetOrderModule } from './order/order.module';
 import { DealernetProductModule } from './product/product.module';
+import { DealernetServiceModule } from './service/service.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { DealernetProductModule } from './product/product.module';
     DealernetVehicleModelModule,
     DealernetOrderModule,
     DealernetProductModule,
+    DealernetServiceModule,
   ],
   providers: [DealernetService],
   exports: [DealernetService],
