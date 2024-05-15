@@ -12,7 +12,7 @@ export class OrderController {
   constructor(private readonly service: OrderService) {}
 
   @Get(':client_id')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: DealernetOrder, isArray: true })
   @ApiOperation({
     summary: 'Busca uma lista ordem de serviço baseado nos filtros informados',
   })
@@ -21,7 +21,7 @@ export class OrderController {
   }
 
   @Get('order_id/:order_id')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: DealernetOrder, isArray: true })
   @ApiOperation({
     summary: 'Busca uma lista ordem de serviço baseado no integration_id dentro da order informada',
   })
@@ -48,7 +48,7 @@ export class OrderController {
   }
 
   @Post(':client_id')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: DealernetOrder })
   @ApiOperation({
     summary: 'Utiliza o body da rota /orders/xml_schema/{client_id} para inserir uma nova ordem',
   })
@@ -60,7 +60,7 @@ export class OrderController {
   }
 
   @Post('/order_id/:order_id')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: DealernetOrder })
   @ApiOperation({
     summary: 'Utiliza o body da rota /orders/xml_schema/order_id/{order_id} para inserir uma nova ordem',
   })
