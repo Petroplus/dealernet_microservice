@@ -21,6 +21,7 @@ import { DealernetScheduleService } from './schedule/schedule.service';
 import { DealernetVehicleModelService } from './vehicle-model/vehicle-model.service';
 import { DealernetVehicleService } from './vehicle/vehicle.service';
 import { DealernetOrderService } from './order/order.service';
+import { DealernetProductService } from './product/product.service';
 
 @Injectable()
 export class DealernetService {
@@ -30,6 +31,7 @@ export class DealernetService {
     public readonly vehicle: DealernetVehicleService,
     public readonly vehicleModel: DealernetVehicleModelService,
     public readonly order: DealernetOrderService,
+    public readonly product: DealernetProductService,
   ) {}
 
   async findCustomerByDocument(api: string, user: string, key: string, document: string): Promise<PessoaInfo> {
