@@ -13,6 +13,7 @@ import { ServiceModule } from './modules/service/service.module';
 import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { PetroplayModule } from './petroplay/petroplay.module';
 import { OrderModule } from './modules/order/order.module';
+import { BudgetModule } from './modules/budget/budget.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { OrderModule } from './modules/order/order.module';
     ProductModule.forRoot(),
     ServiceModule.forRoot(),
     OrderModule.forRoot(),
+    BudgetModule.forRoot(),
   ],
   controllers: [],
   providers: [
