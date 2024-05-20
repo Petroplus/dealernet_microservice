@@ -5,7 +5,7 @@ import { DealernetServiceTMOResponse } from 'src/dealernet/service/response/serv
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ServiceFilter } from './filters/service.filter';
 
-@ApiTags('AJUSTES -Services (TMO)')
+@ApiTags('Services (TMO)')
 @Controller('services')
 export class ServiceController {
   constructor(private readonly service: ServiceService) {}
