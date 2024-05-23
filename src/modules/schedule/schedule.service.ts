@@ -25,7 +25,8 @@ export class ScheduleService {
     const orders = await this.schema(filter);
     for await (const order of orders.chunk(10)) {
       Logger.warn(`Sending ${order.length} orders to Petroplay`);
-      await this.petroplay.order.import(order);
+      // await this.petroplay.order.import(order);
+      await this.petroplay.order.upsert(order);
     }
   }
 
@@ -57,43 +58,50 @@ export class ScheduleService {
           vehicles.find((v) => v.veiculo_codigo == ModeloVeiculo_Codigo && v.veiculo_descricao == ModeloVeiculo_Descricao)
         );
 
+      const customer_pps = await this.petroplay.customer.findByDocument(
+        integration.client_id,
+        schedule.ClienteDocumento.toString().trim()
+      );
+
       const dto: CreateOrderDto = {
-        clientId: integration.client_id,
-        customerName: schedule.ClienteNome,
-        customerDocument: schedule.ClienteDocumento.toString().trim(),
-        phoneType: 'PHON',
-        phoneNumber: phone?.PessoaTelefone_Fone?.toString().trim(),
+        client_id: integration.client_id,
+        customer_name: schedule.ClienteNome,
+        customer_document: schedule.ClienteDocumento.toString().trim(),
+        phone_number: phone?.PessoaTelefone_Fone?.toString().trim(),
         email: customer.Pessoa_Email?.toString().trim(),
-        addressName: address?.PessoaEndereco_TipoEndereco?.toString().trim(),
-        city: address?.PessoaEndereco_Cidade?.toString().trim(),
-        state: address?.PessoaEndereco_Estado?.toString().trim(),
-        neighborhood: address?.PessoaEndereco_Bairro?.toString().trim(),
-        postal_code: address?.PessoaEndereco_CEP?.toString()?.toString().trim(),
-        street: address?.PessoaEndereco_Logradouro?.toString().trim(),
-        complement: address?.PessoaEndereco_Complemento?.toString().trim(),
-        number: address?.PessoaEndereco_Numero?.toString()?.trim(),
-        maker_id: vehicle?.maker_id,
+        // address_name: address?.PessoaEndereco_TipoEndereco?.toString().trim(),
+        // city: address?.PessoaEndereco_Cidade?.toString().trim(),
+        // state: address?.PessoaEndereco_Estado?.toString().trim(),
+        // neighborhood: address?.PessoaEndereco_Bairro?.toString().trim(),
+        // postal_code: address?.PessoaEndereco_CEP?.toString()?.toString().trim(),
+        // street: address?.PessoaEndereco_Logradouro?.toString().trim(),
+        // complement: address?.PessoaEndereco_Complemento?.toString().trim(),
+        // number: address?.PessoaEndereco_Numero?.toString()?.trim(),
+        vehicle_maker_id: vehicle?.maker_id,
         // maker: vehicle.VeiculoMarca_Descricao,
-        model_id: vehicle?.model_id,
+        vehicle_model_id: vehicle?.model_id,
         // model: schedule.VeiculoModelo,
-        version_id: vehicle?.version_id,
+        vehicle_version_id: vehicle?.version_id,
         // version: undefined,
-        // year: vehicle?.year,
+        // vehicle_year: vehicle?.year,
         // fuel: vehicle?.fuel,
         // color: vehicle.Veiculo_CorExternaDescricao,
-        licensePlate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
+        license_plate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
         mileage: Number(schedule.VeiculoKM) ?? 0,
-        chassisNumber: schedule.VeiculoChassi ?? 'Não Informado',
+        vehicle_chassis_number: schedule.VeiculoChassi ?? 'Não Informado',
         type: 'PACKAGE',
         with_checklist: true,
-        integrationId: `${schedule.Chave}`,
-        integrationData: schedule,
+        integration_id: `${schedule.Chave}`,
+        integration_data: schedule,
         inspection: schedule.Data.substring(0, 19),
-        additionalInformation: `Dealernet
+        additional_information: `Dealernet
         Nome do consultor: ${schedule.ConsultorNome ?? ''}
         Modelo do veículo: ${schedule.VeiculoModelo ?? ''}
         `,
       };
+      if (customer_pps) {
+        dto.customer_id = customer_pps.id;
+      }
 
       orders.push(dto);
     }

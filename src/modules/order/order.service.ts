@@ -49,7 +49,7 @@ export class OrderService {
   }
 
   async createXmlSchemaOsByOrderId(order_id: string): Promise<string> {
-    const order = await this.petroplay.order.findById(order_id);
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration) throw new BadRequestException('Integration not found');
@@ -57,8 +57,7 @@ export class OrderService {
     Logger.log(`Rota Create: Buscando itens da ordem ${order_id}`, 'OsService');
     order.items = await this.petroplay.order.findItems(order_id);
 
-    await this.petroplay.order.updateStatus(order_id, 'AWAIT_SEND_OS');
-
+    // await this.petroplay.order.updateStatus(order_id, 'AWAIT_SEND_OS');
     Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
     const osDTO = await this.osDtoToDealernetOs(order);
 
@@ -66,7 +65,7 @@ export class OrderService {
   }
 
   async createOsByOrderId(order_id): Promise<DealernetOrder> {
-    const order = await this.petroplay.order.findById(order_id);
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration) throw new BadRequestException('Integration not found');
@@ -120,29 +119,30 @@ export class OrderService {
       veiculo_placa_chassi: order.vehicle_chassis_number,
       veiculo_Km: Number(order.mileage) || 0,
       cliente_documento: order.customer_document,
-      consultor_documento: await this.formatarDoc(order.consultant.cod_consultor),
+      consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
       data: new Date(order.inspection).toISOString(),
       data_final: new Date().toISOString(),
       data_prometida: new Date(order.conclusion).toISOString(),
       nro_prisma: order.prisma,
       observacao: order.notes,
       prisma_codigo: order.prisma,
-      tipo_os_sigla: order.os_type.external_id,
+      tipo_os_sigla: order.os_type?.external_id,
       servicos: services,
       tipo_os: {
         tipo_os_item: {
-          tipo_os_sigla: order.os_type.external_id,
-          consultor_documento: await this.formatarDoc(order.consultant.cod_consultor),
+          tipo_os_sigla: order.os_type?.external_id,
+          consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
         },
       },
     };
     return OS;
   }
 
-  async formatarDoc(doc: string): Promise<string> {
-    if (doc.length === 11) return doc;
+  async formatarDoc(doc?: string): Promise<string> {
+    if (!doc) return '?';
+    if (doc?.length === 11) return doc;
     else {
-      const totalZeros = 11 - doc.length;
+      const totalZeros = 11 - doc?.length;
       let result = '';
 
       for (let i = 0; i < totalZeros; i++) {
