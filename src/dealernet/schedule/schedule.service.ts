@@ -32,6 +32,8 @@ export class DealernetScheduleService {
             </soapenv:Body>
             </soapenv:Envelope>
         `;
+
+    console.log(xmlBody);
     try {
       const client = await dealernet();
 
@@ -63,6 +65,7 @@ export class DealernetScheduleService {
         return agendamentos;
       }
     } catch (error) {
+      console.log(error);
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetScheduleService.find');
       throw error;
     }
