@@ -4,6 +4,9 @@ import { petroplay } from 'src/commons/web-client';
 import { PetroplayOrderEntity } from './entity/order.entity';
 import { OrderItemEntity } from './entity/order-items.entity';
 import { OrderStatus } from './enum/order-status.enum';
+import { OrderRelations } from './filters/expand-orders';
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { UpsertOrderDto } from './dto/upsert-order.dto';
 
 @Injectable()
 export class PetroplayOrderService {
@@ -14,11 +17,18 @@ export class PetroplayOrderService {
       throw new BadRequestException('Error on import order');
     });
   }
-
-  async findById(order_id: string): Promise<PetroplayOrderEntity> {
-    const client = await petroplay.v1();
+  async upsert(dto: UpsertOrderDto[]): Promise<void> {
+    const client = await petroplay.v2();
+    await client.put('/v2/orders', dto).catch((err) => {
+      console.log(err.response.data);
+      Logger.error('Error on upsert order:', err, 'PetroplayOrderService.upsert');
+      throw new BadRequestException('Error on upsert order');
+    });
+  }
+  async findById(order_id: string, expand?: OrderRelations[]): Promise<PetroplayOrderEntity> {
+    const client = await petroplay.v2();
     return await client
-      .get(`/v1/orders/${order_id}`)
+      .get(`/v2/orders/${order_id}`, { params: { expand } })
       .then(({ data }) => data)
       .catch((err) => {
         Logger.error('Error on find order:', err, 'PetroplayOrderService.findById');
@@ -37,7 +47,7 @@ export class PetroplayOrderService {
       });
   }
 
-  async updateStatus(order_id: string, status: OrderStatus): Promise<OrderItemEntity> {
+  async updateStatus(order_id: string, status: OrderStatus): Promise<PetroplayOrderEntity> {
     const client = await petroplay.v1();
     return client
       .put(`/v1/orders/${order_id}/status`, { status })
@@ -45,6 +55,17 @@ export class PetroplayOrderService {
       .catch((err) => {
         Logger.error('Error on update order status:', err, 'PetroplayOrderService.updateStatus');
         throw new BadRequestException('Error on update order status');
+      });
+  }
+
+  async updateOrder(order_id: string, dto: UpdateOrderDto): Promise<PetroplayOrderEntity> {
+    const client = await petroplay.v2();
+    return client
+      .put(`/v2/orders/${order_id}`, dto)
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on update order:', err, 'PetroplayOrderService.updateOrder');
+        throw new BadRequestException('Error on update order');
       });
   }
 }
