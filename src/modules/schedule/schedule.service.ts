@@ -21,10 +21,14 @@ export class ScheduleService {
     const integrations = await this.petroplay.integration.find({ clients: filter.client_ids });
     if (!integrations) throw new BadRequestException('Integration not found');
 
-    const orders = await this.schema(filter);
-    for await (const order of orders.chunk(10)) {
-      Logger.warn(`Sending ${order.length} orders to Petroplay`);
-      await this.petroplay.order.upsert(order);
+    for await (const integration of integrations) {
+      const toUpsert = await this.schema({ ...filter, client_ids: [integration.client_id] });
+      toUpsert.chunk(5).forEach(async (item) => {
+        Logger.warn(`Sending ${item.length} orders to Petroplay`);
+        await this.petroplay.order.upsert(item).catch((err) => {
+          Logger.error('Error on upsert orders', err, 'ScheduleService.sync');
+        });
+      });
     }
   }
 

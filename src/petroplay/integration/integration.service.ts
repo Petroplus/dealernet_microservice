@@ -9,10 +9,12 @@ import { IntegrationFilter } from './filters/integration.filter';
 export class PetroplayIntegrationService {
   async find(filter: IntegrationFilter): Promise<IntegrationResponse[]> {
     const client = await petroplay.v2();
-    const { data } = await client.get(`/v2/integrations?dms=DEALERNET`, { params: filter }).catch((error) => {
-      throw new HttpException(error.response.data, error.response.status);
-    });
-    return data ?? [];
+    const { data } = await client
+      .get<IntegrationResponse[]>(`/v2/integrations?dms=DEALERNET`, { params: filter })
+      .catch((error) => {
+        throw new HttpException(error.response.data, error.response.status);
+      });
+    return data?.filter((x) => x.dealernet) ?? [];
   }
 
   async findByClientId(client_id: string, expand?: ['dealernet.vehicles']): Promise<IntegrationResponse> {
