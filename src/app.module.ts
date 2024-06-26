@@ -1,5 +1,5 @@
 import { ClassSerializerInterceptor, Module } from '@nestjs/common';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule as NestjsScheduleModule } from '@nestjs/schedule';
 
 import { DealernetModule } from './dealernet/dealernet.module';
@@ -14,10 +14,13 @@ import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { PetroplayModule } from './petroplay/petroplay.module';
 import { OrderModule } from './modules/order/order.module';
 import { BudgetModule } from './modules/budget/budget.module';
+import { AuthGuard } from './guards/auth.guard';
+import { ContextModule } from './context/context.module';
 
 @Module({
   imports: [
     NestjsScheduleModule.forRoot(),
+    ContextModule.forRoot(),
     PetroplayModule.forRoot(),
     DealernetModule.forRoot(),
     ScheduleModule.forRoot(),
@@ -30,6 +33,10 @@ import { BudgetModule } from './modules/budget/budget.module';
   ],
   controllers: [],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,

@@ -32,8 +32,8 @@ async function bootstrap() {
   app.enableCors();
 
   const config = new DocumentBuilder()
-    .setTitle('Dialernet Microservice')
-    .setDescription('Swagger documentaion for Dialernet Microservice')
+    .setTitle('Dealernet Microservice')
+    .setDescription('Swagger documentation for Dealernet Microservice')
     .setVersion('1.0')
     .setExternalDoc(undefined, '/docs/api-docs.json')
     .addBearerAuth()

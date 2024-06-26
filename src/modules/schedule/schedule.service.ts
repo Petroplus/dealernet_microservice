@@ -13,11 +13,10 @@ import { ScheduleFilter } from './filters/schedule.filter';
 export class ScheduleService {
   constructor(
     private readonly petroplay: PetroplayService,
-    private readonly dialernet: DealernetService
+    private readonly dealernet: DealernetService
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron('0 2,4,8 * * *')
   async sync(filter: ScheduleFilter): Promise<void> {
     const integrations = await this.petroplay.integration.find({ clients: filter.client_ids });
     if (!integrations) throw new BadRequestException('Integration not found');
@@ -25,7 +24,6 @@ export class ScheduleService {
     const orders = await this.schema(filter);
     for await (const order of orders.chunk(10)) {
       Logger.warn(`Sending ${order.length} orders to Petroplay`);
-      // await this.petroplay.order.import(order);
       await this.petroplay.order.upsert(order);
     }
   }
@@ -36,7 +34,7 @@ export class ScheduleService {
 
     const orders: CreateOrderDto[] = [];
     for await (const integration of integrations) {
-      const schedules = await this.dialernet.schedule.find(integration.dealernet, filter.start_date, filter.end_date);
+      const schedules = await this.dealernet.schedule.find(integration.dealernet, filter.start_date, filter.end_date);
       await this.scheduleToOs(integration, schedules).then((data) => orders.push(...data));
     }
 
@@ -48,11 +46,11 @@ export class ScheduleService {
 
     const orders: CreateOrderDto[] = [];
     for await (const schedule of schedules) {
-      const customer = await this.dialernet.customer.findById(integration.dealernet, schedule.ClienteCodigo);
+      const customer = await this.dealernet.customer.findById(integration.dealernet, schedule.ClienteCodigo);
       const address = customer.Endereco?.EnderecoItem;
       const phone = customer.Telefone?.TelefoneItem[0];
 
-      const vehicle = await this.dialernet.vehicleModel
+      const vehicle = await this.dealernet.vehicleModel
         .findByName(integration.dealernet, schedule.VeiculoModelo)
         .then(({ ModeloVeiculo_Codigo, ModeloVeiculo_Descricao }) =>
           vehicles.find((v) => v.veiculo_codigo == ModeloVeiculo_Codigo && v.veiculo_descricao == ModeloVeiculo_Descricao)

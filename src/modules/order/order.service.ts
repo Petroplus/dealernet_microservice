@@ -12,14 +12,14 @@ import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 export class OrderService {
   constructor(
     private readonly petroplay: PetroplayService,
-    private readonly dialernet: DealernetService
+    private readonly Dealernet: DealernetService
   ) {}
 
   async find(client_id: string, filter: OrderFilter): Promise<DealernetOrder[]> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    return await this.dialernet.order.findOS(integration.dealernet, filter);
+    return await this.Dealernet.order.findOS(integration.dealernet, filter);
   }
 
   async findByPPsOrderId(order_id: string): Promise<DealernetOrder[]> {
@@ -31,21 +31,21 @@ export class OrderService {
     const filter: OrderFilter = {
       integration_id: order.integration_id,
     };
-    return await this.dialernet.order.findOS(integration.dealernet, filter);
+    return await this.Dealernet.order.findOS(integration.dealernet, filter);
   }
 
   async create(client_id: string, dto: CreateOsDTO): Promise<DealernetOrder> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    return await this.dialernet.order.createOs(integration.dealernet, dto);
+    return await this.Dealernet.order.createOs(integration.dealernet, dto);
   }
 
   async getXmlSchema(client_id: string, dto: CreateOsDTO): Promise<string> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    return await this.dialernet.order.createOsXmlSchema(integration.dealernet, dto);
+    return await this.Dealernet.order.createOsXmlSchema(integration.dealernet, dto);
   }
 
   async createXmlSchemaOsByOrderId(order_id: string): Promise<string> {
@@ -61,7 +61,7 @@ export class OrderService {
     Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
     const osDTO = await this.osDtoToDealernetOs(order);
 
-    return this.dialernet.order.createOsXmlSchema(integration.dealernet, osDTO);
+    return this.Dealernet.order.createOsXmlSchema(integration.dealernet, osDTO);
   }
 
   async createOsByOrderId(order_id): Promise<DealernetOrder> {
@@ -78,7 +78,7 @@ export class OrderService {
     Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
     const osDTO = await this.osDtoToDealernetOs(order);
 
-    return this.dialernet.order.createOs(integration.dealernet, osDTO);
+    return this.Dealernet.order.createOs(integration.dealernet, osDTO);
   }
   async osDtoToDealernetOs(order: PetroplayOrderEntity): Promise<CreateOsDTO> {
     const products: ProdutoCreateDTO[] = order.items

@@ -10,7 +10,7 @@ import { CreateCustomerDTO } from 'src/dealernet/dto/create-customer.dto';
 export class CustomerService {
   constructor(
     private readonly petroplay: PetroplayService,
-    private readonly dialernet: DealernetService
+    private readonly Dealernet: DealernetService
   ) {}
 
   async find(client_id: string, filter: CustomerFilter): Promise<any> {
@@ -18,9 +18,9 @@ export class CustomerService {
     if (!integration) throw new BadRequestException('Integration not found');
 
     if (filter.id) {
-      return this.dialernet.customer.findById(integration.dealernet, filter.id);
+      return this.Dealernet.customer.findById(integration.dealernet, filter.id);
     } else if (filter.document) {
-      return this.dialernet.customer.findByDocument(integration.dealernet, filter.document);
+      return this.Dealernet.customer.findByDocument(integration.dealernet, filter.document);
     } else {
       throw new BadRequestException('Invalid filter');
     }
@@ -30,13 +30,13 @@ export class CustomerService {
     const integration = await this.petroplay.integration.findByClientId(client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    return await this.dialernet.customer.createCustomer(integration.dealernet, dto);
+    return await this.Dealernet.customer.createCustomer(integration.dealernet, dto);
   }
 
   async update(client_id: string, dto: CreateCustomerDTO): Promise<void> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    return await this.dialernet.customer.updateCustomer(integration.dealernet, dto);
+    return await this.Dealernet.customer.updateCustomer(integration.dealernet, dto);
   }
 }
