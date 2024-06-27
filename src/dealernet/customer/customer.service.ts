@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+
 import { Injectable, Logger } from '@nestjs/common';
 import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
@@ -7,9 +9,50 @@ import { IntegrationDealernet } from 'src/petroplay/integration/entities/integra
 
 import { DealernetCustomerResponse } from './response/customers.response';
 import { CreateCustomerDTO } from '../dto/create-customer.dto';
+import { CustomerFilter } from './filters/customer.filter';
 
 @Injectable()
 export class DealernetCustomerService {
+  async find(connection: IntegrationDealernet, filter: CustomerFilter): Promise<DealernetCustomerResponse[]> {
+    const xmlBody = `
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <deal:WS_FastServiceApi.PESSOA>
+                    <deal:Usuario>${connection.user}</deal:Usuario>
+                    <deal:Senha>${connection.key}</deal:Senha>
+                    <deal:Sdt_fspessoain>
+                        <deal:Pessoa_Codigo>${filter?.id ?? '?'}</deal:Pessoa_Codigo>
+                        <deal:Pessoa_Nome>${filter?.name ?? '?'}</deal:Pessoa_Nome>
+                        <deal:Pessoa_DocIdentificador>${filter?.document ?? '?'}</deal:Pessoa_DocIdentificador>
+                        <deal:Acao>LST</deal:Acao>
+                    </deal:Sdt_fspessoain>
+                </deal:WS_FastServiceApi.PESSOA>
+            </soapenv:Body>
+            </soapenv:Envelope>
+        `;
+    const url = `${connection.url}/aws_fastserviceapi.aspx`;
+    try {
+      const client = await dealernet();
+
+      const response = await client.post(url, xmlBody);
+      const xmlData = response.data;
+      const parser = new XMLParser();
+      const parsedData = parser.parse(xmlData);
+
+      const pessoas = parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.PESSOAResponse']['Sdt_fspessoaout']['SDT_FSPessoaOut'];
+
+      if (!isArray(pessoas)) {
+        return pessoas?.Pessoa_Mensagem ? null : [pessoas];
+      } else {
+        return pessoas;
+      }
+    } catch (error) {
+      Logger.error('Erro ao fazer a requisição:', error, 'DealernetCustomerService.findById');
+      throw error;
+    }
+  }
+
   async findById(connection: IntegrationDealernet, id: number): Promise<DealernetCustomerResponse> {
     const xmlBody = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
@@ -114,54 +157,29 @@ export class DealernetCustomerService {
                         <deal:Acao>INC</deal:Acao>
                         <deal:Endereco>
                             <deal:EnderecoItem>
-                                <deal:PessoaEndereco_TipoEndereco>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_TipoEndereco ?? '?'
-                                }</deal:PessoaEndereco_TipoEndereco>
-                                <deal:PessoaEndereco_Logradouro>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_Logradouro ?? '?'
-                                }</deal:PessoaEndereco_Logradouro>
-                                <deal:PessoaEndereco_TipoLogradouro_Descricao>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_TipoLogradouro_Descricao ?? '?'
-                                }</deal:PessoaEndereco_TipoLogradouro_Descricao>
-                                <deal:PessoaEndereco_Numero>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_Numero ?? '?'
-                                }</deal:PessoaEndereco_Numero>
-                                <deal:PessoaEndereco_Complemento>?
-      }</deal:PessoaEndereco_Complemento>
+                                <deal:PessoaEndereco_TipoEndereco>${dto.Endereco?.EnderecoItem?.PessoaEndereco_TipoEndereco ?? '?'}</deal:PessoaEndereco_TipoEndereco>
+                                <deal:PessoaEndereco_Logradouro>${dto.Endereco?.EnderecoItem?.PessoaEndereco_Logradouro ?? '?'}</deal:PessoaEndereco_Logradouro>
+                                <deal:PessoaEndereco_TipoLogradouro_Descricao>${dto.Endereco?.EnderecoItem?.PessoaEndereco_TipoLogradouro_Descricao ?? '?'}</deal:PessoaEndereco_TipoLogradouro_Descricao>
+                                <deal:PessoaEndereco_Numero>${dto.Endereco?.EnderecoItem?.PessoaEndereco_Numero ?? '?'}</deal:PessoaEndereco_Numero>
+                                <deal:PessoaEndereco_Complemento>?}</deal:PessoaEndereco_Complemento>
                                 <deal:PessoaEndereco_CEP>${dto.Endereco?.EnderecoItem?.PessoaEndereco_CEP ?? '?'}</deal:PessoaEndereco_CEP>
-                                <deal:PessoaEndereco_Bairro>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_Bairro ?? '?'
-                                }</deal:PessoaEndereco_Bairro>
-                                <deal:PessoaEndereco_Cidade>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_Cidade ?? '?'
-                                }</deal:PessoaEndereco_Cidade>
-                                <deal:PessoaEndereco_Estado>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_Estado ?? '?'
-                                }</deal:PessoaEndereco_Estado>
+                                <deal:PessoaEndereco_Bairro>${dto.Endereco?.EnderecoItem?.PessoaEndereco_Bairro ?? '?'}</deal:PessoaEndereco_Bairro>
+                                <deal:PessoaEndereco_Cidade>${dto.Endereco?.EnderecoItem?.PessoaEndereco_Cidade ?? '?'}</deal:PessoaEndereco_Cidade>
+                                <deal:PessoaEndereco_Estado>${dto.Endereco?.EnderecoItem?.PessoaEndereco_Estado ?? '?'}</deal:PessoaEndereco_Estado>
                             </deal:EnderecoItem>
                         </deal:Endereco>
                         <deal:Telefone>
                             <deal:TelefoneItem>
-                                <deal:PessoaTelefone_TipoTelefone>${
-                                  dto.Telefone?.TelefoneItem?.PessoaTelefone_TipoTelefone ?? '?'
-                                }</deal:PessoaTelefone_TipoTelefone>
+                                <deal:PessoaTelefone_TipoTelefone>${dto.Telefone?.TelefoneItem?.PessoaTelefone_TipoTelefone ?? '?'}</deal:PessoaTelefone_TipoTelefone>
                                 <deal:PessoaTeleFone_DDD>${dto.Telefone?.TelefoneItem?.PessoaTeleFone_DDD ?? '?'}</deal:PessoaTeleFone_DDD>
-                                <deal:PessoaTelefone_Fone>${
-                                  dto.Telefone?.TelefoneItem?.PessoaTelefone_Fone ?? '?'
-                                }</deal:PessoaTelefone_Fone>
+                                <deal:PessoaTelefone_Fone>${dto.Telefone?.TelefoneItem?.PessoaTelefone_Fone ?? '?'}</deal:PessoaTelefone_Fone>
                             </deal:TelefoneItem>
                         </deal:Telefone>
                         <deal:MeioContato>
                             <deal:MeioContatoItem>
-                                <deal:PessoaMeioContato_Tipo>${
-                                  dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Ativo ?? '?'
-                                }</deal:PessoaMeioContato_Tipo>
-                                <deal:PessoaMeioContato_Ativo>${
-                                  dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Ativo ?? '?'
-                                }</deal:PessoaMeioContato_Ativo>
-                                <deal:PessoaMeioContato_Principal>${
-                                  dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Principal ?? '?'
-                                }</deal:PessoaMeioContato_Principal>
+                                <deal:PessoaMeioContato_Tipo>${dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Ativo ?? '?'}</deal:PessoaMeioContato_Tipo>
+                                <deal:PessoaMeioContato_Ativo>${dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Ativo ?? '?'}</deal:PessoaMeioContato_Ativo>
+                                <deal:PessoaMeioContato_Principal>${dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Principal ?? '?'}</deal:PessoaMeioContato_Principal>
                             </deal:MeioContatoItem>
                         </deal:MeioContato>
                     </deal:Sdt_fspessoain>
@@ -204,54 +222,29 @@ export class DealernetCustomerService {
                         <deal:Acao>ALT</deal:Acao>
                         <deal:Endereco>
                             <deal:EnderecoItem>
-                                <deal:PessoaEndereco_TipoEndereco>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_TipoEndereco ?? '?'
-                                }</deal:PessoaEndereco_TipoEndereco>
-                                <deal:PessoaEndereco_Logradouro>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_Logradouro ?? '?'
-                                }</deal:PessoaEndereco_Logradouro>
-                                <deal:PessoaEndereco_TipoLogradouro_Descricao>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_TipoLogradouro_Descricao ?? '?'
-                                }</deal:PessoaEndereco_TipoLogradouro_Descricao>
-                                <deal:PessoaEndereco_Numero>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_Numero ?? '?'
-                                }</deal:PessoaEndereco_Numero>
-                                <deal:PessoaEndereco_Complemento>?
-      }</deal:PessoaEndereco_Complemento>
+                                <deal:PessoaEndereco_TipoEndereco>${dto.Endereco?.EnderecoItem?.PessoaEndereco_TipoEndereco ?? '?'}</deal:PessoaEndereco_TipoEndereco>
+                                <deal:PessoaEndereco_Logradouro>${dto.Endereco?.EnderecoItem?.PessoaEndereco_Logradouro ?? '?'}</deal:PessoaEndereco_Logradouro>
+                                <deal:PessoaEndereco_TipoLogradouro_Descricao>${dto.Endereco?.EnderecoItem?.PessoaEndereco_TipoLogradouro_Descricao ?? '?'}</deal:PessoaEndereco_TipoLogradouro_Descricao>
+                                <deal:PessoaEndereco_Numero>${dto.Endereco?.EnderecoItem?.PessoaEndereco_Numero ?? '?'}</deal:PessoaEndereco_Numero>
+                                <deal:PessoaEndereco_Complemento>?}</deal:PessoaEndereco_Complemento>
                                 <deal:PessoaEndereco_CEP>${dto.Endereco?.EnderecoItem?.PessoaEndereco_CEP ?? '?'}</deal:PessoaEndereco_CEP>
-                                <deal:PessoaEndereco_Bairro>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_Bairro ?? '?'
-                                }</deal:PessoaEndereco_Bairro>
-                                <deal:PessoaEndereco_Cidade>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_Cidade ?? '?'
-                                }</deal:PessoaEndereco_Cidade>
-                                <deal:PessoaEndereco_Estado>${
-                                  dto.Endereco?.EnderecoItem?.PessoaEndereco_Estado ?? '?'
-                                }</deal:PessoaEndereco_Estado>
+                                <deal:PessoaEndereco_Bairro>${dto.Endereco?.EnderecoItem?.PessoaEndereco_Bairro ?? '?'}</deal:PessoaEndereco_Bairro>
+                                <deal:PessoaEndereco_Cidade>${dto.Endereco?.EnderecoItem?.PessoaEndereco_Cidade ?? '?'}</deal:PessoaEndereco_Cidade>
+                                <deal:PessoaEndereco_Estado>${dto.Endereco?.EnderecoItem?.PessoaEndereco_Estado ?? '?'}</deal:PessoaEndereco_Estado>
                             </deal:EnderecoItem>
                         </deal:Endereco>
                         <deal:Telefone>
                             <deal:TelefoneItem>
-                                <deal:PessoaTelefone_TipoTelefone>${
-                                  dto.Telefone?.TelefoneItem?.PessoaTelefone_TipoTelefone ?? '?'
-                                }</deal:PessoaTelefone_TipoTelefone>
+                                <deal:PessoaTelefone_TipoTelefone>${dto.Telefone?.TelefoneItem?.PessoaTelefone_TipoTelefone ?? '?'}</deal:PessoaTelefone_TipoTelefone>
                                 <deal:PessoaTeleFone_DDD>${dto.Telefone?.TelefoneItem?.PessoaTeleFone_DDD ?? '?'}</deal:PessoaTeleFone_DDD>
-                                <deal:PessoaTelefone_Fone>${
-                                  dto.Telefone?.TelefoneItem?.PessoaTelefone_Fone ?? '?'
-                                }</deal:PessoaTelefone_Fone>
+                                <deal:PessoaTelefone_Fone>${dto.Telefone?.TelefoneItem?.PessoaTelefone_Fone ?? '?'}</deal:PessoaTelefone_Fone>
                             </deal:TelefoneItem>
                         </deal:Telefone>
                         <deal:MeioContato>
                             <deal:MeioContatoItem>
-                                <deal:PessoaMeioContato_Tipo>${
-                                  dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Ativo ?? '?'
-                                }</deal:PessoaMeioContato_Tipo>
-                                <deal:PessoaMeioContato_Ativo>${
-                                  dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Ativo ?? '?'
-                                }</deal:PessoaMeioContato_Ativo>
-                                <deal:PessoaMeioContato_Principal>${
-                                  dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Principal ?? '?'
-                                }</deal:PessoaMeioContato_Principal>
+                                <deal:PessoaMeioContato_Tipo>${dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Ativo ?? '?'}</deal:PessoaMeioContato_Tipo>
+                                <deal:PessoaMeioContato_Ativo>${dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Ativo ?? '?'}</deal:PessoaMeioContato_Ativo>
+                                <deal:PessoaMeioContato_Principal>${dto.MeioContato?.MeioContatoItem?.PessoaMeioContato_Principal ?? '?'}</deal:PessoaMeioContato_Principal>
                             </deal:MeioContatoItem>
                         </deal:MeioContato>
                     </deal:Sdt_fspessoain>

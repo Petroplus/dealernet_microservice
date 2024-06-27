@@ -17,13 +17,14 @@ export class CustomerService {
     const integration = await this.petroplay.integration.findByClientId(client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    if (filter.id) {
-      return this.Dealernet.customer.findById(integration.dealernet, filter.id);
-    } else if (filter.document) {
-      return this.Dealernet.customer.findByDocument(integration.dealernet, filter.document);
+    const customers = [];
+    if (filter.id || filter.name || filter.document) {
+      await this.Dealernet.customer.find(integration.dealernet, filter).then((customer) => customers.push(...customer));
     } else {
       throw new BadRequestException('Invalid filter');
     }
+
+    return customers;
   }
 
   async create(client_id: string, dto: CreateCustomerDTO): Promise<void> {

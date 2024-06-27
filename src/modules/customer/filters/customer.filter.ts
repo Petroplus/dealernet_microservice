@@ -9,5 +9,9 @@ export class CustomerFilter {
 
   @ApiProperty({ required: false })
   @IsOptional()
+  name?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
   document?: string;
 }
