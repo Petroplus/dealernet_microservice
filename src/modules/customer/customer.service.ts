@@ -31,13 +31,13 @@ export class CustomerService {
     const integration = await this.petroplay.integration.findByClientId(client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    return await this.Dealernet.customer.createCustomer(integration.dealernet, dto);
+    return this.Dealernet.customer.createCustomer(integration.dealernet, dto);
   }
 
   async update(client_id: string, dto: CreateCustomerDTO): Promise<void> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    return await this.Dealernet.customer.updateCustomer(integration.dealernet, dto);
+    return this.Dealernet.customer.updateCustomer(integration.dealernet, dto);
   }
 }

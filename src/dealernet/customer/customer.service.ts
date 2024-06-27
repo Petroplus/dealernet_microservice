@@ -188,10 +188,10 @@ export class DealernetCustomerService {
         </soapenv:Envelope>
         `;
     try {
+      console.log(xmlBody);
       const client = await dealernet();
       const response = await client.post(url, xmlBody);
-      const xmlData = response.data;
-      console.log(xmlData);
+      return response.data;
     } catch (error) {
       console.error('Erro ao fazer a requisição:', error);
       throw error;

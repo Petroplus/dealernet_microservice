@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 class EnderecoItem {
   @ApiProperty()
@@ -41,53 +42,54 @@ class MeioContatoItem {
 
 export class CreateCustomerDTO {
   @ApiProperty({ type: String, description: 'Nome da pessoa' })
+  @IsNotEmpty()
   Pessoa_Nome: string;
 
   @ApiProperty({ type: String, description: 'Tipo de pessoa' })
+  @IsNotEmpty()
   Pessoa_TipoPessoa: string;
 
   @ApiProperty({ type: Number, description: 'Documento de identificação da pessoa' })
+  @IsNotEmpty()
   Pessoa_DocIdentificador: number;
 
   @ApiProperty({ type: Number, description: 'RG ou Inscrição Estadual da pessoa' })
+  @IsNotEmpty()
   Pessoa_RG_InscricaoEstadual: number;
 
   @ApiProperty({ type: String, description: 'Órgão emissor do documento' })
+  @IsOptional()
   Pessoa_OrgaoEmissor: string;
 
   @ApiProperty({ type: String, description: 'Inscrição municipal da pessoa' })
+  @IsOptional()
   Pessoa_InscricaoMunicipal: string;
 
   @ApiProperty({ type: String, description: 'Sexo da pessoa' })
+  @IsOptional()
   Pessoa_Sexo: string;
 
   @ApiProperty({ type: String, description: 'Email da pessoa' })
+  @IsNotEmpty()
   Pessoa_Email: string;
 
   @ApiProperty({ type: String, description: 'Data de nascimento da pessoa' })
+  @IsOptional()
   Pessoa_Nascimento: string;
 
   @ApiProperty({ type: String, description: 'Mensagem relacionada à pessoa' })
+  @IsOptional()
   Pessoa_Mensagem: string;
 
-  @ApiProperty({
-    type: EnderecoItem,
-  })
-  Endereco: {
-    EnderecoItem: EnderecoItem;
-  };
+  @ApiProperty({ type: EnderecoItem })
+  @IsOptional()
+  Endereco: { EnderecoItem: EnderecoItem };
 
-  @ApiProperty({
-    type: TelefoneItem,
-  })
-  Telefone: {
-    TelefoneItem: TelefoneItem;
-  };
+  @ApiProperty({ type: TelefoneItem })
+  @IsOptional()
+  Telefone: { TelefoneItem: TelefoneItem };
 
-  @ApiProperty({
-    type: MeioContatoItem,
-  })
-  MeioContato: {
-    MeioContatoItem: MeioContatoItem;
-  };
+  @ApiProperty({ type: MeioContatoItem })
+  @IsOptional()
+  MeioContato: { MeioContatoItem: MeioContatoItem };
 }
