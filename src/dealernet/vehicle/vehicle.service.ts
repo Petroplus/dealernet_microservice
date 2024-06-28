@@ -7,11 +7,58 @@ import { IntegrationDealernet } from 'src/petroplay/integration/entities/integra
 
 import { CreateDealernetVehicleDTO } from './dto/create-vehicle.dto';
 import { VehicleFilter } from './filters/vehicle.filter';
+import { VehicleColorFilter } from './filters/vehicle-color.filter';
+import { VehicleModelFilter } from './filters/vehicle-model.filter';
 import { VehicleYearFilter } from './filters/vehicle-year.filter';
-import { DealernetVehicleResponse, DealernetVehicleYearResponse } from './response/vehicle.response';
+import { DealernetVehicleColorResponse, DealernetVehicleModelResponse, DealernetVehicleResponse, DealernetVehicleYearResponse } from './response/vehicle.response';
 
 @Injectable()
 export class DealernetVehicleService {
+  async create(connection: IntegrationDealernet, dto: CreateDealernetVehicleDTO): Promise<DealernetVehicleResponse> {
+    const url = `${connection.url}/aws_fastserviceapi.aspx`;
+
+    const xmlBody = `
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <deal:WS_FastServiceApi.VEICULO>
+                    <deal:Usuario>${connection.user}</deal:Usuario>
+                    <deal:Senha>${connection.key}</deal:Senha>
+                    <deal:Sdt_fsveiculoin>
+                        <deal:Veiculo_Codigo>${dto.Veiculo_Codigo ?? '?'}</deal:Veiculo_Codigo>
+                        <deal:Veiculo_Placa>${dto.Veiculo_Placa ?? '?'}</deal:Veiculo_Placa>
+                        <deal:Veiculo_Chassi>${dto.Veiculo_Chassi ?? '?'}</deal:Veiculo_Chassi>
+                        <deal:VeiculoAno_Codigo>${dto.Veiculo_AnoCodigo ?? '?'}</deal:VeiculoAno_Codigo>
+                        <deal:Veiculo_Modelo>${dto.Veiculo_Modelo ?? '?'}</deal:Veiculo_Modelo>
+                        <deal:Veiculo_CorExterna>${dto.Veiculo_CorExterna ?? '?'}</deal:Veiculo_CorExterna>
+                        <deal:Veiculo_CorInterna>${dto.Veiculo_CorInterna ?? '?'}</deal:Veiculo_CorInterna>
+                        <deal:Veiculo_Km>${dto.Veiculo_Km ?? '?'}</deal:Veiculo_Km>
+                        <deal:Veiculo_DataVenda>${dto.Veiculo_DataVenda ?? '?'}</deal:Veiculo_DataVenda>
+                        <deal:Veiculo_NumeroMotor>${dto.Veiculo_NumeroMotor ?? '?'}</deal:Veiculo_NumeroMotor>
+                        <deal:Cliente_Documento>${dto.Cliente_Documento ?? '?'}</deal:Cliente_Documento>
+                        <deal:Acao>INC</deal:Acao>
+                    </deal:Sdt_fsveiculoin>
+                </deal:WS_FastServiceApi.VEICULO>
+            </soapenv:Body>
+        </soapenv:Envelope>
+        `;
+
+    console.log(xmlBody);
+    try {
+      const client = await dealernet();
+      const response = await client.post(url, xmlBody).then(({ data }) => new XMLParser().parse(data));
+      const vehicle = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.VEICULOResponse']['Sdt_fsveiculoout']['SDT_FSVeiculoOut']
+
+      if (vehicle.Veiculo == "0") {
+        throw new BadRequestException('Erro ao criar/alterar veículo', { description: vehicle.Mensagem });
+      }
+      return vehicle;
+    } catch (error) {
+      Logger.error('Erro ao fazer a requisição:', error, 'DealernetVehicleService.create');
+      throw error;
+    }
+  }
+
   async find(connection: IntegrationDealernet, filter: VehicleFilter): Promise<DealernetVehicleResponse[]> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
@@ -51,6 +98,43 @@ export class DealernetVehicleService {
     return this.find(connection, { license_plate: plate }).then((vehicle) => vehicle?.first());
   }
 
+  async findModel(connection: IntegrationDealernet, model: VehicleModelFilter): Promise<DealernetVehicleModelResponse[]> {
+    const url = `${connection.url}/aws_fastserviceapi.aspx`;
+
+    const xmlBody = `
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <deal:WS_FastServiceApi.MODELOVEICULO>
+                    <deal:Usuario>${connection.user}</deal:Usuario>
+                    <deal:Senha>${connection.key}</deal:Senha>
+                    <deal:Sdt_fsmodeloveiculoin>
+                        <deal:ModeloVeiculo_Codigo>${model?.model_id ?? '?'}</deal:ModeloVeiculo_Codigo>
+                        <deal:ModeloVeiculo_Descricao>${model?.name ?? '?'}</deal:ModeloVeiculo_Descricao>
+                        <deal:Marca_Descricao>${model?.maker_name ?? '?'}</deal:Marca_Descricao>
+                    </deal:Sdt_fsmodeloveiculoin>
+                </deal:WS_FastServiceApi.MODELOVEICULO>
+            </soapenv:Body>
+        </soapenv:Envelope>
+        `;
+
+    try {
+      const client = await dealernet();
+
+      const response = await client.post(url, xmlBody).then(({ data }) => new XMLParser().parse(data));
+      const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.MODELOVEICULOResponse']['Sdt_fsmodeloveiculoout']['SDT_FSModeloVeiculoOut'];
+
+      const models = Array.isArray(parsedData) ? parsedData : [parsedData];
+      if (models.filter((model) => model.Mensagem).length > 0) return [];
+
+      return models;
+    }
+    catch (error) {
+      Logger.error('Erro ao fazer a requisição:', error, 'DealernetVehicleService.findModel');
+      throw error;
+    }
+  }
+
   async findYears(connection: IntegrationDealernet, filter: VehicleYearFilter): Promise<DealernetVehicleYearResponse[]> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
@@ -87,47 +171,40 @@ export class DealernetVehicleService {
     }
   }
 
-  async create(connection: IntegrationDealernet, dto: CreateDealernetVehicleDTO): Promise<DealernetVehicleResponse> {
+  async findColors(connection: IntegrationDealernet, filter: VehicleColorFilter): Promise<DealernetVehicleColorResponse[]> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
     const xmlBody = `
         <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
             <soapenv:Header/>
             <soapenv:Body>
-                <deal:WS_FastServiceApi.VEICULO>
+                <deal:WS_FastServiceApi.COR>
                     <deal:Usuario>${connection.user}</deal:Usuario>
                     <deal:Senha>${connection.key}</deal:Senha>
-                    <deal:Sdt_fsveiculoin>
-                        <deal:Veiculo_Placa>${dto.Veiculo_Placa}/deal:Veiculo_Placa>
-                        <deal:Veiculo_Chassi>${dto.Veiculo_Chassi ?? '?'}</deal:Veiculo_Chassi>
-                        <deal:VeiculoAno_Codigo>${dto.Veiculo_AnoCodigo ?? '?'}</deal:VeiculoAno_Codigo>
-                        <deal:Veiculo_Modelo>${dto.Veiculo_Modelo ?? '?'}</deal:Veiculo_Modelo>
-                        <deal:Veiculo_CorExterna>${dto.Veiculo_CorExterna ?? '?'}</deal:Veiculo_CorExterna>
-                        <deal:Veiculo_Km>${dto.Veiculo_Km ?? '?'}</deal:Veiculo_Km>
-                        <deal:Veiculo_DataVenda>${dto.Veiculo_DataVenda ?? '?'}</deal:Veiculo_DataVenda>
-                        <deal:Veiculo_NumeroMotor>${dto.Veiculo_NumeroMotor ?? '?'}</deal:Veiculo_NumeroMotor>
-                        <deal:Cliente_Documento>${dto.Cliente_Documento ?? '?'}</deal:Cliente_Documento>
-                        <deal:Acao>INC</deal:Acao>
-                    </deal:Sdt_fsveiculoin>
-                </deal:WS_FastServiceApi.VEICULO>
+                      <deal:Sdt_fscorin>
+                        <deal:Codigo>${filter?.id ?? '?'}</deal:Codigo>
+                        <deal:Descricao>${filter?.name ?? '?'}</deal:Descricao>
+                      </deal:Sdt_fscorin>
+                </deal:WS_FastServiceApi.COR>
             </soapenv:Body>
         </soapenv:Envelope>
         `;
+
     try {
       const client = await dealernet();
-      const response = await client.post(url, xmlBody);
-      const xmlData = response.data;
-      const parser = new XMLParser();
-      const parsedData = parser.parse(xmlData);
-      const vehicle: DealernetVehicleResponse =
-        parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.VEICULOResponse']['Sdt_fsveiculoout']['SDT_FSVeiculoOut'];
-      if (vehicle.Mensagem) {
-        throw new BadRequestException(vehicle.Mensagem);
-      }
-      return vehicle;
-    } catch (error) {
-      console.error('Erro ao fazer a requisição:', error);
+
+      const response = await client.post(url, xmlBody).then(({ data }) =>
+        new XMLParser().parse(data)['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.CORResponse']['Sdt_fscorout']['SDT_FSCorOut']);
+
+      const colors = Array.isArray(response) ? response : [response];
+      if (colors.filter((color) => color.Mensagem).length > 0) return [];
+
+      return colors;
+    }
+    catch (error) {
+      Logger.error('Erro ao fazer a requisição:', error, 'DealernetVehicleService.findColors');
       throw error;
     }
   }
+
 }

@@ -20,6 +20,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     let responseBody = {
       statusCode: httpStatus,
+      description: 'Ocorreu um erro inesperado',
       timestamp: new Date().toISOString(),
       path: this.httpAdapter.getRequestUrl(ctx.getRequest()),
     };
@@ -29,8 +30,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (isString(ex.response)) {
         responseBody['error'] = ex.response;
       } else {
-        responseBody = ex.response;
         httpStatus = ex.response?.statusCode || ex.response?.status || httpStatus;
+
+        responseBody = ex.response;
+        responseBody.description = ex.response.error || responseBody.description;
         responseBody.path = this.httpAdapter.getRequestUrl(ctx.getRequest());
       }
     }

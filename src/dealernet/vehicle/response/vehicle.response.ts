@@ -32,9 +32,25 @@ export interface DealernetVehicleResponse {
   Mensagem: string;
 }
 
+export interface DealernetVehicleModelResponse {
+  ModeloVeiculo_Codigo: string;
+  ModeloVeiculo_Descricao: string;
+  ModeloMontadora_Codigo: string;
+  FamiliaModelo_Codigo: string;
+  FamiliaModelo_Descricao: string;
+  Marca_Descricao: string;
+}
+
 export interface DealernetVehicleYearResponse {
   Ano_Codigo: number;
   Ano_Fabricacao: string;
   Ano_Modelo: string;
+  Mensagem: string;
+}
+
+export interface DealernetVehicleColorResponse {
+  Codigo: string;
+  Descricao: string;
+  Tipo: string;
   Mensagem: string;
 }

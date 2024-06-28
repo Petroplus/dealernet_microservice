@@ -1,12 +1,14 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 
+import { ContextService } from 'src/context/context.service';
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { DealernetSchedule } from 'src/dealernet/schedule/response/schedule-response';
 import { IntegrationResponse } from 'src/petroplay/integration/entities/integration.entity';
 import { CreateOrderDto } from 'src/petroplay/order/dto/create-order.dto';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
+import { CreateScheduleDto } from './dto/create-schedule';
 import { ScheduleFilter } from './filters/schedule.filter';
 
 @Injectable()
@@ -14,6 +16,7 @@ export class ScheduleService {
   constructor(
     private readonly petroplay: PetroplayService,
     private readonly dealernet: DealernetService,
+    private readonly context: ContextService,
   ) {}
 
   @Cron('0 2,4,8 * * *')
@@ -145,5 +148,52 @@ export class ScheduleService {
     }
 
     return orders;
+  }
+
+  async create(client_id: string, dto: CreateScheduleDto): Promise<DealernetSchedule> {
+    const integration = await this.petroplay.integration.findByClientId(client_id);
+    if (!integration) throw new BadRequestException('Integration not found');
+    const vehicles = await this.petroplay.integration.findVehicles(integration.client_id);
+
+    const vehicle = await this.dealernet.vehicle.findByPlate(integration.dealernet, dto.VeiculoPlaca);
+
+    if (!vehicle) {
+      const ppsVehicle = vehicles.find((x) => x.version_id == dto.version_id);
+      if (!ppsVehicle) throw new BadRequestException('Vehicle not found', { description: 'Dê para do veículo não encontrado' });
+
+      const model = await this.dealernet.vehicle
+        .findModel(integration.dealernet, { model_id: ppsVehicle.veiculo_codigo })
+        .then((data) => data.first());
+
+      if (!model) throw new BadRequestException('Model not found', { description: 'Modelo do veículo não encontrado' });
+
+      const year = await this.dealernet.vehicle
+        .findYears(integration.dealernet, { year_model: dto.VeiculoAno })
+        .then((data) => data.first());
+
+      if (!year) throw new BadRequestException('Year not found', { description: 'Ano do veículo não encontrado' });
+
+      const color = await this.dealernet.vehicle
+        .findColors(integration.dealernet, { name: dto.VeiculoColor })
+        .then((data) => data.first());
+
+      if (!color) throw new BadRequestException('Color not found', { description: 'Cor do veículo não encontrada' });
+
+      await this.dealernet.vehicle.create(integration.dealernet, {
+        Cliente_Documento: dto.ClienteDocumento,
+        Veiculo_Chassi: dto.VeiculoChassi,
+        Veiculo_Placa: dto.VeiculoPlaca,
+        Veiculo_Km: dto.VeiculoKM,
+        Veiculo_Modelo: model?.ModeloVeiculo_Codigo,
+        Veiculo_CorExterna: color?.Codigo,
+        Veiculo_CorInterna: color?.Tipo,
+        Veiculo_AnoCodigo: year?.Ano_Codigo,
+      });
+    }
+
+    return this.dealernet.schedule.create(integration.dealernet, {
+      ...dto,
+      ClienteDocumento: dto.ConsultorDocumento ?? this.context.currentUser().cod_consultor,
+    });
   }
 }
