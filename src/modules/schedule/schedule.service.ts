@@ -159,7 +159,10 @@ export class ScheduleService {
 
     if (!vehicle) {
       const ppsVehicle = vehicles.find((x) => x.version_id == dto.version_id);
-      if (!ppsVehicle) throw new BadRequestException('Vehicle not found', { description: 'Dê para do veículo não encontrado' });
+      if (!ppsVehicle)
+        throw new BadRequestException('Vehicle not found', {
+          description: 'Dê para do veículo não encontrado entre em contato com o suporte',
+        });
 
       const model = await this.dealernet.vehicle
         .findModel(integration.dealernet, { model_id: ppsVehicle.veiculo_codigo })
