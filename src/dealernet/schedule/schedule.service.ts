@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
@@ -5,13 +6,14 @@ import { XMLParser } from 'fast-xml-parser';
 import { dealernet } from 'src/commons/web-client';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
+import { ScheduleFilter } from './filters/schedule.filter';
 import { DealernetSchedule } from './response/schedule-response';
 
 @Injectable()
 export class DealernetScheduleService {
-  async find(connection: IntegrationDealernet, start_date?: Date, end_date?: Date): Promise<any[]> {
-    const dataInicio = start_date?.format('yyyy-MM-dd') ?? new Date().addDays(0).format('yyyy-MM-dd');
-    const dataFim = end_date?.format('yyyy-MM-dd') ?? '?';
+  async find(connection: IntegrationDealernet, filter: ScheduleFilter): Promise<DealernetSchedule[]> {
+    const dataInicio = filter?.start_date?.format('yyyy-MM-dd') ?? new Date().addDays(0).format('yyyy-MM-dd');
+    const dataFim = filter?.end_date?.format('yyyy-MM-dd') ?? new Date().addDays(0).format('yyyy-MM-dd');
 
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
@@ -23,7 +25,9 @@ export class DealernetScheduleService {
                 <deal:Usuario>${connection.user}</deal:Usuario>
                 <deal:Senha>${connection.key}</deal:Senha>
                 <deal:Sdt_fsagendamentoin>
-                <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento>
+                    <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento>
+                    <deal:Chave>${filter?.schedule_id ?? '?'}</deal:Chave>
+                    <deal:ClienteDocumento>${filter?.document ?? '?'}</deal:ClienteDocumento>
                     <deal:Data>${dataInicio}</deal:Data>
                     <deal:DataFinal>${dataFim}</deal:DataFinal>
                     <deal:Acao>LST</deal:Acao>
@@ -32,39 +36,28 @@ export class DealernetScheduleService {
             </soapenv:Body>
             </soapenv:Envelope>
         `;
+
     try {
       const client = await dealernet();
 
-      const response = await client.post(url, xmlBody);
-      const xmlData = response.data;
-      const parser = new XMLParser();
-      const parsedData = parser.parse(xmlData);
+      const response = await client.post(url, xmlBody).then(({ data }) =>
+        new XMLParser().parse(data)['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.AGENDAMENTOResponse']['Sdt_fsagendamentooutlista']['SDT_FSAgendamentoOut']);
+      const agendamentos = Array.isArray(response) ? response : [response];
 
-      // eslint-disable-next-line prettier/prettier
-      const agendamentos: DealernetSchedule | DealernetSchedule[] = parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.AGENDAMENTOResponse']['Sdt_fsagendamentooutlista']['SDT_FSAgendamentoOut'];
+      if (agendamentos.filter((agendamento) => agendamento?.Mensagem).length > 0) return [];
 
-      if (!isArray(agendamentos)) {
-        if (agendamentos.Mensagem) {
-          throw new BadRequestException(
-            `Não foi possível obter os agendamentos da concessionária ${connection.client_id}`,
-            agendamentos.Mensagem,
-          );
-        }
-        return [agendamentos];
-      }
+      return agendamentos.map((agendamento) => {
+        const services = (isArray(agendamento?.Servicos?.Servico) ? agendamento.Servicos?.Servico : agendamento.Servicos?.Servico && [agendamento.Servicos?.Servico]);
 
-      if (connection.document) {
-        const filteredAgendamentos = agendamentos.filter(
-          (agendamento) => Number(agendamento.EmpresaDocumento) == Number(connection.document),
-        );
+        const Servicos = services?.map((item: any) => ({
+          ...item,
+          Produtos: isArray(item?.Produtos?.Produto) ? item.Produtos?.Produto : item.Produtos?.Produto && [item.Produtos?.Produto],
+        }));
 
-        return filteredAgendamentos;
-      } else {
-        return agendamentos;
-      }
+        return { ...agendamento, Servicos: Servicos };
+      });
     } catch (error) {
-      console.log(error);
-      Logger.error('Erro ao fazer a requisição:', error, 'DealernetScheduleService.find');
+      Logger.error('Erro ao fazer a requisição:', error, 'DealerNetScheduleService.find');
       throw error;
     }
   }

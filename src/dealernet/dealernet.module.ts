@@ -8,14 +8,12 @@ import { DealernetProductModule } from './product/product.module';
 import { DealernetScheduleModule } from './schedule/schedule.module';
 import { DealernetServiceModule } from './service/service.module';
 import { DealernetVehicleModule } from './vehicle/vehicle.module';
-import { DealernetVehicleModelModule } from './vehicle-model/vehicle-model.module';
 
 @Module({
   imports: [
     DealernetScheduleModule.forRoot(),
     DealernetCustomerModule,
     DealernetVehicleModule,
-    DealernetVehicleModelModule,
     DealernetOrderModule,
     DealernetProductModule,
     DealernetServiceModule,

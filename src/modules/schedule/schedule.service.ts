@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { DealernetSchedule } from 'src/dealernet/schedule/response/schedule-response';
@@ -44,8 +44,10 @@ export class ScheduleService {
 
     const orders: CreateOrderDto[] = [];
     for await (const integration of integrations) {
-      const schedules = await this.dealernet.schedule.find(integration.dealernet, filter.start_date, filter.end_date);
+      const schedules = await this.dealernet.schedule.find(integration.dealernet, filter);
+      Logger.warn(`Found ${schedules.length} schedules to ${integration.client_id}`);
       await this.scheduleToOs(integration, schedules).then((data) => orders.push(...data));
+      Logger.warn(`Schema mounted with success to ${integration.client_id}`);
     }
 
     return orders;
@@ -57,19 +59,59 @@ export class ScheduleService {
     const orders: CreateOrderDto[] = [];
     for await (const schedule of schedules) {
       const customer = await this.dealernet.customer.findById(integration.dealernet, schedule.ClienteCodigo);
-      const address = customer.Endereco;
+      const address = customer.Endereco?.orderBy((x) => x.PessoaEndereco_Codigo, 'desc').first();
       const phone = customer.Telefone?.orderBy((x) => x.PessoaTelefone_Codigo, 'desc').first();
 
-      const vehicle = await this.dealernet.vehicleModel
-        .findByName(integration.dealernet, schedule.VeiculoModelo)
-        .then(({ ModeloVeiculo_Codigo, ModeloVeiculo_Descricao }) =>
-          vehicles.find((v) => v.veiculo_codigo == ModeloVeiculo_Codigo && v.veiculo_descricao == ModeloVeiculo_Descricao),
-        );
-
-      const customer_pps = await this.petroplay.customer.findByDocument(
-        integration.client_id,
-        schedule.ClienteDocumento.toString().trim(),
+      const veiculo = await this.dealernet.vehicle.findByPlate(integration.dealernet, schedule.VeiculoPlaca);
+      const vehicle = vehicles.find(
+        (x) => x.veiculo_codigo == veiculo.VeiculoModelo_Codigo && x.veiculo_descricao == veiculo.VeiculoModelo_Descricao,
       );
+
+      const year = await this.dealernet.vehicle
+        .findYears(integration.dealernet, { year_code: veiculo.VeiculoAno_Codigo })
+        .then((data) => data.first());
+
+      const requests = schedule.Servicos?.map((service, index) => {
+        const products = service.Produtos?.map((product) => ({
+          product_id: product.ProdutoReferencia,
+          service_id: service.TMOReferencia,
+          quantity: product.Quantidade,
+          price: product.ValorUnitario,
+          integration_id: product.ProdutoReferencia,
+          integration_data: product,
+        }));
+
+        const services = [
+          {
+            service_id: service.TMOReferencia,
+            name: service.Descricao,
+            quantity: service.Tempo,
+            price: service.ValorUnitario,
+            integration_id: service.TMOReferencia,
+            integration_data: service,
+            products: products,
+          },
+        ];
+
+        return {
+          sequence: index + 1,
+          description: service.Descricao,
+          notes: service.Observacao,
+          is_scheduled: true,
+          services: services,
+        };
+      });
+
+      const addressDto = {
+        address_name: 'Principal',
+        street: address?.PessoaEndereco_Logradouro?.toString().trim(),
+        number: address?.PessoaEndereco_Numero?.toString()?.trim() ?? 'S/N',
+        complement: address?.PessoaEndereco_Complemento?.toString().trim(),
+        neighborhood: address?.PessoaEndereco_Bairro?.toString().trim(),
+        city: address?.PessoaEndereco_Cidade?.toString().trim(),
+        state: address?.PessoaEndereco_Estado?.toString().trim(),
+        postal_code: address?.PessoaEndereco_CEP?.toString()?.toString().trim(),
+      };
 
       const dto: CreateOrderDto = {
         client_id: integration.client_id,
@@ -77,39 +119,27 @@ export class ScheduleService {
         customer_document: schedule.ClienteDocumento.toString().trim(),
         phone_number: phone?.PessoaTelefone_Fone?.toString().trim(),
         email: customer.Pessoa_Email?.toString().trim(),
-        // address_name: address?.PessoaEndereco_TipoEndereco?.toString().trim(),
-        // city: address?.PessoaEndereco_Cidade?.toString().trim(),
-        // state: address?.PessoaEndereco_Estado?.toString().trim(),
-        // neighborhood: address?.PessoaEndereco_Bairro?.toString().trim(),
-        // postal_code: address?.PessoaEndereco_CEP?.toString()?.toString().trim(),
-        // street: address?.PessoaEndereco_Logradouro?.toString().trim(),
-        // complement: address?.PessoaEndereco_Complemento?.toString().trim(),
-        // number: address?.PessoaEndereco_Numero?.toString()?.trim(),
+        address: addressDto,
         vehicle_maker_id: vehicle?.maker_id,
-        // maker: vehicle.VeiculoMarca_Descricao,
         vehicle_model_id: vehicle?.model_id,
-        // model: schedule.VeiculoModelo,
         vehicle_version_id: vehicle?.version_id,
-        // version: undefined,
-        // vehicle_year: vehicle?.year,
-        // fuel: vehicle?.fuel,
-        // color: vehicle.Veiculo_CorExternaDescricao,
+        vehicle_year: year?.Ano_Modelo?.toString().trim(),
+        vehicle_fuel: vehicle?.fuel,
+        vehicle_color: veiculo.Veiculo_CorExternaDescricao,
+        vehicle_chassis_number: schedule.VeiculoChassi ?? 'Não Informado',
         license_plate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
         mileage: Number(schedule.VeiculoKM) ?? 0,
-        vehicle_chassis_number: schedule.VeiculoChassi ?? 'Não Informado',
         type: 'PACKAGE',
         with_checklist: true,
+        inspection: schedule.Data.substring(0, 19),
         integration_id: `${schedule.Chave}`,
         integration_data: schedule,
-        inspection: schedule.Data.substring(0, 19),
+        customer_requests: requests,
         additional_information: `Dealernet
         Nome do consultor: ${schedule.ConsultorNome ?? ''}
         Modelo do veículo: ${schedule.VeiculoModelo ?? ''}
         `,
       };
-      if (customer_pps) {
-        dto.customer_id = customer_pps.id;
-      }
 
       orders.push(dto);
     }

@@ -19,6 +19,7 @@ export interface DealernetCustomerResponse {
 }
 
 class Endereco {
+  PessoaEndereco_Codigo: number;
   PessoaEndereco_TipoEndereco: string;
   PessoaEndereco_Logradouro: string;
   PessoaEndereco_TipoLogradouro_Descricao: string;

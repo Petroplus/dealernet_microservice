@@ -248,7 +248,7 @@ export class CreateOrderDto {
   @ApiProperty({ enum: FuelEnum })
   @IsOptional()
   @IsEnum(FuelEnum)
-  vehicle_fuel?: Fuel | FuelEnum;
+  vehicle_fuel?: Fuel | FuelEnum | string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -273,6 +273,10 @@ export class CreateOrderDto {
   @IsOptional()
   @IsDateString()
   inspection?: Date | string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  customer_requests?: any;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -437,6 +441,10 @@ export class CreateOrderDto {
   @ApiProperty({ required: false })
   @IsOptional()
   updated_by?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  address: any;
 
   @ApiProperty({ required: false, type: UpsertOrderCustomerRequestDto, isArray: true })
   @IsOptional()

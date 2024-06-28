@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateDealenertVehicleDTO {
+export class CreateDealernetVehicleDTO {
   @ApiProperty({ type: String, description: 'Placa do veículo' })
   Veiculo_Placa: string;
 

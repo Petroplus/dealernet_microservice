@@ -23,7 +23,6 @@ import { VeiculoInfo } from './response/veiculo-response';
 import { DealernetScheduleService } from './schedule/schedule.service';
 import { DealernetServiceService } from './service/service.service';
 import { DealernetVehicleService } from './vehicle/vehicle.service';
-import { DealernetVehicleModelService } from './vehicle-model/vehicle-model.service';
 
 @Injectable()
 export class DealernetService {
@@ -31,10 +30,9 @@ export class DealernetService {
     public readonly schedule: DealernetScheduleService,
     public readonly customer: DealernetCustomerService,
     public readonly vehicle: DealernetVehicleService,
-    public readonly vehicleModel: DealernetVehicleModelService,
     public readonly order: DealernetOrderService,
     public readonly product: DealernetProductService,
-    public readonly service:DealernetServiceService,
+    public readonly service: DealernetServiceService,
     public readonly budget: DealernetBudgetService,
   ) {}
 

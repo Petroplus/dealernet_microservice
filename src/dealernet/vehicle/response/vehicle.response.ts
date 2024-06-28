@@ -31,3 +31,10 @@ export interface DealernetVehicleResponse {
   VendedorNome: string;
   Mensagem: string;
 }
+
+export interface DealernetVehicleYearResponse {
+  Ano_Codigo: number;
+  Ano_Fabricacao: string;
+  Ano_Modelo: string;
+  Mensagem: string;
+}
