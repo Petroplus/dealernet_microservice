@@ -13,7 +13,7 @@ import { ScheduleFilter } from './filters/schedule.filter';
 export class ScheduleService {
   constructor(
     private readonly petroplay: PetroplayService,
-    private readonly dealernet: DealernetService
+    private readonly dealernet: DealernetService,
   ) {}
 
   @Cron('0 2,4,8 * * *')
@@ -63,12 +63,12 @@ export class ScheduleService {
       const vehicle = await this.dealernet.vehicleModel
         .findByName(integration.dealernet, schedule.VeiculoModelo)
         .then(({ ModeloVeiculo_Codigo, ModeloVeiculo_Descricao }) =>
-          vehicles.find((v) => v.veiculo_codigo == ModeloVeiculo_Codigo && v.veiculo_descricao == ModeloVeiculo_Descricao)
+          vehicles.find((v) => v.veiculo_codigo == ModeloVeiculo_Codigo && v.veiculo_descricao == ModeloVeiculo_Descricao),
         );
 
       const customer_pps = await this.petroplay.customer.findByDocument(
         integration.client_id,
-        schedule.ClienteDocumento.toString().trim()
+        schedule.ClienteDocumento.toString().trim(),
       );
 
       const dto: CreateOrderDto = {

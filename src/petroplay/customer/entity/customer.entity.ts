@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PhoneEntity } from './phone.entity';
-import { EmailEntity } from './email.entity';
+
 import { AddressEntity } from './address.entity';
+import { EmailEntity } from './email.entity';
+import { PhoneEntity } from './phone.entity';
 
 export class PetroplayCustomerEntity {
   @ApiProperty()

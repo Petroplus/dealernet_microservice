@@ -1,7 +1,7 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler, BadRequestException } from '@nestjs/common';
-import { unwind, flatten } from '@json2csv/transforms';
 import { Parser } from '@json2csv/plainjs';
-import { Observable, map } from 'rxjs';
+import { flatten, unwind } from '@json2csv/transforms';
+import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { map, Observable } from 'rxjs';
 
 const parseAsyncCSV = (data: any) => {
   try {

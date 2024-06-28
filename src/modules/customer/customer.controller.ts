@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
+import { CreateCustomerDTO } from 'src/dealernet/dto/create-customer.dto';
+
 import { CustomerService } from './customer.service';
 import { CustomerFilter } from './filters/customer.filter';
-import { CreateCustomerDTO } from 'src/dealernet/dto/create-customer.dto';
 
 @ApiTags('Customers')
 @Controller('customers')

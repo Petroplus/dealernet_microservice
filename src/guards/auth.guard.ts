@@ -1,15 +1,15 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-
 import { LoggedRequest } from 'src';
+
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private petroplay: PetroplayService
+    private petroplay: PetroplayService,
   ) {}
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
@@ -52,7 +52,7 @@ export class AuthGuard implements CanActivate {
 
   private getSecretKeyFromRequest(request: LoggedRequest): string {
     const authHeader = Object.keys(request.headers).find(
-      (h) => h.toLowerCase() === 'x-secret-key' || h.toLowerCase() === 'x-api-key'
+      (h) => h.toLowerCase() === 'x-secret-key' || h.toLowerCase() === 'x-api-key',
     );
 
     if (!authHeader) return null;

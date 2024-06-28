@@ -1,9 +1,10 @@
 import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
-
-import { ProductService } from './product.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ProductFilter } from './filters/product.filter';
+
 import { ProdutoDealernetResponse } from 'src/dealernet/response/produto-response';
+
+import { ProductFilter } from './filters/product.filter';
+import { ProductService } from './product.service';
 
 @ApiTags('Products')
 @Controller('products')
@@ -16,7 +17,7 @@ export class ProductController {
   })
   async find(
     @Param('client_id', ParseUUIDPipe) client_id: string,
-    @Query() filter: ProductFilter
+    @Query() filter: ProductFilter,
   ): Promise<ProdutoDealernetResponse[]> {
     return this.service.find(client_id, filter);
   }

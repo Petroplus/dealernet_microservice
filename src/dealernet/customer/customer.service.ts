@@ -7,9 +7,10 @@ import { XMLParser } from 'fast-xml-parser';
 import { dealernet } from 'src/commons/web-client';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
-import { DealernetCustomerResponse } from './response/customers.response';
 import { CreateCustomerDTO } from '../dto/create-customer.dto';
+
 import { CustomerFilter } from './filters/customer.filter';
+import { DealernetCustomerResponse } from './response/customers.response';
 
 @Injectable()
 export class DealernetCustomerService {

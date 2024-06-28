@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
 import { dealernet } from 'src/commons/web-client';
+import { ServiceFilter } from 'src/modules/service/filters/service.filter';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
-import { ServiceFilter } from 'src/modules/service/filters/service.filter';
 import { DealernetServiceTMOResponse } from './response/service.response';
-import { isArray } from 'class-validator';
 
 @Injectable()
 export class DealernetServiceService {

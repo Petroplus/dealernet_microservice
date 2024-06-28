@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
 import { RequestContext } from 'nestjs-easy-context';
-
+import { Injectable } from '@nestjs/common';
 import { LoggedRequest } from 'src';
+
 import {
-  UserResponse,
-  UserClientResponse,
-  UserClientPoolResponse,
   UserClientCompanyResponse,
+  UserClientPoolResponse,
+  UserClientResponse,
+  UserResponse,
 } from 'src/petroplay/responses/user.response';
 
 @Injectable()

@@ -1,10 +1,10 @@
 import {
-  registerDecorator,
-  ValidationOptions,
-  ValidatorConstraintInterface,
-  ValidatorConstraint,
-  ValidationArguments,
   isString,
+  registerDecorator,
+  ValidationArguments,
+  ValidationOptions,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from 'class-validator';
 
 @ValidatorConstraint({ async: true })

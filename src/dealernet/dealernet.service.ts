@@ -6,9 +6,12 @@ import { XMLParser } from 'fast-xml-parser';
 
 import { webClient } from 'src/commons/web-client';
 
+import { DealernetBudgetService } from './budget/budget.service';
 import { DealernetCustomerService } from './customer/customer.service';
 import { CreateOsDTO } from './dto/create-os.dto';
 import { CreateVehicleDTO } from './dto/create-vehicle.dto';
+import { DealernetOrderService } from './order/order.service';
+import { DealernetProductService } from './product/product.service';
 import { DealernetBudgetResponse } from './response/budget-response';
 import { KitResponse } from './response/kit-response';
 import { NotaFiscalResponse } from './response/nota-fiscal-resposne';
@@ -18,12 +21,9 @@ import { ProdutoDealernetResponse } from './response/produto-response';
 import { TMO } from './response/tmo-response';
 import { VeiculoInfo } from './response/veiculo-response';
 import { DealernetScheduleService } from './schedule/schedule.service';
-import { DealernetVehicleModelService } from './vehicle-model/vehicle-model.service';
-import { DealernetVehicleService } from './vehicle/vehicle.service';
-import { DealernetOrderService } from './order/order.service';
-import { DealernetProductService } from './product/product.service';
 import { DealernetServiceService } from './service/service.service';
-import { DealernetBudgetService } from './budget/budget.service';
+import { DealernetVehicleService } from './vehicle/vehicle.service';
+import { DealernetVehicleModelService } from './vehicle-model/vehicle-model.service';
 
 @Injectable()
 export class DealernetService {

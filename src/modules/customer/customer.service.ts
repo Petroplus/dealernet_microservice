@@ -1,16 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { DealernetService } from 'src/dealernet/dealernet.service';
+import { CreateCustomerDTO } from 'src/dealernet/dto/create-customer.dto';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
 import { CustomerFilter } from './filters/customer.filter';
-import { CreateCustomerDTO } from 'src/dealernet/dto/create-customer.dto';
 
 @Injectable()
 export class CustomerService {
   constructor(
     private readonly petroplay: PetroplayService,
-    private readonly Dealernet: DealernetService
+    private readonly Dealernet: DealernetService,
   ) {}
 
   async find(client_id: string, filter: CustomerFilter): Promise<any> {

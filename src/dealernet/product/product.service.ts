@@ -3,17 +3,17 @@ import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
 import { dealernet } from 'src/commons/web-client';
+import { ProductFilter } from 'src/modules/product/filters/product.filter';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
 import { CreateCustomerDTO } from '../dto/create-customer.dto';
-import { ProductFilter } from 'src/modules/product/filters/product.filter';
 import { ProdutoDealernetResponse } from '../response/produto-response';
 
 @Injectable()
 export class DealernetProductService {
   async find(
     connection: IntegrationDealernet,
-    filter: ProductFilter
+    filter: ProductFilter,
   ): Promise<ProdutoDealernetResponse[] | ProdutoDealernetResponse> {
     const xmlBody = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">

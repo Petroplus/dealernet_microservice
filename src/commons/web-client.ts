@@ -74,4 +74,4 @@ const petroplay = {
 
 const webClient = api();
 
-export { webClient, dealernet, petroplay };
+export { dealernet, petroplay, webClient };

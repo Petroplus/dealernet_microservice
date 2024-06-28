@@ -1,8 +1,10 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { VehicleService } from './vehicle.service';
+
 import { VeiculoApiResponse } from 'src/dealernet/response/veiculo-response';
 import { CreateDealenertVehicleDTO } from 'src/dealernet/vehicle/dto/create-vehicle.dto';
+
+import { VehicleService } from './vehicle.service';
 
 @ApiTags('Vehicles')
 @Controller('vehicles')
@@ -25,7 +27,7 @@ export class VehicleController {
   })
   async create(
     @Param('client_id', ParseUUIDPipe) client_id: string,
-    @Body() dto: CreateDealenertVehicleDTO
+    @Body() dto: CreateDealenertVehicleDTO,
   ): Promise<VeiculoApiResponse> {
     return this.service.create(client_id, dto);
   }

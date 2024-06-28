@@ -1,6 +1,6 @@
 import { BadRequestException, HttpException, Injectable, Logger } from '@nestjs/common';
-import { CreateDealernetBudgetDTO } from 'src/dealernet/budget/dto/create-budget.dto';
 
+import { CreateDealernetBudgetDTO } from 'src/dealernet/budget/dto/create-budget.dto';
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { DealernetBudgetResponse } from 'src/dealernet/response/budget-response';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
@@ -9,7 +9,7 @@ import { PetroplayService } from 'src/petroplay/petroplay.service';
 export class BudgetService {
   constructor(
     private readonly petroplay: PetroplayService,
-    private readonly dealernet: DealernetService
+    private readonly dealernet: DealernetService,
   ) {}
 
   async find(client_id: string, integration_id: string): Promise<DealernetBudgetResponse> {

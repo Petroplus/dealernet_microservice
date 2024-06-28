@@ -1,18 +1,18 @@
 import { BadRequestException, HttpException, Injectable, Logger } from '@nestjs/common';
 
 import { DealernetService } from 'src/dealernet/dealernet.service';
+import { CreateOsDTO, ProdutoCreateDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
+import { DealernetOrder } from 'src/dealernet/response/os-response';
+import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
 import { OrderFilter } from './filters/order.filters';
-import { DealernetOrder } from 'src/dealernet/response/os-response';
-import { CreateOsDTO, ProdutoCreateDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
-import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 
 @Injectable()
 export class OrderService {
   constructor(
     private readonly petroplay: PetroplayService,
-    private readonly Dealernet: DealernetService
+    private readonly Dealernet: DealernetService,
   ) {}
 
   async find(client_id: string, filter: OrderFilter): Promise<DealernetOrder[]> {

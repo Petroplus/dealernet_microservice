@@ -1,9 +1,9 @@
 import { DynamicModule, Module } from '@nestjs/common';
 
-import { PetroplayIntegrationModule } from './integration/integration.module';
-import { PetroplayService } from './petroplay.service';
-import { PetroplayOrderModule } from './order/order.module';
 import { PetroplayCustomerModule } from './customer/customer.module';
+import { PetroplayIntegrationModule } from './integration/integration.module';
+import { PetroplayOrderModule } from './order/order.module';
+import { PetroplayService } from './petroplay.service';
 
 @Module({
   imports: [PetroplayIntegrationModule, PetroplayOrderModule, PetroplayCustomerModule],

@@ -5,15 +5,31 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint/eslint-plugin'],
+  plugins: [
+    '@typescript-eslint/eslint-plugin',
+    'import',
+    'simple-import-sort',
+    'prettier'
+  ],
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
+    'plugin:import/errors',
+    'plugin:import/warnings',
+    'plugin:import/typescript'
   ],
   root: true,
   env: {
     node: true,
     jest: true,
+  },
+  settings: {
+    'import/resolver': {
+      typescript: {
+        alwaysTryTypes: true,
+        project: './tsconfig.json'
+      }
+    },
   },
   ignorePatterns: ['.eslintrc.js'],
   rules: {
@@ -28,12 +44,26 @@ module.exports = {
     'prettier/prettier': [
       'error',
       {
-        'trailingComma': 'es5',
+        'trailingComma': 'all',
         'endOfLine': 'auto',
         'singleQuote': true,
         'tabWidth': 2,
         'maxLineLength': 130,
       },
-    ]
+    ],
+    'simple-import-sort/imports': [
+      'warn',
+      {
+        groups: [
+          ['^nest(.*)$', '^@?\\w'],
+          ['^src/(.*)$'],
+          ['^(../)+(.*)$'],
+          ['^./(.*)$'],
+        ],
+      },
+    ],
+    'simple-import-sort/exports': 'warn',
+    'import/order': 'off',
+    'import/no-unresolved': 'off'
   },
 };

@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Query } from '@nestjs/common';
-
-import { ScheduleService } from './schedule.service';
-import { ScheduleFilter } from './filters/schedule.filter';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+
+import { ScheduleFilter } from './filters/schedule.filter';
+import { ScheduleService } from './schedule.service';
 
 @ApiBearerAuth()
 @ApiTags('Schedules')

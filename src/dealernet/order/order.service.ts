@@ -3,11 +3,12 @@ import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
 import { dealernet } from 'src/commons/web-client';
+import { OrderFilter } from 'src/modules/order/filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
 import { DealernetOrder } from '../response/os-response';
+
 import { CreateDealernetOsDTO } from './dto/create-order.dto';
-import { OrderFilter } from 'src/modules/order/filters/order.filters';
 
 @Injectable()
 export class DealernetOrderService {

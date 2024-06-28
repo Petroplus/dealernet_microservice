@@ -47,7 +47,7 @@ export class DealernetScheduleService {
         if (agendamentos.Mensagem) {
           throw new BadRequestException(
             `Não foi possível obter os agendamentos da concessionária ${connection.client_id}`,
-            agendamentos.Mensagem
+            agendamentos.Mensagem,
           );
         }
         return [agendamentos];
@@ -55,7 +55,7 @@ export class DealernetScheduleService {
 
       if (connection.document) {
         const filteredAgendamentos = agendamentos.filter(
-          (agendamento) => Number(agendamento.EmpresaDocumento) == Number(connection.document)
+          (agendamento) => Number(agendamento.EmpresaDocumento) == Number(connection.document),
         );
 
         return filteredAgendamentos;

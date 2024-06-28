@@ -4,8 +4,8 @@ import { XMLParser } from 'fast-xml-parser';
 import { dealernet } from 'src/commons/web-client';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
-import { DealernetVehicleResponse } from './response/vehicle.response';
 import { CreateDealenertVehicleDTO } from './dto/create-vehicle.dto';
+import { DealernetVehicleResponse } from './response/vehicle.response';
 
 @Injectable()
 export class DealernetVehicleService {

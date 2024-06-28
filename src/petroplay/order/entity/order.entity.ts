@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { OrderItemEntity } from './order-items.entity';
 import { MakerEntity } from './maker.entity';
 import { ModelEntity } from './model.entity';
+import { OrderItemEntity } from './order-items.entity';
 import { VersionEntity } from './version.entity';
 import { WebhookEntity } from './webhook.entity';
 

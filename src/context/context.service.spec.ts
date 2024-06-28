@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { RequestContext } from 'nestjs-easy-context';
+import { Test, TestingModule } from '@nestjs/testing';
 
 import { ContextService } from './context.service';
 

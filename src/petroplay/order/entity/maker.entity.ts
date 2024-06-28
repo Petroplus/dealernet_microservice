@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+
 import { ModelEntity } from './model.entity';
 
 export class MakerEntity {

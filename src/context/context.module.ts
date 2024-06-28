@@ -1,5 +1,5 @@
-import { DynamicModule, Module } from '@nestjs/common';
 import { RequestContextModule } from 'nestjs-easy-context';
+import { DynamicModule, Module } from '@nestjs/common';
 
 import { ContextService } from './context.service';
 

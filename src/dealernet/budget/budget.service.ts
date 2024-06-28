@@ -2,12 +2,13 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { XMLParser } from 'fast-xml-parser';
 
 import { dealernet } from 'src/commons/web-client';
+import { ProductFilter } from 'src/modules/product/filters/product.filter';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
-import { ProductFilter } from 'src/modules/product/filters/product.filter';
-import { ProdutoDealernetResponse } from '../response/produto-response';
-import { DealernetBudgetResponse } from '../response/budget-response';
 import { CreateDealernetOsDTO } from '../order/dto/create-order.dto';
+import { DealernetBudgetResponse } from '../response/budget-response';
+import { ProdutoDealernetResponse } from '../response/produto-response';
+
 import { CreateDealernetBudgetDTO } from './dto/create-budget.dto';
 
 @Injectable()
