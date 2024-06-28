@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
+import { IsDocument } from 'src/commons/validations/is-document';
+
 class EnderecoItem {
   @ApiProperty()
   PessoaEndereco_TipoEndereco: string;
@@ -8,6 +10,8 @@ class EnderecoItem {
   PessoaEndereco_Logradouro: string;
   @ApiProperty()
   PessoaEndereco_TipoLogradouro_Descricao: string;
+  @ApiProperty()
+  PessoaEndereco_Complemento: string;
   @ApiProperty()
   PessoaEndereco_Numero: number;
   @ApiProperty()
@@ -41,6 +45,10 @@ class MeioContatoItem {
 }
 
 export class CreateCustomerDTO {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  Pessoa_Codigo: number;
+
   @ApiProperty({ type: String, description: 'Nome da pessoa' })
   @IsNotEmpty()
   Pessoa_Nome: string;
@@ -49,9 +57,10 @@ export class CreateCustomerDTO {
   @IsNotEmpty()
   Pessoa_TipoPessoa: string;
 
-  @ApiProperty({ type: Number, description: 'Documento de identificação da pessoa' })
+  @ApiProperty({ type: String, description: 'Documento de identificação da pessoa' })
   @IsNotEmpty()
-  Pessoa_DocIdentificador: number;
+  @IsDocument()
+  Pessoa_DocIdentificador: string;
 
   @ApiProperty({ type: Number, description: 'RG ou Inscrição Estadual da pessoa' })
   @IsNotEmpty()
@@ -60,6 +69,10 @@ export class CreateCustomerDTO {
   @ApiProperty({ type: String, description: 'Órgão emissor do documento' })
   @IsOptional()
   Pessoa_OrgaoEmissor: string;
+
+  @ApiProperty({ type: String, description: 'Inscrição na Suframa da pessoa' })
+  @IsOptional()
+  Pessoa_InscricaoSuframa: string;
 
   @ApiProperty({ type: String, description: 'Inscrição municipal da pessoa' })
   @IsOptional()
@@ -73,23 +86,39 @@ export class CreateCustomerDTO {
   @IsNotEmpty()
   Pessoa_Email: string;
 
+  @ApiProperty({ type: String, description: 'Estado civil da pessoa' })
+  @IsOptional()
+  Pessoa_Nacionalidade: string;
+
+  @ApiProperty({ type: String, description: 'Estado civil da pessoa' })
+  @IsOptional()
+  Pessoa_EstadoCivil: string;
+
   @ApiProperty({ type: String, description: 'Data de nascimento da pessoa' })
   @IsOptional()
   Pessoa_Nascimento: string;
+
+  @ApiProperty({ type: Number, description: 'DDD do telefone da pessoa' })
+  @IsOptional()
+  Pessoa_Telefone_DDD: number;
+
+  @ApiProperty({ type: Number, description: 'Telefone da pessoa' })
+  @IsOptional()
+  Pessoa_Telefone_Fone: number;
 
   @ApiProperty({ type: String, description: 'Mensagem relacionada à pessoa' })
   @IsOptional()
   Pessoa_Mensagem: string;
 
-  @ApiProperty({ type: EnderecoItem })
+  @ApiProperty({ type: EnderecoItem, isArray: true })
   @IsOptional()
-  Endereco: { EnderecoItem: EnderecoItem };
+  Endereco: EnderecoItem[];
 
-  @ApiProperty({ type: TelefoneItem })
+  @ApiProperty({ type: TelefoneItem, isArray: true })
   @IsOptional()
-  Telefone: { TelefoneItem: TelefoneItem };
+  Telefone: TelefoneItem[];
 
-  @ApiProperty({ type: MeioContatoItem })
+  @ApiProperty({ type: MeioContatoItem, isArray: true })
   @IsOptional()
-  MeioContato: { MeioContatoItem: MeioContatoItem };
+  MeioContato: MeioContatoItem[];
 }

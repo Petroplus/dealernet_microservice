@@ -57,8 +57,8 @@ export class ScheduleService {
     const orders: CreateOrderDto[] = [];
     for await (const schedule of schedules) {
       const customer = await this.dealernet.customer.findById(integration.dealernet, schedule.ClienteCodigo);
-      const address = customer.Endereco?.EnderecoItem;
-      const phone = customer.Telefone?.TelefoneItem[0];
+      const address = customer.Endereco;
+      const phone = customer.Telefone?.orderBy((x) => x.PessoaTelefone_Codigo, 'desc').first();
 
       const vehicle = await this.dealernet.vehicleModel
         .findByName(integration.dealernet, schedule.VeiculoModelo)

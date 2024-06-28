@@ -13,18 +13,12 @@ export interface DealernetCustomerResponse {
   Pessoa_EstadoCivil: string;
   Pessoa_Nascimento: string;
   Pessoa_Mensagem: string;
-  Endereco: {
-    EnderecoItem: EnderecoItem;
-  };
-  Telefone: {
-    TelefoneItem: TelefoneItem[];
-  };
-  MeioContato: {
-    MeioContatoItem: MeioContatoItem[];
-  };
+  Endereco: Endereco[];
+  Telefone: Telefone[];
+  MeioContato: MeioContato[];
 }
 
-class EnderecoItem {
+class Endereco {
   PessoaEndereco_TipoEndereco: string;
   PessoaEndereco_Logradouro: string;
   PessoaEndereco_TipoLogradouro_Descricao: string;
@@ -36,14 +30,14 @@ class EnderecoItem {
   PessoaEndereco_Estado: string;
 }
 
-class TelefoneItem {
+class Telefone {
   PessoaTelefone_Codigo: number;
   PessoaTelefone_TipoTelefone: string;
   PessoaTeleFone_DDD: number;
   PessoaTelefone_Fone: number;
 }
 
-class MeioContatoItem {
+class MeioContato {
   PessoaMeioContato_Tipo: string;
   PessoaMeioContato_Ativo: boolean;
   PessoaMeioContato_Principal: boolean;

@@ -1,5 +1,3 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-
 import { petroplay } from 'src/commons/web-client';
 
 import { PetroplayCustomerEntity } from './entity/customer.entity';

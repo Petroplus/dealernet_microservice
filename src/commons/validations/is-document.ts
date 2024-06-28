@@ -9,10 +9,11 @@ import {
 @ValidatorConstraint({ async: true })
 export class DocumentConstraint implements ValidatorConstraintInterface {
   validate(value: string, _args: ValidationArguments): boolean {
-    const document = value.replace(/\D/g, '');
+    const document = String(value).replace(/\D/g, '');
 
-    if (this.isValidCPF(document) || this.isValidCNPJ(document)) {
-      _args.object[_args.property] = document;
+    const _document = document.length < 11 ? document.padStart(11, '0') : document.padStart(14, '0');
+    if (this.isValidCPF(_document) || this.isValidCNPJ(_document)) {
+      _args.object[_args.property] = _document;
       return true;
     }
 

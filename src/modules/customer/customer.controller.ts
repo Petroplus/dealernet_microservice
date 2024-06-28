@@ -14,7 +14,7 @@ export class CustomerController {
   @Post(':client_id')
   @ApiResponse({ status: 200 })
   async create(@Param('client_id', ParseUUIDPipe) client_id: string, @Body() dto: CreateCustomerDTO): Promise<void> {
-    return this.service.create(client_id, dto);
+    return this.service.upsert(client_id, dto);
   }
 
   @Get(':client_id')
@@ -26,7 +26,7 @@ export class CustomerController {
   @Put(':client_id')
   @ApiResponse({ status: 200 })
   async update(@Param('client_id', ParseUUIDPipe) client_id: string, @Body() dto: CreateCustomerDTO): Promise<void> {
-    return this.service.update(client_id, dto);
+    return this.service.upsert(client_id, dto);
   }
 
   // @Get(':id')

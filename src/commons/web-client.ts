@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import axios, { CreateAxiosDefaults, HeadersDefaults } from 'axios';
 import axiosRetry, { IAxiosRetryConfigExtended } from 'axios-retry';
+import { isJSON } from 'class-validator';
 
 interface Headers extends Partial<HeadersDefaults> {
   'Content-Type'?: string;
@@ -30,11 +31,6 @@ const api = (config?: CreateAxiosDefaults<any>, version?: string) => {
     const query = request.params ? `?${new URLSearchParams(request.params).toString()}` : '';
     if (query) {
       Logger.log(`${request?.baseURL ?? ''}${request.url}${query}`, `${version ?? 'axios'} ${request.method.toUpperCase()}`);
-    }
-
-    const body = request.data ? JSON.stringify(request.data) : '';
-    if (body) {
-      Logger.warn(body, `${version ?? 'axios'} ${request.method.toUpperCase()}`);
     }
     return request;
   });
