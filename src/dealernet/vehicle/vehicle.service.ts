@@ -98,6 +98,10 @@ export class DealernetVehicleService {
     return this.find(connection, { license_plate: plate }).then((vehicle) => vehicle?.first());
   }
 
+  async findByChassis(connection: IntegrationDealernet, chassis: string): Promise<DealernetVehicleResponse> {
+    return this.find(connection, { chassi: chassis }).then((vehicle) => vehicle?.first());
+  }
+
   async findModel(connection: IntegrationDealernet, model: VehicleModelFilter): Promise<DealernetVehicleModelResponse[]> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
