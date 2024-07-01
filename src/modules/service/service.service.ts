@@ -16,8 +16,6 @@ export class ServiceService {
     const integration = await this.petroplay.integration.findByClientId(client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    const services = await this.dealernet.service.find(integration.dealernet, filter);
-
-    return services;
+    return this.dealernet.service.find(integration.dealernet, filter);
   }
 }

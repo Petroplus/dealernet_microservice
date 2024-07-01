@@ -1,5 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { isArray } from 'class-validator';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { ProdutoDealernetResponse } from 'src/dealernet/response/produto-response';
@@ -18,17 +17,6 @@ export class ProductService {
     const integration = await this.petroplay.integration.findByClientId(client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    let products = await this.dealernet.product.find(integration.dealernet, filter);
-    if (!isArray(products)) {
-      if (products.Mensagem) {
-        throw new BadRequestException(products.Mensagem);
-      }
-      products = [products];
-    }
-    const filteredProducts = products.filter((product) => product.QuantidadeDisponivel >= 1);
-    if (filteredProducts.length === 0) {
-      throw new NotFoundException(`Não encontrado produto disponivel no estoque`);
-    }
-    return filteredProducts;
+    return this.dealernet.product.find(integration.dealernet, filter);
   }
 }

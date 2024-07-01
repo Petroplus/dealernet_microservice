@@ -1,4 +1,6 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+/* eslint-disable prettier/prettier */
+
+import { Injectable, Logger } from '@nestjs/common';
 import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
@@ -24,14 +26,11 @@ export class DealernetServiceService {
                       <deal:TMO_Descricao>${filter.description || '?'}</deal:TMO_Descricao>
                       <deal:TipoOS_Sigla>V1</deal:TipoOS_Sigla>
                       <deal:Veiculo_PlacaChassi>?</deal:Veiculo_PlacaChassi>
-                      ${
-                        filter.item_ref
-                          ? `<deal:TMO_Referencia>
+                      ${filter.item_ref ?
+        `<deal:TMO_Referencia>
                         <deal:item>${filter.item_ref}</deal:item>
-                      </deal:TMO_Referencia>`
-                          : ''
-                      }
-
+                        </deal:TMO_Referencia>`: ''
+      }
                     </deal:Sdt_fstmoin>
               </deal:WS_FastServiceApi.TMO>
             </soapenv:Body>
@@ -43,24 +42,14 @@ export class DealernetServiceService {
     try {
       const client = await dealernet();
 
-      const response = await client.post(url, xmlBody);
-      const xmlData = response.data;
-      const parser = new XMLParser();
-      const parsedData = parser.parse(xmlData);
-      console.log(parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.TMOResponse']);
-      // eslint-disable-next-line prettier/prettier
-      const TMOS: DealernetServiceTMOResponse | DealernetServiceTMOResponse[] =
-        parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.TMOResponse']['Sdt_fstmooutlista']['SDT_FSTMOOut'];
+      const response = await client.post(url, xmlBody).then(({ data }) => new XMLParser().parse(data));
+      const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.TMOResponse']['Sdt_fstmooutlista']['SDT_FSTMOOut']
+      const services = isArray(parsedData) ? parsedData : [parsedData];
 
-      if (!isArray(TMOS)) {
-        if (TMOS.Mensagem) {
-          throw new BadRequestException(TMOS.Mensagem);
-        }
-        return [TMOS];
-      }
-      return TMOS;
+      if (services.filter((x) => x.Mensagem).length > 0) return [];
+
+      return services;
     } catch (error) {
-      console.log(error);
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetServiceService.find');
       throw error;
     }

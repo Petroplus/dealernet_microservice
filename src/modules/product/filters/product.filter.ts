@@ -4,9 +4,9 @@ import { IsOptional } from 'class-validator';
 export class ProductFilter {
   @ApiProperty({ required: false })
   @IsOptional()
-  description?: string;
+  name?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  code?: string;
+  product_id?: string;
 }
