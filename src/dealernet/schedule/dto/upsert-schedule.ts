@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 import { IsRegExp } from 'src/commons/validations/is-regexp';
 
@@ -10,8 +10,8 @@ export class UpsertScheduleDto {
   Chave?: string;
 
   @ApiProperty()
-  @IsOptional()
-  VeiculoChassi?: string;
+  @IsNotEmpty()
+  VeiculoChassi: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -20,7 +20,7 @@ export class UpsertScheduleDto {
   @ApiProperty()
   @IsNotEmpty()
   @Transform(({ value }) => value.toString().replace(/\D/g, ''))
-  VeiculoKM?: string;
+  VeiculoKM: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -29,7 +29,7 @@ export class UpsertScheduleDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  VeiculoColor?: string;
+  VeiculoColor: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -39,21 +39,21 @@ export class UpsertScheduleDto {
   @IsNotEmpty()
   ClienteDocumento: string;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
-  ConsultorDocumento: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  TipoOSSigla?: string;
-
   @ApiProperty()
   @IsNotEmpty()
-  Data: string;
+  DataInicial: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   DataFinal?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  ConsultorDocumento?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  TipoOSSigla?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

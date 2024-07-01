@@ -30,7 +30,7 @@ export class DealernetScheduleService {
                     <deal:ClienteDocumento>${schedule?.ClienteDocumento ?? '?'}</deal:ClienteDocumento>
                     <deal:ConsultorDocumento>${schedule?.ConsultorDocumento ?? '?'}</deal:ConsultorDocumento>
                     <deal:TipoOSSigla>${schedule?.TipoOSSigla ?? '?'}</deal:TipoOSSigla>
-                    <deal:Data>${schedule?.Data ?? '?'}</deal:Data>
+                    <deal:Data>${schedule?.DataInicial ?? '?'}</deal:Data>
                     <deal:DataFinal>${schedule?.DataFinal ?? '?'}</deal:DataFinal>
                     <deal:Observacao>${schedule?.Observacao ?? '?'}</deal:Observacao>
                     <deal:Acao>${schedule?.Chave ? 'ALT' : 'INC'}</deal:Acao>
