@@ -58,12 +58,4 @@ export class UpsertScheduleDto {
   @ApiProperty({ required: false })
   @IsOptional()
   Observacao?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  VeiculoCorExterna?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  VeiculoCorInterna?: string;
 }
