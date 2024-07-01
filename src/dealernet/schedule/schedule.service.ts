@@ -39,7 +39,7 @@ export class DealernetScheduleService {
             </soapenv:Body>
             </soapenv:Envelope>
         `;
-
+    console.log(xmlBody);
     try {
       const client = await dealernet();
 

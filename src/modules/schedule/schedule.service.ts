@@ -196,7 +196,7 @@ export class ScheduleService {
 
     return this.dealernet.schedule.create(integration.dealernet, {
       ...dto,
-      ClienteDocumento: dto.ConsultorDocumento ?? this.context.currentUser().cod_consultor,
+      ConsultorDocumento: dto.ConsultorDocumento ?? this.context.currentUser().cod_consultor,
     });
   }
 }

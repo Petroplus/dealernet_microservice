@@ -33,7 +33,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         httpStatus = ex.response?.statusCode || ex.response?.status || httpStatus;
 
         responseBody = ex.response;
-        responseBody.description = ex.response.error || responseBody.description;
+        responseBody.description = responseBody.description || ex.response.error;
         responseBody.path = this.httpAdapter.getRequestUrl(ctx.getRequest());
       }
     }
