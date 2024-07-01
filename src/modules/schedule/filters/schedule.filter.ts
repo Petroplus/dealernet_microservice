@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsDateString, IsOptional, IsUUID } from 'class-validator';
+import { IsDateString, IsOptional } from 'class-validator';
+
+import { IsArray } from 'src/commons/validations/is-array.validation';
 
 export class ScheduleFilter {
   @ApiProperty({ required: false, isArray: true })
   @IsOptional()
-  @IsUUID('4', { each: true })
-  @Transform(({ value }) => value.split(','))
+  @IsArray('uuid')
   client_ids?: string[];
 
   @ApiProperty({ required: false })
