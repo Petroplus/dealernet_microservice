@@ -23,12 +23,12 @@ export class DealernetServiceService {
                     <deal:Sdt_fstmoin>
                     <deal:Empresa_Documento>${connection.document}</deal:Empresa_Documento>
                       <deal:TMO_Codigo>?</deal:TMO_Codigo>
-                      <deal:TMO_Descricao>${filter.description || '?'}</deal:TMO_Descricao>
+                      <deal:TMO_Descricao>${filter.name || '?'}</deal:TMO_Descricao>
                       <deal:TipoOS_Sigla>V1</deal:TipoOS_Sigla>
                       <deal:Veiculo_PlacaChassi>?</deal:Veiculo_PlacaChassi>
-                      ${filter.item_ref ?
+                      ${filter.reference ?
         `<deal:TMO_Referencia>
-                        <deal:item>${filter.item_ref}</deal:item>
+                        <deal:item>${filter.reference}</deal:item>
                         </deal:TMO_Referencia>`: ''
       }
                     </deal:Sdt_fstmoin>
