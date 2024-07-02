@@ -5,6 +5,7 @@ import { ModelEntity } from './model.entity';
 import { OrderItemEntity } from './order-items.entity';
 import { VersionEntity } from './version.entity';
 import { WebhookEntity } from './webhook.entity';
+import { OrderBudgetEntity } from './order-budget.entity';
 
 export class PetroplayOrderEntity {
   @ApiProperty()
@@ -302,9 +303,6 @@ export class PetroplayOrderEntity {
   cutomer_requests: any[];
 
   @ApiProperty()
-  budgets: any[];
-
-  @ApiProperty()
   consultant?: any;
 
   @ApiProperty({ readOnly: true })
@@ -318,6 +316,9 @@ export class PetroplayOrderEntity {
 
   @ApiProperty()
   additional_services: OrderAditionalService[];
+
+  @ApiProperty({ type: () => OrderBudgetEntity, isArray: true })
+  budgets: OrderBudgetEntity[];
 
   @ApiProperty({ readOnly: true })
   webhooks: WebhookEntity[];
