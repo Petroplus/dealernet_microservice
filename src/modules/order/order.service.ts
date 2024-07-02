@@ -49,9 +49,11 @@ export class OrderService {
   }
 
   async createXmlSchemaOsByOrderId(order_id: string): Promise<string> {
-    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type']);
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
+
+    console.log(integration)
     if (!integration) throw new BadRequestException('Integration not found');
 
     Logger.log(`Rota Create: Buscando itens da ordem ${order_id}`, 'OsService');
@@ -65,7 +67,7 @@ export class OrderService {
   }
 
   async createOsByOrderId(order_id): Promise<DealernetOrder> {
-    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type']);
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration) throw new BadRequestException('Integration not found');
@@ -81,39 +83,77 @@ export class OrderService {
     return this.Dealernet.order.createOs(integration.dealernet, osDTO);
   }
   async osDtoToDealernetOs(order: PetroplayOrderEntity): Promise<CreateOsDTO> {
-    const products: ProdutoCreateDTO[] = order.items
-      .map(({ products }) => {
-        return products.map((item) => ({
-          tipo_os_sigla: order.os_type.external_id,
-          produto_referencia: item.product.internal_id,
-          valor_unitario: item.product.price,
-          quantidade: item.quantity,
-        })) as ProdutoCreateDTO[];
+    const orderBudget = await this.petroplay.order.findOrderBudget(order.id)
+    const products: ProdutoCreateDTO[] = []
+    const services: ServicoCreateDTO[] = []
+    console.log(orderBudget[0].products[0])
+    let aux_os_type =  order?.os_type?.external_id
+    orderBudget.map(budget=>{
+      if(!aux_os_type){
+        aux_os_type= budget?.os_type?.external_id
+      }
+      budget.products.map(product=>{
+        if(!aux_os_type){
+          aux_os_type=  product?.os_type?.external_id
+        }
+          const tipo_os_sigla = product?.os_type?.external_id || budget?.os_type?.external_id ||  order?.os_type?.external_id
+          products.push({
+            tipo_os_sigla,
+            produto_referencia: product.integration_id,
+            valor_unitario: product.price,
+            quantidade: product.quantity,
+          })
       })
-      .flatMap((item) => item);
 
-    const services: ServicoCreateDTO[] = order.items
-      .map(({ service }) => {
-        const tasks = service.items.filter((x) => x.entity_type == 'task').map((serviceItem) => serviceItem);
-        const productsAditional = service.items
-          .filter((x) => x.entity_type == 'product')
-          .map((serviceItem) => ({
-            tipo_os_sigla: order.os_type.external_id,
-            produto_referencia: serviceItem.product.internal_id,
-            valor_unitario: serviceItem.product.price,
-            quantidade: serviceItem.quantity,
-          }));
-
-        return tasks.map((item, index) => ({
-          tipo_os_sigla: order.os_type.external_id,
-          tmo_referencia: item.task.internal_id,
-          tempo: item.quantity,
-          valor_unitario: item.task.price,
-          quantidade: Math.ceil(item.quantity),
-          produtos: index == 0 ? [...products, ...productsAditional] : productsAditional,
-        })) as ServicoCreateDTO[];
+      budget.services.map((service,index )=>{
+        if(!aux_os_type){
+          aux_os_type= service?.os_type?.external_id
+        }
+        const tipo_os_sigla = service?.os_type?.external_id || budget?.os_type?.external_id ||  order?.os_type?.external_id
+        services.push({
+          tipo_os_sigla,
+          tmo_referencia: service.integration_id,
+          tempo: service.quantity,
+          valor_unitario: service.price,
+          quantidade: Math.ceil(service.quantity),
+          produtos: index == 0 ? [...products] : [],
+        })
       })
-      .flatMap((item) => item);
+    })
+
+    // const products: ProdutoCreateDTO[] = order.items
+    //   .map(({ products }) => {
+    //     return products.map((item) => ({
+    //       tipo_os_sigla: order.os_type?.external_id,
+    //       produto_referencia: item.product.internal_id,
+    //       valor_unitario: item.product.price,
+    //       quantidade: item.quantity,
+    //     })) as ProdutoCreateDTO[];
+    //   })
+    //   .flatMap((item) => item);
+
+    //  order.items
+    //   .map(({ service }) => {
+    //     const tasks = service.items.filter((x) => x.entity_type == 'task').map((serviceItem) => serviceItem);
+    //     const productsAditional = service.items
+    //       .filter((x) => x.entity_type == 'product')
+    //       .map((serviceItem) => ({
+    //         tipo_os_sigla: order.os_type.external_id,
+    //         produto_referencia: serviceItem.product.internal_id,
+    //         valor_unitario: serviceItem.product.price,
+    //         quantidade: serviceItem.quantity,
+    //       }));
+
+    //     return tasks.map((item, index) => ({
+    //       tipo_os_sigla: order.os_type.external_id,
+    //       tmo_referencia: item.task.internal_id,
+    //       tempo: item.quantity,
+    //       valor_unitario: item.task.price,
+    //       quantidade: Math.ceil(item.quantity),
+    //       produtos: index == 0 ? [...products, ...productsAditional] : productsAditional,
+    //     })) as ServicoCreateDTO[];
+    //   })
+    //   .flatMap((item) => item);
 
     const OS: CreateOsDTO = {
       veiculo_placa_chassi: order.vehicle_chassis_number,
@@ -126,11 +166,11 @@ export class OrderService {
       nro_prisma: order.prisma,
       observacao: order.notes,
       prisma_codigo: order.prisma,
-      tipo_os_sigla: order.os_type?.external_id,
+      tipo_os_sigla: aux_os_type,
       servicos: services,
       tipo_os: {
         tipo_os_item: {
-          tipo_os_sigla: order.os_type?.external_id,
+          tipo_os_sigla: aux_os_type,
           consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
         },
       },
