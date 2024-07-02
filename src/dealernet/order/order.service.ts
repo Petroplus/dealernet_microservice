@@ -3,7 +3,7 @@ import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
 import { dealernet } from 'src/commons/web-client';
-import { OrderFilter } from 'src/modules/order/filters/order.filters';
+import { OrderFilter } from 'src/modules/os/filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
 import { DealernetOrder } from '../response/os-response';
@@ -46,7 +46,7 @@ export class DealernetOrderService {
 
       const orders: DealernetOrder | DealernetOrder[] =
         parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista'][
-          'SDT_FSOrdemServicoOut'
+        'SDT_FSOrdemServicoOut'
         ];
 
       if (!isArray(orders)) {
@@ -70,14 +70,14 @@ export class DealernetOrderService {
         ? `
     <deal:Servicos>
     ${dto.servicos
-      .map((item) => {
-        const products =
-          item.produtos.length > 0
-            ? `
+          .map((item) => {
+            const products =
+              item.produtos.length > 0
+                ? `
       <deal:Produtos>
       ${item.produtos
-        .map((product) => {
-          return `
+                  .map((product) => {
+                    return `
       <deal:Produto>
         <deal:TipoOSSigla>${product.tipo_os_sigla}</deal:TipoOSSigla>
         <deal:ProdutoReferencia>${product.produto_referencia}</deal:ProdutoReferencia>
@@ -85,13 +85,13 @@ export class DealernetOrderService {
         <deal:Quantidade>${product.quantidade}</deal:Quantidade>
       </deal:Produto>
         `;
-        })
-        .join('\n')}
+                  })
+                  .join('\n')}
       </deal:Produtos>
       `
-            : '';
+                : '';
 
-        return `
+            return `
         <deal:Servico>
         <deal:TipoOSSigla>${item.tipo_os_sigla}</deal:TipoOSSigla>
         <deal:TMOReferencia>${item.tmo_referencia}</deal:TMOReferencia>
@@ -101,8 +101,8 @@ export class DealernetOrderService {
          ${products}
         </deal:Servico>
     `;
-      })
-      .join('\n')}
+          })
+          .join('\n')}
     </deal:Servicos>
     `
         : '';
@@ -169,7 +169,7 @@ export class DealernetOrderService {
       const parsedData = parser.parse(xmlData);
       const order: DealernetOrder =
         parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista'][
-          'SDT_FSOrdemServicoOut'
+        'SDT_FSOrdemServicoOut'
         ];
 
       if (order.Mensagem && order.Chave === 0) {

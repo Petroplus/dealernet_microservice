@@ -9,7 +9,7 @@ import { PetroplayService } from 'src/petroplay/petroplay.service';
 import { OrderFilter } from './filters/order.filters';
 
 @Injectable()
-export class OrderService {
+export class OsService {
   constructor(
     private readonly petroplay: PetroplayService,
     private readonly Dealernet: DealernetService,

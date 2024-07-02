@@ -3,12 +3,12 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { DealernetOrder } from 'src/dealernet/response/os-response';
 
-import { OrderService } from './order.service';
+import { OsService } from './order.service';
 
-@ApiTags('Orders')
-@Controller('orders/:order_id')
-export class OrderController {
-  constructor(private readonly service: OrderService) {}
+@ApiTags('OS')
+@Controller('os/:order_id')
+export class OsController {
+  constructor(private readonly service: OsService) {}
 
   @Get()
   @ApiResponse({ status: 200, type: DealernetOrder, isArray: true })
