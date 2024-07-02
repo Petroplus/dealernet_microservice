@@ -8,6 +8,7 @@ import { PetroplayOrderEntity } from './entity/order.entity';
 import { OrderItemEntity } from './entity/order-items.entity';
 import { OrderStatus } from './enum/order-status.enum';
 import { OrderRelations } from './filters/expand-orders';
+import { OrderBudgetEntity } from './entity/order-budget.entity';
 
 @Injectable()
 export class PetroplayOrderService {
@@ -67,6 +68,18 @@ export class PetroplayOrderService {
       .catch((err) => {
         Logger.error('Error on update order:', err, 'PetroplayOrderService.updateOrder');
         throw new BadRequestException('Error on update order');
+      });
+  }
+
+
+  async findOrderBudget(order_id: string): Promise<OrderBudgetEntity[]> {
+    const client = await petroplay.v2();
+    return await client
+      .get(`/v2/orders/${order_id}/budgets?expand=os_type&expand=products&expand=services`)
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on find order budget:', err, 'PetroplayOrderService.findOrderBudget');
+        throw new BadRequestException('Error on find order budget');
       });
   }
 }
