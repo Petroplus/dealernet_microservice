@@ -26,11 +26,7 @@ export class DealernetServiceService {
                       <deal:TMO_Descricao>${filter.name || '?'}</deal:TMO_Descricao>
                       <deal:TipoOS_Sigla>V1</deal:TipoOS_Sigla>
                       <deal:Veiculo_PlacaChassi>?</deal:Veiculo_PlacaChassi>
-                      ${filter.reference ?
-        `<deal:TMO_Referencia>
-                        <deal:item>${filter.reference}</deal:item>
-                        </deal:TMO_Referencia>`: ''
-      }
+                      ${filter.service_id ? `<deal:TMO_Referencia><deal:item>${filter.service_id}</deal:item></deal:TMO_Referencia>` : ''}
                     </deal:Sdt_fstmoin>
               </deal:WS_FastServiceApi.TMO>
             </soapenv:Body>
@@ -39,6 +35,8 @@ export class DealernetServiceService {
 
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
+    console.log(xmlBody);
+
     try {
       const client = await dealernet();
 
@@ -46,9 +44,8 @@ export class DealernetServiceService {
       const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.TMOResponse']['Sdt_fstmooutlista']['SDT_FSTMOOut']
       const services = isArray(parsedData) ? parsedData : [parsedData];
 
-      if (services.filter((x) => x.Mensagem).length > 0) return [];
 
-      return services;
+      return services.filter((x) => x.TMO_Codigo != "0");
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetServiceService.find');
       throw error;

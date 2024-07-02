@@ -4,9 +4,9 @@ import { IsOptional } from 'class-validator';
 export class ServiceFilter {
   @ApiProperty({ required: false })
   @IsOptional()
-  name?: string;
+  service_id?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  reference?: string;
+  name?: string;
 }
