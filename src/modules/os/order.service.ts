@@ -15,13 +15,6 @@ export class OsService {
     private readonly Dealernet: DealernetService,
   ) {}
 
-  async find(client_id: string, filter: OrderFilter): Promise<DealernetOrder[]> {
-    const integration = await this.petroplay.integration.findByClientId(client_id);
-    if (!integration) throw new BadRequestException('Integration not found');
-
-    return await this.Dealernet.order.findOS(integration.dealernet, filter);
-  }
-
   async findByPPsOrderId(order_id: string): Promise<DealernetOrder[]> {
     const order = await this.petroplay.order.findById(order_id);
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
@@ -35,7 +28,7 @@ export class OsService {
   }
 
   async createSchema(order_id: string): Promise<string> {
-    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type']);
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
 
@@ -56,9 +49,6 @@ export class OsService {
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration) throw new BadRequestException('Integration not found');
-
-    Logger.log(`Rota Create: Buscando itens da ordem ${order_id}`, 'OsService');
-    order.items = await this.petroplay.order.findItems(order_id);
 
     await this.petroplay.order.updateStatus(order_id, 'AWAIT_SEND_OS');
 
@@ -106,40 +96,6 @@ export class OsService {
         });
       });
     });
-
-    // const products: ProdutoCreateDTO[] = order.items
-    //   .map(({ products }) => {
-    //     return products.map((item) => ({
-    //       tipo_os_sigla: order.os_type?.external_id,
-    //       produto_referencia: item.product.internal_id,
-    //       valor_unitario: item.product.price,
-    //       quantidade: item.quantity,
-    //     })) as ProdutoCreateDTO[];
-    //   })
-    //   .flatMap((item) => item);
-
-    //  order.items
-    //   .map(({ service }) => {
-    //     const tasks = service.items.filter((x) => x.entity_type == 'task').map((serviceItem) => serviceItem);
-    //     const productsAditional = service.items
-    //       .filter((x) => x.entity_type == 'product')
-    //       .map((serviceItem) => ({
-    //         tipo_os_sigla: order.os_type.external_id,
-    //         produto_referencia: serviceItem.product.internal_id,
-    //         valor_unitario: serviceItem.product.price,
-    //         quantidade: serviceItem.quantity,
-    //       }));
-
-    //     return tasks.map((item, index) => ({
-    //       tipo_os_sigla: order.os_type.external_id,
-    //       tmo_referencia: item.task.internal_id,
-    //       tempo: item.quantity,
-    //       valor_unitario: item.task.price,
-    //       quantidade: Math.ceil(item.quantity),
-    //       produtos: index == 0 ? [...products, ...productsAditional] : productsAditional,
-    //     })) as ServicoCreateDTO[];
-    //   })
-    //   .flatMap((item) => item);
 
     const OS: CreateOsDTO = {
       veiculo_placa_chassi: order.vehicle_chassis_number,

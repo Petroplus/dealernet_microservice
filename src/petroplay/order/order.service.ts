@@ -5,10 +5,10 @@ import { petroplay } from 'src/commons/web-client';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpsertOrderDto } from './dto/upsert-order.dto';
 import { PetroplayOrderEntity } from './entity/order.entity';
+import { OrderBudgetEntity } from './entity/order-budget.entity';
 import { OrderItemEntity } from './entity/order-items.entity';
 import { OrderStatus } from './enum/order-status.enum';
 import { OrderRelations } from './filters/expand-orders';
-import { OrderBudgetEntity } from './entity/order-budget.entity';
 
 @Injectable()
 export class PetroplayOrderService {
@@ -70,7 +70,6 @@ export class PetroplayOrderService {
         throw new BadRequestException('Error on update order');
       });
   }
-
 
   async findOrderBudget(order_id: string): Promise<OrderBudgetEntity[]> {
     const client = await petroplay.v2();
