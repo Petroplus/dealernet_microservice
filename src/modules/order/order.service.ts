@@ -53,7 +53,6 @@ export class OrderService {
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
 
-    console.log(integration)
     if (!integration) throw new BadRequestException('Integration not found');
 
     Logger.log(`Rota Create: Buscando itens da ordem ${order_id}`, 'OsService');
@@ -86,7 +85,7 @@ export class OrderService {
     const orderBudget = await this.petroplay.order.findOrderBudget(order.id)
     const products: ProdutoCreateDTO[] = []
     const services: ServicoCreateDTO[] = []
-    console.log(orderBudget[0].products[0])
+
     let aux_os_type =  order?.os_type?.external_id
     orderBudget.map(budget=>{
       if(!aux_os_type){
