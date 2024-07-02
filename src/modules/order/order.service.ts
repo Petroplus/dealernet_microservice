@@ -181,7 +181,6 @@ export class OrderService {
     const orderBudget = await this.petroplay.order.findOrderBudget(order.id)
     const products: ProdutoUpdateDto[] = []
     const services: ServicoUpdateDto[] = []
-    console.log(order)
     let aux_os_type =  order?.os_type?.external_id
     orderBudget.map(budget=>{
       if(!aux_os_type){
