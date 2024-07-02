@@ -21,7 +21,7 @@ export class ScheduleService {
 
   @Cron('0 2,4,8 * * *')
   async sync(filter: ScheduleFilter): Promise<void> {
-    const integrations = await this.petroplay.integration.find({ clients: filter.client_ids });
+    const integrations = await this.petroplay.integration.find({ clients: filter?.client_ids ?? [] });
     if (!integrations) throw new BadRequestException('Integration not found');
 
     const background = async () => {
