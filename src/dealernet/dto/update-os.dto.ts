@@ -1,6 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ProdutoCreateDTO {
+
+export class MarcacaoUpdateDto {
+    @ApiProperty()
+    usuario_documento_produtivo: string;
+
+    @ApiProperty()
+    data_inicial:string;
+
+    @ApiProperty()
+    data_final:string;
+
+    @ApiProperty()
+    motivo_parada:string;
+
+    @ApiProperty()
+    observacao:string;
+
+}
+
+export class ProdutoUpdateDto {
   @ApiProperty()
   tipo_os_sigla: string;
 
@@ -32,7 +51,7 @@ export class ProdutoCreateDTO {
   selecionado?: boolean;
 }
 
-export class ServicoCreateDTO {
+export class ServicoUpdateDto {
   @ApiProperty()
   tipo_os_sigla: string;
 
@@ -48,11 +67,14 @@ export class ServicoCreateDTO {
   @ApiProperty()
   quantidade: number;
 
-  @ApiProperty({ type: ProdutoCreateDTO })
-  produtos: ProdutoCreateDTO[];
+  @ApiProperty({ type: ProdutoUpdateDto })
+  produtos: ProdutoUpdateDto[];
+
+  @ApiProperty({ type: MarcacaoUpdateDto })
+  marcacoes?: MarcacaoUpdateDto[];
 }
 
-export class TipoOSItemCreateDTO {
+export class TipoOSItemUpdateDto {
   @ApiProperty()
   tipo_os_sigla: string;
 
@@ -63,12 +85,18 @@ export class TipoOSItemCreateDTO {
   condicao_pagamento?: number;
 }
 
-export class TipoOSCreateDTO {
-  @ApiProperty({ type: TipoOSItemCreateDTO })
-  tipo_os_item: TipoOSItemCreateDTO;
+export class TipoOSUpdateDto {
+  @ApiProperty({ type: TipoOSItemUpdateDto })
+  tipo_os_item: TipoOSItemUpdateDto;
 }
 
 export class UpdateOsDTO {
+  @ApiProperty()
+  chave: string;
+
+  // @ApiProperty()
+  // numero_os:string;
+
   @ApiProperty()
   veiculo_placa_chassi: string;
 
@@ -135,9 +163,9 @@ export class UpdateOsDTO {
   @ApiProperty()
   carregar_bateria?: string;
 
-  @ApiProperty({ type: ServicoCreateDTO })
-  servicos: ServicoCreateDTO[];
+  @ApiProperty({ type: ServicoUpdateDto })
+  servicos: ServicoUpdateDto[];
 
-  @ApiProperty({ type: TipoOSCreateDTO })
-  tipo_os: TipoOSCreateDTO;
+  @ApiProperty({ type: TipoOSUpdateDto })
+  tipo_os: TipoOSUpdateDto;
 }

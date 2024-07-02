@@ -7,6 +7,7 @@ import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
 import { OrderFilter } from './filters/order.filters';
+import { MarcacaoUpdateDto, ProdutoUpdateDto, ServicoUpdateDto, UpdateOsDTO } from 'src/dealernet/dto/update-os.dto';
 
 @Injectable()
 export class OrderService {
@@ -56,7 +57,6 @@ export class OrderService {
     if (!integration) throw new BadRequestException('Integration not found');
 
     Logger.log(`Rota Create: Buscando itens da ordem ${order_id}`, 'OsService');
-    order.items = await this.petroplay.order.findItems(order_id);
 
     // await this.petroplay.order.updateStatus(order_id, 'AWAIT_SEND_OS');
     Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
@@ -79,7 +79,9 @@ export class OrderService {
     Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
     const osDTO = await this.osDtoToDealernetOs(order);
 
-    return this.Dealernet.order.createOs(integration.dealernet, osDTO);
+    const result = await  this.Dealernet.order.createOs(integration.dealernet, osDTO);
+    await this.petroplay.order.updateOrder(order_id,{integration_data: result})
+    return result
   }
   async osDtoToDealernetOs(order: PetroplayOrderEntity): Promise<CreateOsDTO> {
     const orderBudget = await this.petroplay.order.findOrderBudget(order.id)
@@ -143,12 +145,43 @@ export class OrderService {
     return OS;
   }
 
-  async OsDtoToDealenrtOsAppointments(order: PetroplayOrderEntity): Promise<CreateOsDTO> {
+  async updateXmlSchemaOsByOrderId(order_id: string): Promise<string> {
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
+
+    if (!integration) throw new BadRequestException('Integration not found');
+
+    Logger.log(`Rota Create: Buscando itens da ordem ${order_id}`, 'OsService');
+
+    // await this.petroplay.order.updateStatus(order_id, 'AWAIT_SEND_OS');
+    Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
+    const osDTO = await this.osDtoToDealenrtOsAppointments(order)
+
+    return this.Dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
+  }
+  async updateOsByOrderId(order_id): Promise<DealernetOrder> {
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
+
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
+    if (!integration) throw new BadRequestException('Integration not found');
+
+    Logger.log(`Rota Create: Buscando itens da ordem ${order_id}`, 'OsService');
+
+    await this.petroplay.order.updateStatus(order_id, 'AWAIT_SEND_OS');
+
+    Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
+    const osDTO = await this.osDtoToDealenrtOsAppointments(order)
+
+    return this.Dealernet.order.updateOs(integration.dealernet, osDTO);
+  }
+
+  async osDtoToDealenrtOsAppointments(order: PetroplayOrderEntity): Promise<UpdateOsDTO> {
+    const appointments = await this.petroplay.order.findOrderAppointments(order.id)
     const orderBudget = await this.petroplay.order.findOrderBudget(order.id)
-    const products: ProdutoCreateDTO[] = []
-    const services: ServicoCreateDTO[] = []
-
+    const products: ProdutoUpdateDto[] = []
+    const services: ServicoUpdateDto[] = []
+    console.log(order)
     let aux_os_type =  order?.os_type?.external_id
     orderBudget.map(budget=>{
       if(!aux_os_type){
@@ -171,6 +204,19 @@ export class OrderService {
         if(!aux_os_type){
           aux_os_type= service?.os_type?.external_id
         }
+        const aux_appointments: MarcacaoUpdateDto[] =[]
+        appointments?.map(async appointment=>{
+          if(appointment.integration_id === service.integration_id){
+            aux_appointments.push({
+              usuario_documento_produtivo: '?',
+              data_inicial:await this.formatDate(appointment.start_date),
+              data_final:await this.formatDate(appointment.start_date),
+              motivo_parada:"?",
+              observacao:"?"
+            })
+
+          }
+        })
         const tipo_os_sigla = service?.os_type?.external_id || budget?.os_type?.external_id ||  order?.os_type?.external_id
         services.push({
           tipo_os_sigla,
@@ -179,11 +225,13 @@ export class OrderService {
           valor_unitario: service.price,
           quantidade: Math.ceil(service.quantity),
           produtos: index == 0 ? [...products] : [],
+          marcacoes: aux_appointments
         })
       })
     })
 
-    const OS: CreateOsDTO = {
+    const OS: UpdateOsDTO = {
+      chave: order.integration_data?.Chave,
       veiculo_placa_chassi: order.vehicle_chassis_number,
       veiculo_Km: Number(order.mileage) || 0,
       cliente_documento: order.customer_document,
@@ -222,4 +270,17 @@ export class OrderService {
       return result;
     }
   }
+  async formatDate(date?: Date): Promise<string> {
+      if(!date){
+        return '?'
+        }
+      date = new Date(date)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
 }

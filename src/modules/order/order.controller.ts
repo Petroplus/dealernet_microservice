@@ -65,7 +65,25 @@ export class OrderController {
   @ApiOperation({
     summary: 'Utiliza o body da rota /orders/xml_schema/order_id/{order_id} para inserir uma nova ordem',
   })
-  async update(@Param('order_id', ParseUUIDPipe) order_id: string): Promise<DealernetOrder> {
+  async create(@Param('order_id', ParseUUIDPipe) order_id: string): Promise<DealernetOrder> {
     return this.service.createOsByOrderId(order_id);
+  }
+
+  @Get(`xml_schema/update/order_id/:order_id`)
+  @ApiResponse({ status: 200 })
+  @ApiOperation({
+    summary: 'Retorna um corpo XML para atualizar uma ordem de serviço baseado em informações extraídas da ordem informada',
+  })
+  async getUpdateXmlSchemaByOrderId(@Param('order_id', ParseUUIDPipe) order_id: string): Promise<string> {
+    return this.service.updateXmlSchemaOsByOrderId(order_id)
+  }
+
+  @Put(`xml_schema/update/order_id/:order_id`)
+  @ApiResponse({ status: 200 })
+  @ApiOperation({
+    summary: 'Utiliza o body da rota /orders/xml_schema/update/order_id/{order_id} para atualizar uma ordem existente',
+  })
+  async updateByOrderId(@Param('order_id', ParseUUIDPipe) order_id: string): Promise<DealernetOrder> {
+    return this.service.updateOsByOrderId(order_id)
   }
 }
