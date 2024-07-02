@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
