@@ -138,6 +138,7 @@ export class ScheduleService {
         integration_id: `${schedule.Chave}`,
         integration_data: schedule,
         customer_requests: requests,
+        notes: schedule.Observacao,
         additional_information: `Dealernet
         Nome do consultor: ${schedule.ConsultorNome ?? ''}
         Modelo do veículo: ${schedule.VeiculoModelo ?? ''}
