@@ -1,9 +1,11 @@
+/* eslint-disable prettier/prettier */
+
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
 import { dealernet } from 'src/commons/web-client';
-import { OrderFilter } from 'src/modules/order/filters/order.filters';
+import { OrderFilter } from 'src/modules/os/filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
 import { DealernetOrder } from '../response/os-response';
@@ -12,7 +14,7 @@ import { CreateDealernetOsDTO } from './dto/create-order.dto';
 import { UpdateOsDTO } from '../dto/update-os.dto';
 
 @Injectable()
-export class DealernetOrderService {
+export class DealernetOsService {
   async findOS(connection: IntegrationDealernet, filter?: OrderFilter): Promise<DealernetOrder[]> {
     Logger.log(`Buscando OS Dealernet`, 'OS');
     const xmlBody = `
@@ -47,7 +49,7 @@ export class DealernetOrderService {
 
       const orders: DealernetOrder | DealernetOrder[] =
         parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista'][
-          'SDT_FSOrdemServicoOut'
+        'SDT_FSOrdemServicoOut'
         ];
 
       if (!isArray(orders)) {
@@ -65,20 +67,20 @@ export class DealernetOrderService {
   }
 
   async createOsXmlSchema(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<string> {
-    Logger.log(`Criando Schema OS Dealernet`, 'OS');
+    Logger.log(`Criando Schema OS Dealernet`, 'DealernetOsService.createOsXmlSchema');
     const services =
       dto.servicos.length > 0
         ? `
     <deal:Servicos>
     ${dto.servicos
-      .map((item) => {
-        const products =
-          item.produtos.length > 0
-            ? `
+          .map((item) => {
+            const products =
+              item.produtos.length > 0
+                ? `
       <deal:Produtos>
       ${item.produtos
-        .map((product) => {
-          return `
+                  .map((product) => {
+                    return `
       <deal:Produto>
         <deal:TipoOSSigla>${product.tipo_os_sigla}</deal:TipoOSSigla>
         <deal:ProdutoReferencia>${product.produto_referencia}</deal:ProdutoReferencia>
@@ -86,13 +88,13 @@ export class DealernetOrderService {
         <deal:Quantidade>${product.quantidade}</deal:Quantidade>
       </deal:Produto>
         `;
-        })
-        .join('\n')}
+                  })
+                  .join('\n')}
       </deal:Produtos>
       `
-            : '';
+                : '';
 
-        return `
+            return `
         <deal:Servico>
         <deal:TipoOSSigla>${item.tipo_os_sigla}</deal:TipoOSSigla>
         <deal:TMOReferencia>${item.tmo_referencia}</deal:TMOReferencia>
@@ -102,8 +104,8 @@ export class DealernetOrderService {
          ${products}
         </deal:Servico>
     `;
-      })
-      .join('\n')}
+          })
+          .join('\n')}
     </deal:Servicos>
     `
         : '';
@@ -268,7 +270,7 @@ export class DealernetOrderService {
     return xmlBody;
   }
   async createOs(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<DealernetOrder> {
-    Logger.log(`Criando OS Dealernet`, 'OS');
+    Logger.log(`Criando OS Dealernet`, 'DealernetOsService.createOs');
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const xmlBody = await this.createOsXmlSchema(connection, dto);
 
@@ -281,7 +283,7 @@ export class DealernetOrderService {
       const parsedData = parser.parse(xmlData);
       const order: DealernetOrder =
         parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista'][
-          'SDT_FSOrdemServicoOut'
+        'SDT_FSOrdemServicoOut'
         ];
 
       if (order.Mensagem && order.Chave === 0) {

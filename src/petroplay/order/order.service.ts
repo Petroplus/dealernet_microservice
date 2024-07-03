@@ -5,11 +5,11 @@ import { petroplay } from 'src/commons/web-client';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpsertOrderDto } from './dto/upsert-order.dto';
 import { PetroplayOrderEntity } from './entity/order.entity';
+import { OrderAppointmentEntity } from './entity/order-appointment.entity';
+import { OrderBudgetEntity } from './entity/order-budget.entity';
 import { OrderItemEntity } from './entity/order-items.entity';
 import { OrderStatus } from './enum/order-status.enum';
 import { OrderRelations } from './filters/expand-orders';
-import { OrderBudgetEntity } from './entity/order-budget.entity';
-import { OrderAppointmentEntity } from './entity/order-appointment.entity';
 
 @Injectable()
 export class PetroplayOrderService {
@@ -72,21 +72,32 @@ export class PetroplayOrderService {
       });
   }
 
-
-  async findOrderBudget(order_id: string): Promise<OrderBudgetEntity[]> {
+  async findOrderBudget(order_id: string, budget_id?: string): Promise<OrderBudgetEntity[]> {
     const client = await petroplay.v2();
-    return await client
-      .get(`/v2/orders/${order_id}/budgets?expand=os_type&expand=products&expand=services`)
+    return client
+      .get(`/v2/orders/${order_id}/budgets`, { params: { ids: [budget_id], expand: ['os_type', 'products', 'services'] } })
       .then(({ data }) => data)
       .catch((err) => {
         Logger.error('Error on find order budget:', err, 'PetroplayOrderService.findOrderBudget');
         throw new BadRequestException('Error on find order budget');
       });
   }
-  async findOrderAppointments(order_id: string): Promise< OrderAppointmentEntity[]> {
+
+  async updateOrderBudget(order_id: string, budget_id: string, dto: any): Promise<OrderBudgetEntity> {
+    const client = await petroplay.v2();
+    return client
+      .put(`/v2/orders/${order_id}/budgets/${budget_id}`, dto)
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on update order budget:', err, 'PetroplayOrderService.updateOrderBudget');
+        throw new BadRequestException('Error on update order budget');
+      });
+  }
+
+  async findOrderAppointments(order_id: string, budget_id: string): Promise<OrderAppointmentEntity[]> {
     const client = await petroplay.v2();
     return await client
-      .get(`/v2/orders/${order_id}/appointments`)
+      .get(`/v2/orders/${order_id}/appointments`, { params: { budget_ids: [budget_id] } })
       .then(({ data }) => data)
       .catch((err) => {
         Logger.error('Error on find order appointments:', err, 'PetroplayOrderService.findOrderAppointments');

@@ -21,7 +21,7 @@ export class ScheduleService {
 
   @Cron('0 2,4,8 * * *')
   async sync(filter: ScheduleFilter): Promise<void> {
-    const integrations = await this.petroplay.integration.find({ clients: filter.client_ids });
+    const integrations = await this.petroplay.integration.find({ clients: filter?.client_ids ?? [] });
     if (!integrations) throw new BadRequestException('Integration not found');
 
     const background = async () => {
@@ -138,6 +138,7 @@ export class ScheduleService {
         integration_id: `${schedule.Chave}`,
         integration_data: schedule,
         customer_requests: requests,
+        notes: schedule.Observacao,
         additional_information: `Dealernet
         Nome do consultor: ${schedule.ConsultorNome ?? ''}
         Modelo do veículo: ${schedule.VeiculoModelo ?? ''}

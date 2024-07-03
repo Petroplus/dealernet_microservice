@@ -446,6 +446,10 @@ export class CreateOrderDto {
   @IsOptional()
   address: any;
 
+  @ApiProperty({ required: false })
+  @IsOptional()
+  notes?: string;
+
   @ApiProperty({ required: false, type: UpsertOrderCustomerRequestDto, isArray: true })
   @IsOptional()
   customer_request?: UpsertOrderCustomerRequestDto[];

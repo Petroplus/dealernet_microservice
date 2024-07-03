@@ -44,12 +44,17 @@ export class DealernetCustomerService {
 
       if (pessoas.filter((pessoa) => pessoa?.Pessoa_Mensagem).length > 0) return [];
 
-      return pessoas.map((pessoa) => ({
-        ...pessoa,
-        Endereco: isArray(pessoa?.Endereco?.EnderecoItem) ? pessoa?.Endereco?.EnderecoItem : [pessoa?.Endereco?.EnderecoItem],
-        Telefone: isArray(pessoa?.Telefone?.TelefoneItem) ? pessoa?.Telefone?.TelefoneItem : [pessoa?.Telefone?.TelefoneItem],
-        MeioContato: isArray(pessoa?.MeioContato?.MeioContatoItem) ? pessoa?.MeioContato?.MeioContatoItem : [pessoa?.MeioContato?.MeioContatoItem],
-      }));
+
+      return pessoas.map((x) => {
+        const document = x?.Pessoa_TipoPessoa == 'F' ? x?.Pessoa_DocIdentificador?.toString().padStart(11, '0') : x?.Pessoa_DocIdentificador?.toString().padStart(14, '0');
+        return {
+          ...x,
+          Pessoa_DocIdentificador: document,
+          Endereco: isArray(x?.Endereco?.EnderecoItem) ? x?.Endereco?.EnderecoItem : [x?.Endereco?.EnderecoItem],
+          Telefone: isArray(x?.Telefone?.TelefoneItem) ? x?.Telefone?.TelefoneItem : [x?.Telefone?.TelefoneItem],
+          MeioContato: isArray(x?.MeioContato?.MeioContatoItem) ? x?.MeioContato?.MeioContatoItem : [x?.MeioContato?.MeioContatoItem],
+        };
+      });
 
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetCustomerService.findById');

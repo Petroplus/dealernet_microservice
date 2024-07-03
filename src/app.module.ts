@@ -10,7 +10,7 @@ import { InjectRequestInterceptor } from './interceptors/inject-request.intercep
 import { InjectTransformInterceptor } from './interceptors/inject-transform.interceptor';
 import { BudgetModule } from './modules/budget/budget.module';
 import { CustomerModule } from './modules/customer/customer.module';
-import { OrderModule } from './modules/order/order.module';
+import { OsModule } from './modules/os/order.module';
 import { ProductModule } from './modules/product/product.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { ServiceModule } from './modules/service/service.module';
@@ -28,7 +28,7 @@ import { PetroplayModule } from './petroplay/petroplay.module';
     VehicleModule.forRoot(),
     ProductModule.forRoot(),
     ServiceModule.forRoot(),
-    OrderModule.forRoot(),
+    OsModule.forRoot(),
     BudgetModule.forRoot(),
   ],
   controllers: [],
