@@ -76,8 +76,8 @@ export class OsService {
         products.push({
           tipo_os_sigla,
           produto_referencia: product.integration_id,
-          valor_unitario: product.price,
-          quantidade: product.quantity,
+          valor_unitario: Number(product.price) > 0 ? Number(product.price) : 0.01,
+          quantidade: Number(product.quantity) > 0 ? Number(product.quantity) : 1,
         });
       });
 
@@ -90,8 +90,8 @@ export class OsService {
           tipo_os_sigla,
           tmo_referencia: service.integration_id,
           tempo: service.quantity,
-          valor_unitario: service.price,
-          quantidade: Math.ceil(service.quantity),
+          valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
+          quantidade: Number(service.quantity) > 0 ? Number(service.quantity) : 1,
           produtos: index == 0 ? [...products] : [],
         });
       });
