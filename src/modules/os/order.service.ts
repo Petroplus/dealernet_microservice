@@ -91,7 +91,7 @@ export class OsService {
           tmo_referencia: service.integration_id,
           tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
           valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
-          quantidade: Number(service.quantity) > 0 ? Number(service.quantity) : 1,
+          quantidade: Number(service.quantity) > 0 ? Math.ceil(service.quantity) : 1,
           produtos: index == 0 ? [...products] : [],
         });
       });
