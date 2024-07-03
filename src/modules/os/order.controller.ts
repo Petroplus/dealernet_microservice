@@ -48,7 +48,7 @@ export class OsController {
     @Param('order_id', ParseUUIDPipe) order_id: string,
     @Param('budget_id', ParseUUIDPipe) budget_id: string,
   ): Promise<DealernetOrder> {
-    return this.service.updateOsByOrderId(order_id, budget_id);
+    return this.service.updateOs(order_id, budget_id);
   }
 
   @Get(`appointments/:budget_id/schema`)
@@ -61,6 +61,6 @@ export class OsController {
     @Param('order_id', ParseUUIDPipe) order_id: string,
     @Param('budget_id', ParseUUIDPipe) budget_id: string,
   ): Promise<string> {
-    return this.service.updateXmlSchemaOsByOrderId(order_id, budget_id);
+    return this.service.updateXmlSchemaOs(order_id, budget_id);
   }
 }

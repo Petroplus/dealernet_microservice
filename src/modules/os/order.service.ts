@@ -140,7 +140,7 @@ export class OsService {
     return OS;
   }
 
-  async updateXmlSchemaOsByOrderId(order_id: string, budget_id: string): Promise<string> {
+  async updateXmlSchemaOs(order_id: string, budget_id: string): Promise<string> {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
@@ -148,12 +148,12 @@ export class OsService {
     if (!integration) throw new BadRequestException('Integration not found');
 
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
-    const osDTO = await this.osDtoToDealernetOsAppointments(order, budget);
+    const osDTO = await this.osDtoAppointments(order, budget);
 
     return this.Dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
   }
 
-  async updateOsByOrderId(order_id: string, budget_id: string): Promise<DealernetOrder> {
+  async updateOs(order_id: string, budget_id: string): Promise<DealernetOrder> {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
@@ -161,12 +161,12 @@ export class OsService {
 
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
 
-    const osDTO = await this.osDtoToDealernetOsAppointments(order, budget);
+    const osDTO = await this.osDtoAppointments(order, budget);
 
     return this.Dealernet.order.updateOs(integration.dealernet, osDTO);
   }
 
-  async osDtoToDealernetOsAppointments(order: PetroplayOrderEntity, budget: OrderBudgetEntity): Promise<UpdateOsDTO> {
+  async osDtoAppointments(order: PetroplayOrderEntity, budget: OrderBudgetEntity): Promise<UpdateOsDTO> {
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
 
     const products: ProdutoUpdateDto[] = [];
