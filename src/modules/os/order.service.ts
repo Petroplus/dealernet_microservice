@@ -4,6 +4,7 @@ import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ProdutoCreateDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { DealernetOrder } from 'src/dealernet/response/os-response';
 import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
+import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entity';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
 import { OrderFilter } from './filters/order.filters';
@@ -34,12 +35,9 @@ export class OsService {
 
     if (!integration) throw new BadRequestException('Integration not found');
 
-    Logger.log(`Rota Create: Buscando itens da ordem ${order_id}`, 'OsService');
-    order.items = await this.petroplay.order.findItems(order_id);
+    const budgets = await this.petroplay.order.findOrderBudget(order.id);
 
-    // await this.petroplay.order.updateStatus(order_id, 'AWAIT_SEND_OS');
-    Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
-    const osDTO = await this.osDtoToDealernetOs(order);
+    const osDTO = await this.osDtoToDealernetOs(order, budgets);
 
     return this.Dealernet.order.createOsXmlSchema(integration.dealernet, osDTO);
   }
@@ -52,19 +50,25 @@ export class OsService {
 
     await this.petroplay.order.updateStatus(order_id, 'AWAIT_SEND_OS');
 
-    Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
-    const osDTO = await this.osDtoToDealernetOs(order);
+    const budgets = await this.petroplay.order.findOrderBudget(order.id);
 
-    return this.Dealernet.order.createOs(integration.dealernet, osDTO);
+    Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
+    const schema = await this.osDtoToDealernetOs(order, budgets);
+
+    const os = await this.Dealernet.order.createOs(integration.dealernet, schema);
+    for await (const budget of budgets) {
+      await this.petroplay.order.updateOrderBudget(order_id, budget.id, { os_number: os.NumeroOS });
+    }
+
+    return os;
   }
 
-  async osDtoToDealernetOs(order: PetroplayOrderEntity): Promise<CreateOsDTO> {
-    const orderBudget = await this.petroplay.order.findOrderBudget(order.id);
+  async osDtoToDealernetOs(order: PetroplayOrderEntity, budgets: OrderBudgetEntity[]): Promise<CreateOsDTO> {
     const products: ProdutoCreateDTO[] = [];
     const services: ServicoCreateDTO[] = [];
 
     let aux_os_type = order?.os_type?.external_id;
-    orderBudget.map((budget) => {
+    budgets.map((budget) => {
       if (!aux_os_type) {
         aux_os_type = budget?.os_type?.external_id;
       }

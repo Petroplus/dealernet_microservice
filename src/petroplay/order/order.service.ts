@@ -73,12 +73,23 @@ export class PetroplayOrderService {
 
   async findOrderBudget(order_id: string): Promise<OrderBudgetEntity[]> {
     const client = await petroplay.v2();
-    return await client
+    return client
       .get(`/v2/orders/${order_id}/budgets?expand=os_type&expand=products&expand=services`)
       .then(({ data }) => data)
       .catch((err) => {
         Logger.error('Error on find order budget:', err, 'PetroplayOrderService.findOrderBudget');
         throw new BadRequestException('Error on find order budget');
+      });
+  }
+
+  async updateOrderBudget(order_id: string, budget_id: string, dto: any): Promise<OrderBudgetEntity> {
+    const client = await petroplay.v2();
+    return client
+      .put(`/v2/orders/${order_id}/budgets/${budget_id}`, dto)
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on update order budget:', err, 'PetroplayOrderService.updateOrderBudget');
+        throw new BadRequestException('Error on update order budget');
       });
   }
 }
