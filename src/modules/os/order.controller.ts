@@ -18,9 +18,9 @@ export class OsController {
   }
 
   @Post()
-  @ApiResponse({ status: 200, type: DealernetOrder })
+  @ApiResponse({ status: 200, type: DealernetOrder, isArray: true })
   @ApiOperation({ summary: 'Utiliza o body da rota para inserir uma nova ordem' })
-  async create(@Param('order_id', ParseUUIDPipe) order_id: string): Promise<DealernetOrder> {
+  async create(@Param('order_id', ParseUUIDPipe) order_id: string): Promise<DealernetOrder[]> {
     return this.service.createOs(order_id);
   }
 

@@ -42,7 +42,7 @@ export class OsService {
     return this.Dealernet.order.createOsXmlSchema(integration.dealernet, osDTO);
   }
 
-  async createOs(order_id: string): Promise<DealernetOrder> {
+  async createOs(order_id: string, budget_id?: string): Promise<DealernetOrder[]> {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
@@ -50,14 +50,17 @@ export class OsService {
 
     await this.petroplay.order.updateStatus(order_id, 'AWAIT_SEND_OS');
 
-    const budgets = await this.petroplay.order.findOrderBudget(order.id);
+    const budgets = await this.petroplay.order.findOrderBudget(order.id, budget_id);
 
     Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
-    const schema = await this.osDtoToDealernetOs(order, budgets);
+    const os = [];
+    for await (const budget of budgets.filter((x) => !x.os_number)) {
+      const schema = await this.osDtoToDealernetOs(order, [budget]);
 
-    const os = await this.Dealernet.order.createOs(integration.dealernet, schema);
-    for await (const budget of budgets) {
-      await this.petroplay.order.updateOrderBudget(order_id, budget.id, { os_number: os.NumeroOS });
+      await this.Dealernet.order.createOs(integration.dealernet, schema).then(async (response) => {
+        await this.petroplay.order.updateOrderBudget(order_id, budget.id, { os_number: response.NumeroOS });
+        os.push(response);
+      });
     }
 
     return os;
