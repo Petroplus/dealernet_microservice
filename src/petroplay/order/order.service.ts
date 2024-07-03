@@ -5,6 +5,7 @@ import { petroplay } from 'src/commons/web-client';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpsertOrderDto } from './dto/upsert-order.dto';
 import { PetroplayOrderEntity } from './entity/order.entity';
+import { OrderAppointmentEntity } from './entity/order-appointment.entity';
 import { OrderBudgetEntity } from './entity/order-budget.entity';
 import { OrderItemEntity } from './entity/order-items.entity';
 import { OrderStatus } from './enum/order-status.enum';
@@ -90,6 +91,17 @@ export class PetroplayOrderService {
       .catch((err) => {
         Logger.error('Error on update order budget:', err, 'PetroplayOrderService.updateOrderBudget');
         throw new BadRequestException('Error on update order budget');
+      });
+  }
+
+  async findOrderAppointments(order_id: string, budget_id: string): Promise<OrderAppointmentEntity[]> {
+    const client = await petroplay.v2();
+    return await client
+      .get(`/v2/orders/${order_id}/appointments`, { params: { budget_ids: [budget_id] } })
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on find order appointments:', err, 'PetroplayOrderService.findOrderAppointments');
+        throw new BadRequestException('Error on find order appointments');
       });
   }
 }

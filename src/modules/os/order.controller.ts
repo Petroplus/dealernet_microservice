@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ParseUUIDOptionalPipe } from 'src/commons/pipes/parse-uuid-optional.pipe';
@@ -39,5 +39,28 @@ export class OsController {
     @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
   ): Promise<string> {
     return this.service.createSchema(order_id, budget_id);
+  }
+
+  @Put('appointments/:budget_id')
+  @ApiResponse({ status: 200 })
+  @ApiOperation({ summary: 'Atualiza os apontamentos da ordem de serviço baseado em informações extraídas da ordem informada' })
+  async update(
+    @Param('order_id', ParseUUIDPipe) order_id: string,
+    @Param('budget_id', ParseUUIDPipe) budget_id: string,
+  ): Promise<DealernetOrder> {
+    return this.service.updateOs(order_id, budget_id);
+  }
+
+  @Get(`appointments/:budget_id/schema`)
+  @ApiResponse({ status: 200 })
+  @ApiOperation({
+    summary:
+      'Retorna um corpo XML para atualizar os apontamentos da ordem de serviço baseado em informações extraídas da ordem informada',
+  })
+  async updateXmlSchema(
+    @Param('order_id', ParseUUIDPipe) order_id: string,
+    @Param('budget_id', ParseUUIDPipe) budget_id: string,
+  ): Promise<string> {
+    return this.service.updateXmlSchemaOs(order_id, budget_id);
   }
 }
