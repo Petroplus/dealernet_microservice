@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 
-import { DealernetOrderService } from './order.service';
+import { DealernetOsService } from './order.service';
 
 @Module({
-  providers: [DealernetOrderService],
-  exports: [DealernetOrderService],
+  providers: [DealernetOsService],
+  exports: [DealernetOsService],
 })
 export class DealernetOrderModule {}

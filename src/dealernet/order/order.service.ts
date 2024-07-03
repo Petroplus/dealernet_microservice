@@ -13,7 +13,7 @@ import { DealernetOrder } from '../response/os-response';
 import { CreateDealernetOsDTO } from './dto/create-order.dto';
 
 @Injectable()
-export class DealernetOrderService {
+export class DealernetOsService {
   async findOS(connection: IntegrationDealernet, filter?: OrderFilter): Promise<DealernetOrder[]> {
     Logger.log(`Buscando OS Dealernet`, 'OS');
     const xmlBody = `
@@ -66,7 +66,7 @@ export class DealernetOrderService {
   }
 
   async createOsXmlSchema(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<string> {
-    Logger.log(`Criando Schema OS Dealernet`, 'OS');
+    Logger.log(`Criando Schema OS Dealernet`, 'DealernetOsService.createOsXmlSchema');
     const services =
       dto.servicos.length > 0
         ? `
@@ -158,7 +158,7 @@ export class DealernetOrderService {
   }
 
   async createOs(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<DealernetOrder> {
-    Logger.log(`Criando OS Dealernet`, 'OS');
+    Logger.log(`Criando OS Dealernet`, 'DealernetOsService.createOs');
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const xmlBody = await this.createOsXmlSchema(connection, dto);
 

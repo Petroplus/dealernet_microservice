@@ -10,7 +10,7 @@ import { DealernetBudgetService } from './budget/budget.service';
 import { DealernetCustomerService } from './customer/customer.service';
 import { CreateOsDTO } from './dto/create-os.dto';
 import { CreateVehicleDTO } from './dto/create-vehicle.dto';
-import { DealernetOrderService } from './order/order.service';
+import { DealernetOsService } from './order/order.service';
 import { DealernetProductService } from './product/product.service';
 import { DealernetBudgetResponse } from './response/budget-response';
 import { KitResponse } from './response/kit-response';
@@ -30,7 +30,7 @@ export class DealernetService {
     public readonly schedule: DealernetScheduleService,
     public readonly customer: DealernetCustomerService,
     public readonly vehicle: DealernetVehicleService,
-    public readonly order: DealernetOrderService,
+    public readonly order: DealernetOsService,
     public readonly product: DealernetProductService,
     public readonly service: DealernetServiceService,
     public readonly budget: DealernetBudgetService,

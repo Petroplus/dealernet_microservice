@@ -28,14 +28,14 @@ export class OsService {
     return await this.Dealernet.order.findOS(integration.dealernet, filter);
   }
 
-  async createSchema(order_id: string): Promise<string> {
+  async createSchema(order_id: string, budget_id?: string): Promise<string> {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
 
     if (!integration) throw new BadRequestException('Integration not found');
 
-    const budgets = await this.petroplay.order.findOrderBudget(order.id);
+    const budgets = await this.petroplay.order.findOrderBudget(order.id, budget_id);
 
     const osDTO = await this.osDtoToDealernetOs(order, budgets);
 
