@@ -48,8 +48,6 @@ export class OsService {
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    await this.petroplay.order.updateStatus(order_id, 'AWAIT_SEND_OS');
-
     const budgets = await this.petroplay.order.findOrderBudget(order.id, budget_id);
 
     Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
@@ -68,13 +66,13 @@ export class OsService {
 
   async osDtoToDealernetOs(order: PetroplayOrderEntity, budgets: OrderBudgetEntity[]): Promise<CreateOsDTO> {
     const services: ServicoCreateDTO[] = [];
-    const products_hashtable = {}
+    const products_hashtable = {};
     let aux_os_type = order?.os_type?.external_id;
     budgets.map((budget) => {
       if (!aux_os_type) {
         aux_os_type = budget?.os_type?.external_id;
       }
-      let already_used_os_type_products = false
+      let already_used_os_type_products = false;
       budget.products.map((product) => {
         if (!aux_os_type) {
           aux_os_type = product?.os_type?.external_id;
@@ -88,15 +86,9 @@ export class OsService {
         };
 
         if (product.service_id) {
-          products_hashtable[product.service_id] = [
-            ...(products_hashtable[product.service_id] || []),
-            productEntry,
-          ];
+          products_hashtable[product.service_id] = [...(products_hashtable[product.service_id] || []), productEntry];
         } else {
-          products_hashtable[aux_os_type] = [
-            ...(products_hashtable[aux_os_type] || []),
-            productEntry,
-          ];
+          products_hashtable[aux_os_type] = [...(products_hashtable[aux_os_type] || []), productEntry];
         }
       });
 
