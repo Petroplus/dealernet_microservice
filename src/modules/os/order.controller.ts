@@ -1,6 +1,7 @@
 import { Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+import { ParseUUIDOptionalPipe } from 'src/commons/pipes/parse-uuid-optional.pipe';
 import { DealernetOrder } from 'src/dealernet/response/os-response';
 
 import { OsService } from './order.service';
@@ -24,7 +25,7 @@ export class OsController {
   @ApiQuery({ name: 'budget_id', required: false })
   async create(
     @Param('order_id', ParseUUIDPipe) order_id: string,
-    @Query('budget_id', ParseUUIDPipe) budget_id: string,
+    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
   ): Promise<DealernetOrder[]> {
     return this.service.createOs(order_id, budget_id);
   }
@@ -35,7 +36,7 @@ export class OsController {
   @ApiQuery({ name: 'budget_id', required: false })
   async findSchema(
     @Param('order_id', ParseUUIDPipe) order_id: string,
-    @Query('budget_id', ParseUUIDPipe) budget_id: string,
+    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
   ): Promise<string> {
     return this.service.createSchema(order_id, budget_id);
   }
