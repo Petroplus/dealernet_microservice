@@ -109,6 +109,31 @@ export class DealernetOsService {
     </deal:Servicos>
     `
         : '';
+
+        const os_types =
+        dto.tipo_os_array.length>0?
+        `
+        <deal:TipoOS>
+        ${dto.tipo_os_array.map(tipo_os=>{
+          return`
+          <deal:TipoOSItem>
+            <deal:TipoOSSigla>${tipo_os?? '?'}</deal:TipoOSSigla>
+            <deal:ConsultorDocumento>${dto.tipo_os.tipo_os_item.consultor_documento ?? '?'}</deal:ConsultorDocumento>
+            <deal:CondicaoPagamento>${dto.tipo_os.tipo_os_item.condicao_pagamento ?? '?'}</deal:CondicaoPagamento>
+          </deal:TipoOSItem>`
+        }).join('\n')}
+        </deal:TipoOS>
+        `
+        :
+        `
+        <deal:TipoOS>
+          <deal:TipoOSItem>
+            <deal:TipoOSSigla>${dto.tipo_os.tipo_os_item.tipo_os_sigla ?? '?'}</deal:TipoOSSigla>
+            <deal:ConsultorDocumento>${dto.tipo_os.tipo_os_item.consultor_documento ?? '?'}</deal:ConsultorDocumento>
+            <deal:CondicaoPagamento>${dto.tipo_os.tipo_os_item.condicao_pagamento ?? '?'}</deal:CondicaoPagamento>
+          </deal:TipoOSItem>
+        </deal:TipoOS>
+        `
     const xmlBody = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
             <soapenv:Header/>
@@ -142,13 +167,7 @@ export class DealernetOsService {
                     <deal:CarregarBateria>${dto.carregar_bateria ?? '?'}</deal:CarregarBateria>
                     <deal:Acao>INC</deal:Acao>
                     ${services}
-                    <deal:TipoOS>
-                        <deal:TipoOSItem>
-                            <deal:TipoOSSigla>${dto.tipo_os.tipo_os_item.tipo_os_sigla ?? '?'}</deal:TipoOSSigla>
-                            <deal:ConsultorDocumento>${dto.tipo_os.tipo_os_item.consultor_documento ?? '?'}</deal:ConsultorDocumento>
-                            <deal:CondicaoPagamento>${dto.tipo_os.tipo_os_item.condicao_pagamento ?? '?'}</deal:CondicaoPagamento>
-                        </deal:TipoOSItem>
-                    </deal:TipoOS>
+                    ${os_types}
                 </deal:Sdt_fsordemservicoin>
             </deal:WS_FastServiceApi.ORDEMSERVICO>
        </soapenv:Body>
@@ -220,6 +239,8 @@ export class DealernetOsService {
         </deal:Servicos>
         `
         : '';
+
+
     const xmlBody = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
             <soapenv:Header/>

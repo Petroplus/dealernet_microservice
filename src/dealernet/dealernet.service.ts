@@ -324,8 +324,8 @@ export class DealernetService {
         parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.PRODUTOResponse']['Sdt_fsprodutooutlista']['SDT_FSProdutoOut'];
       return products;
     } catch (error) {
-      console.error('Erro ao fazer a requisição:', error);
-      throw error;
+      console.error('Erro ao fazer a requisição:', cod);
+      // throw error;
     }
   }
 
