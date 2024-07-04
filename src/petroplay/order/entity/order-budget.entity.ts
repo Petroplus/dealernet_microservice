@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { OrderBudgetProductEntity } from './order-budget-product.entity';
 import { OrderBudgetServiceEntity } from './order-budget-service.entity';
 import { ClientOsTypeEntity } from './os-type.entity';
+import { UserEntity } from './user.entity';
 
 
 export class OrderBudgetEntity  {
@@ -43,7 +44,7 @@ export class OrderBudgetEntity  {
   integration_id: string;
 
   @ApiProperty()
-  integration_data: JSON;
+  integration_data: JSON | any;
 
   @ApiProperty()
   metadata_signature_budget: unknown | JSON;
@@ -56,6 +57,9 @@ export class OrderBudgetEntity  {
 
   @ApiProperty({ type: () => ClientOsTypeEntity })
   os_type: ClientOsTypeEntity;
+
+  @ApiProperty({ type: () => UserEntity })
+  mechanic: UserEntity;
 
   constructor(partial: Partial<OrderBudgetEntity>) {
     Object.assign(this, partial);

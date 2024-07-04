@@ -11,6 +11,7 @@ import { PetroplayService } from 'src/petroplay/petroplay.service';
 import { OrderFilter } from './filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 import { isArray } from 'class-validator';
+import { OrderAppointmentEntity } from 'src/petroplay/order/entity/order-appointment.entity';
 
 @Injectable()
 export class OsService {
@@ -86,7 +87,6 @@ export class OsService {
         }
         const tipo_os_sigla = product?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
         let product_validate = await this.Dealernet.findProductByCodigo(connection.url,connection.user, connection.key, connection.document, product.integration_id)
-        console.log(product_validate)
         if(!isArray(product_validate)){
           product_validate = [product_validate]
         }
@@ -171,7 +171,8 @@ export class OsService {
     if (!integration) throw new BadRequestException('Integration not found');
 
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
-    const osDTO = await this.osDtoAppointments(order, budget);
+    const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
+    const osDTO = await this.osDtoAppointments(order, budget,appointments, integration.dealernet);
 
     return this.Dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
   }
@@ -183,14 +184,26 @@ export class OsService {
     if (!integration) throw new BadRequestException('Integration not found');
 
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
-
-    const osDTO = await this.osDtoAppointments(order, budget);
-
-    return this.Dealernet.order.updateOs(integration.dealernet, osDTO);
+    const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
+    const osDTO = await this.osDtoAppointments(order, budget, appointments,integration.dealernet);
+   const result= await this.Dealernet.order.updateOs(integration.dealernet, osDTO);
+    appointments.map(async appointment=>{
+      await this.petroplay.order.updateOrderAppointment(order.id, appointment.id, {was_sent_to_dms: false})
+    })
+    return result
   }
 
-  async osDtoAppointments(order: PetroplayOrderEntity, budget: OrderBudgetEntity): Promise<UpdateOsDTO> {
-    const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
+  async osDtoAppointments(order: PetroplayOrderEntity, budget: OrderBudgetEntity, appointments: OrderAppointmentEntity[], connection: IntegrationDealernet): Promise<UpdateOsDTO> {
+
+    const services_key_hashtable = {}
+    const integration_data_services = budget.integration_data?.Servicos.Servico
+    if (isArray(integration_data_services)) {
+      integration_data_services.map(service => {
+        if (service.TMOReferencia) {
+          services_key_hashtable[service.TMOReferencia] = service?.Chave
+        }
+      })
+    }
 
     const products: ProdutoUpdateDto[] = [];
     const services: ServicoUpdateDto[] = [];
@@ -211,36 +224,48 @@ export class OsService {
       });
     });
 
-    budget.services.map((service, index) => {
+    for (const service of budget.services) {
       if (!aux_os_type) {
         aux_os_type = service?.os_type?.external_id;
       }
+      let usuario_ind_responsavel;
+      let produtivo_documento;
       const aux_appointments: MarcacaoUpdateDto[] = [];
-      appointments?.map(async (appointment) => {
-        if (appointment.integration_id === service.integration_id) {
-          aux_appointments.push({
-            usuario_documento_produtivo: '?',
-            data_inicial: await this.formatDate(appointment.start_date),
-            data_final: await this.formatDate(appointment.start_date),
-            motivo_parada: '?',
-            observacao: '?',
-          });
+      for (const appointment of appointments || []) {
+        if (!appointment?.was_sent_to_dms) {
+          if (appointment.integration_id === service.integration_id) {
+            const user = await this.Dealernet.customer.findUser(connection, appointment?.mechanic.cod_consultor);
+            appointment.was_sent_to_dms = true;
+            usuario_ind_responsavel = user.Usuario_Identificador,
+            produtivo_documento = user.Usuario_DocIdentificador
+
+            aux_appointments.push({
+              usuario_documento_produtivo: user.Usuario_Identificador,
+              data_inicial: await this.formatDate(appointment.start_date),
+              data_final: await this.formatDate(appointment.end_date, appointment.start_date),
+              motivo_parada: appointment?.reason_stopped?.external_id,
+              observacao: '?',
+            });
+          }
         }
-      });
+      }
       const tipo_os_sigla = service?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
       services.push({
+        chave: services_key_hashtable[service.integration_id],
         tipo_os_sigla,
         tmo_referencia: service.integration_id,
         tempo: service.quantity,
         valor_unitario: service.price,
         quantidade: Math.ceil(service.quantity),
-        produtos: index == 0 ? [...products] : [],
+        usuario_ind_responsavel,
+        produtivo_documento,
+        produtos: services.length == 0 ? [...products] : [],
         marcacoes: aux_appointments,
       });
-    });
+    }
 
     const OS: UpdateOsDTO = {
-      chave: budget.os_number,
+      chave: budget.integration_data?.Chave,
       veiculo_placa_chassi: order.vehicle_chassis_number,
       veiculo_Km: Number(order.mileage) || 0,
       cliente_documento: order.customer_document,
@@ -263,6 +288,7 @@ export class OsService {
     return OS;
   }
 
+
   async formatarDoc(doc?: string): Promise<string> {
     if (!doc) return '?';
     if (doc?.length === 11) return doc;
@@ -280,17 +306,37 @@ export class OsService {
     }
   }
 
-  async formatDate(date?: Date): Promise<string> {
+  async formatDate(date?: Date, compare_date?: Date): Promise<string> {
     if (!date) {
       return '?';
     }
+
     date = new Date(date);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
 
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    if (compare_date) {
+      compare_date = new Date(compare_date);
+      minutes = compare_date.getMinutes() + 1;
+    }
+
+    if (minutes >= 60) {
+      minutes -= 60;
+      hours += 1;
+    }
+
+    if (hours >= 24) {
+      hours -= 24;
+      date.setDate(date.getDate() + 1);
+    }
+
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${formattedHours}:${formattedMinutes}`;
   }
+
 }

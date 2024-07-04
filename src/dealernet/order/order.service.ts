@@ -225,11 +225,14 @@ export class DealernetOsService {
             : '';
               return `
             <deal:Servico>
+              <deal:Chave>${item.chave}</deal:Chave>
               <deal:TipoOSSigla>${item.tipo_os_sigla}</deal:TipoOSSigla>
               <deal:TMOReferencia>${item.tmo_referencia}</deal:TMOReferencia>
               <deal:Tempo>${item.tempo}</deal:Tempo>
               <deal:ValorUnitario>${item.valor_unitario}</deal:ValorUnitario>
               <deal:Quantidade>${item.quantidade}</deal:Quantidade>
+              ${item.usuario_ind_responsavel? `<deal:UsuarioIndResponsavel>${item.usuario_ind_responsavel}</deal:UsuarioIndResponsavel>` : ''}
+              ${item.produtivo_documento? `<deal:ProdutivoDocumento>${item.produtivo_documento}</deal:ProdutivoDocumento>`:''}
               ${products}
               ${appointments}
             </deal:Servico>
@@ -319,7 +322,6 @@ export class DealernetOsService {
   async updateOs(connection: IntegrationDealernet, dto: UpdateOsDTO): Promise<DealernetOrder> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const xmlBody = await this.updateOsXmlSchema(connection, dto);
-
     try {
       const client = await dealernet();
 

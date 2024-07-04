@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { AppointmentReasonStoppedOptionEntity } from './appointment-reason-stopped-option.entity';
+import { UserEntity } from './user.entity';
 export enum AppointmentStatusEnum {
   STOPED = 'STOPED',
   CANCELED = 'CANCELED',
@@ -47,6 +49,15 @@ export class OrderAppointmentEntity {
 
   @ApiProperty()
   integration_data: JSON;
+
+  @ApiProperty()
+  was_sent_to_dms: boolean;
+
+  @ApiProperty({ type: () => AppointmentReasonStoppedOptionEntity })
+  reason_stopped: AppointmentReasonStoppedOptionEntity;
+
+  @ApiProperty({ type: () => UserEntity })
+  mechanic: UserEntity;
 
   constructor(partial?: Partial<OrderAppointmentEntity>) {
     Object.assign(this, partial);
