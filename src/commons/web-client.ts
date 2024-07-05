@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import axios, { CreateAxiosDefaults, HeadersDefaults } from 'axios';
 import axiosRetry, { IAxiosRetryConfigExtended } from 'axios-retry';
-import { isJSON } from 'class-validator';
 
 interface Headers extends Partial<HeadersDefaults> {
   'Content-Type'?: string;
@@ -26,6 +25,10 @@ const api = (config?: CreateAxiosDefaults<any>, version?: string) => {
   const api = axios.create({ timeout: 60000, ...config, headers });
 
   api.interceptors.request.use((request) => {
+    if (request.headers['Authorization']) {
+      delete request.headers['x-secret-key'];
+    }
+
     Logger.log(`${request?.baseURL ?? ''}${request.url}`, `${version} ${request.method.toUpperCase()}`);
 
     const query = request.params ? `?${new URLSearchParams(request.params).toString()}` : '';

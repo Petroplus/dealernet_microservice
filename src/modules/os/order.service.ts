@@ -1,6 +1,7 @@
 import { BadRequestException, HttpException, Injectable, Logger } from '@nestjs/common';
 import { isArray } from 'class-validator';
 
+import { ContextService } from 'src/context/context.service';
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { MarcacaoUpdateDto, ProdutoUpdateDto, ServicoUpdateDto, UpdateOsDTO } from 'src/dealernet/dto/update-os.dto';
@@ -16,8 +17,9 @@ import { OrderFilter } from './filters/order.filters';
 @Injectable()
 export class OsService {
   constructor(
+    private readonly context: ContextService,
     private readonly petroplay: PetroplayService,
-    private readonly Dealernet: DealernetService,
+    private readonly dealernet: DealernetService,
   ) {}
 
   async findByPPsOrderId(order_id: string): Promise<DealernetOrder[]> {
@@ -29,7 +31,7 @@ export class OsService {
     const filter: OrderFilter = {
       integration_id: order.integration_id,
     };
-    return await this.Dealernet.order.findOS(integration.dealernet, filter);
+    return await this.dealernet.order.findOS(integration.dealernet, filter);
   }
 
   async createSchema(order_id: string, budget_id?: string): Promise<string> {
@@ -43,7 +45,7 @@ export class OsService {
 
     const osDTO = await this.osDtoToDealernetOs(order, budgets, integration.dealernet);
 
-    return this.Dealernet.order.createOsXmlSchema(integration.dealernet, osDTO);
+    return this.dealernet.order.createOsXmlSchema(integration.dealernet, osDTO);
   }
 
   async createOs(order_id: string, budget_id?: string): Promise<DealernetOrder[]> {
@@ -59,7 +61,7 @@ export class OsService {
     for await (const budget of budgets.filter((x) => !x.os_number)) {
       const schema = await this.osDtoToDealernetOs(order, [budget], integration.dealernet);
 
-      await this.Dealernet.order.createOs(integration.dealernet, schema).then(async (response) => {
+      await this.dealernet.order.createOs(integration.dealernet, schema).then(async (response) => {
         await this.petroplay.order.updateOrderBudget(order_id, budget.id, {
           os_number: response.NumeroOS,
           integration_data: response,
@@ -96,7 +98,7 @@ export class OsService {
         }
 
         const tipo_os_sigla = product?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
-        const product_validate = await this.Dealernet.findProductByReference(connection, product.integration_id);
+        const product_validate = await this.dealernet.findProductByReference(connection, product.integration_id);
 
         const product_validate_checked = product_validate?.first((product_check) => product_check?.QuantidadeDisponivel > 0);
 
@@ -143,12 +145,13 @@ export class OsService {
       });
     }
 
+    const cod_consultor = order.consultant?.cod_consultor ?? this.context.currentUser()?.cod_consultor;
     const OS: CreateOsDTO = {
       veiculo_placa_chassi: order.vehicle_chassis_number,
       tipo_os_array: os_types,
       veiculo_Km: Number(order.mileage) || 0,
       cliente_documento: order.customer_document,
-      consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
+      consultor_documento: await this.formatarDoc(cod_consultor),
       data: new Date(order.inspection).toISOString(),
       data_final: new Date().toISOString(),
       data_prometida: new Date(order.conclusion).toISOString(),
@@ -178,7 +181,7 @@ export class OsService {
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
     const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
 
-    return this.Dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
+    return this.dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
   }
 
   async updateOs(order_id: string, budget_id: string): Promise<DealernetOrder> {
@@ -190,7 +193,7 @@ export class OsService {
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
     const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
-    const result = await this.Dealernet.order.updateOs(integration.dealernet, osDTO);
+    const result = await this.dealernet.order.updateOs(integration.dealernet, osDTO);
     appointments.map(async (appointment) => {
       await this.petroplay.order.updateOrderAppointment(order.id, appointment.id, { was_sent_to_dms: false });
     });
@@ -242,7 +245,7 @@ export class OsService {
       for (const appointment of appointments || []) {
         if (!appointment?.was_sent_to_dms) {
           if (appointment.integration_id === service.integration_id) {
-            const user = await this.Dealernet.customer.findUser(connection, appointment?.mechanic.cod_consultor);
+            const user = await this.dealernet.customer.findUser(connection, appointment?.mechanic.cod_consultor);
             appointment.was_sent_to_dms = true;
             (usuario_ind_responsavel = user.Usuario_Identificador), (produtivo_documento = user.Usuario_DocIdentificador);
 
