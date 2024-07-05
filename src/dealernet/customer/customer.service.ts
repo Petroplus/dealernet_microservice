@@ -11,6 +11,7 @@ import { CreateCustomerDTO } from '../dto/create-customer.dto';
 
 import { CustomerFilter } from './filters/customer.filter';
 import { DealernetCustomerResponse } from './response/customers.response';
+import { DealernetUserResponse } from './response/user.response';
 
 @Injectable()
 export class DealernetCustomerService {
@@ -148,5 +149,40 @@ export class DealernetCustomerService {
       throw new BadRequestException('Erro ao fazer a requisição', { description: 'Não foi possível salvar as informações do cliente' });
     });
 
+  }
+
+  async findUser(connection: IntegrationDealernet, doc?: string): Promise<DealernetUserResponse> {
+    const xmlBody = `
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <deal:WS_FastServiceApi.USUARIOS>
+                    <deal:Usuario>${connection.user}</deal:Usuario>
+                    <deal:Senha>${connection.key}</deal:Senha>
+                    <deal:Sdt_fsusuariosin>
+                        <deal:PerfilAcesso_Tipo>PRD</deal:PerfilAcesso_Tipo>
+                    </deal:Sdt_fsusuariosin>
+                </deal:WS_FastServiceApi.USUARIOS>
+            </soapenv:Body>
+            </soapenv:Envelope>
+        `;
+        const url = `${connection.url}/aws_fastserviceapi.aspx`;
+        try {
+          const client = await dealernet();
+
+          const response = await client.post(url, xmlBody).then(({ data }) =>
+            new XMLParser().parse(data)['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.USUARIOSResponse']['Sdt_fsusuariosout']['SDT_FSUsuariosOut']
+        )
+
+          const result_user = response.find(user=>
+            user.Usuario_DocIdentificador == doc
+          )
+          return result_user
+
+
+        } catch (error) {
+          Logger.error('Erro ao fazer a requisição:', error, 'DealernetCustomerService.findUser');
+          throw error;
+        }
   }
 }

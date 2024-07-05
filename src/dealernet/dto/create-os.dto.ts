@@ -143,4 +143,7 @@ export class CreateOsDTO {
 
   @ApiProperty({ type: TipoOSCreateDTO })
   tipo_os: TipoOSCreateDTO;
+
+  @ApiProperty()
+  tipo_os_array?: string[]
 }
