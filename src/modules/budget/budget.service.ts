@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
+import { ContextService } from 'src/context/context.service';
 import { CreateDealernetBudgetDTO } from 'src/dealernet/budget/dto/create-budget.dto';
 import { DealernetService } from 'src/dealernet/dealernet.service';
-import { CreateOsDTO, ProdutoCreateDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
+import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { DealernetBudgetResponse } from 'src/dealernet/response/budget-response';
 import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entity';
@@ -11,6 +12,7 @@ import { PetroplayService } from 'src/petroplay/petroplay.service';
 @Injectable()
 export class BudgetService {
   constructor(
+    private readonly context: ContextService,
     private readonly petroplay: PetroplayService,
     private readonly dealernet: DealernetService,
   ) {}
@@ -36,11 +38,26 @@ export class BudgetService {
     return this.dealernet.budget.createXmlSchema(integration.dealernet, osDTO as any);
   }
 
-  async create(order_id: string, dto: CreateDealernetBudgetDTO): Promise<DealernetBudgetResponse> {
-    const integration = await this.petroplay.integration.findByClientId(order_id);
+  async create(order_id: string, budget_id?: string): Promise<DealernetBudgetResponse[]> {
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
+
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration) throw new BadRequestException('Integration not found');
 
-    return await this.dealernet.budget.create(integration.dealernet, dto);
+    const budgets = order.budgets.filter((x) => x.id === budget_id || !budget_id);
+
+    Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
+    const os = [];
+    for await (const budget of budgets.filter((x) => !x.budget_number)) {
+      const schema = await this.createSchema(order_id, budget.id);
+
+      await this.dealernet.budget.create(integration.dealernet, schema).then(async (response) => {
+        await this.petroplay.order.updateOrderBudget(order_id, budget.id, { budget_number: response.Chave });
+        os.push(response);
+      });
+    }
+
+    return os;
   }
 
   async osDtoToDealernetOs(order: PetroplayOrderEntity, budgets: OrderBudgetEntity[]): Promise<CreateOsDTO> {
@@ -98,11 +115,13 @@ export class BudgetService {
       });
     });
 
+    const cod_consultor = order.consultant?.cod_consultor ?? this.context.currentUser()?.cod_consultor;
+
     const OS: CreateOsDTO = {
       veiculo_placa_chassi: order.vehicle_chassis_number,
       veiculo_Km: Number(order.mileage) || 0,
       cliente_documento: order.customer_document,
-      consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
+      consultor_documento: await this.formatarDoc(cod_consultor),
       data: new Date(order.inspection).toISOString(),
       data_final: new Date().toISOString(),
       data_prometida: new Date(order.conclusion).toISOString(),

@@ -60,14 +60,14 @@ export class DealernetBudgetService {
         ? `
     <deal:Servicos>
     ${dto.servicos
-      .map((item) => {
-        const products =
-          item.produtos.length > 0
-            ? `
+          .map((item) => {
+            const products =
+              item.produtos.length > 0
+                ? `
       <deal:Produtos>
       ${item.produtos
-        .map((product) => {
-          return `
+                  .map((product) => {
+                    return `
       <deal:Produto>
         <deal:TipoOSSigla>${product.tipo_os_sigla}</deal:TipoOSSigla>
         <deal:ProdutoReferencia>${product.produto_referencia}</deal:ProdutoReferencia>
@@ -75,13 +75,13 @@ export class DealernetBudgetService {
         <deal:Quantidade>${product.quantidade}</deal:Quantidade>
       </deal:Produto>
         `;
-        })
-        .join('\n')}
+                  })
+                  .join('\n')}
       </deal:Produtos>
       `
-            : '';
+                : '';
 
-        return `
+            return `
         <deal:Servico>
         <deal:TipoOSSigla>${item.tipo_os_sigla}</deal:TipoOSSigla>
         <deal:TMOReferencia>${item.tmo_referencia}</deal:TMOReferencia>
@@ -91,8 +91,8 @@ export class DealernetBudgetService {
          ${products}
         </deal:Servico>
     `;
-      })
-      .join('\n')}
+          })
+          .join('\n')}
     </deal:Servicos>
     `
         : '';
@@ -125,14 +125,14 @@ export class DealernetBudgetService {
     return xmlBody;
   }
 
-  async create(connection: IntegrationDealernet, dto: CreateDealernetBudgetDTO): Promise<DealernetBudgetResponse> {
+  async create(connection: IntegrationDealernet, schemaXML: string): Promise<DealernetBudgetResponse> {
     Logger.log(`Criando Budget Dealernet`, 'Budget');
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
-    const xmlBody = await this.createXmlSchema(connection, dto);
+
     try {
       const client = await dealernet();
 
-      const response = await client.post(url, xmlBody);
+      const response = await client.post(url, schemaXML);
       const xmlData = response.data;
       const parser = new XMLParser();
       const parsedData = parser.parse(xmlData);

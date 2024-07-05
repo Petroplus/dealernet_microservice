@@ -15,11 +15,12 @@ export class BudgetController {
   @Post()
   @ApiResponse({ status: 200, type: DealernetBudgetResponse })
   @ApiOperation({ summary: 'Utiliza para gerar um novo orçamento' })
+  @ApiQuery({ name: 'budget_id', required: false })
   async create(
     @Param('order_id', ParseUUIDPipe) order_id: string,
-    @Body() dto: CreateDealernetBudgetDTO,
-  ): Promise<DealernetBudgetResponse> {
-    return this.service.create(order_id, dto);
+    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
+  ): Promise<DealernetBudgetResponse[]> {
+    return this.service.create(order_id, budget_id);
   }
 
   @Get('/schema')
