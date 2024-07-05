@@ -97,6 +97,9 @@ export class CreateOsDTO {
   data_prometida?: string;
 
   @ApiProperty()
+  dias_prazo_entrega?: number;
+
+  @ApiProperty()
   percentual_combustivel?: number;
 
   @ApiProperty()

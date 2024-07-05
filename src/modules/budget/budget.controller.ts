@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+import { ParseUUIDOptionalPipe } from 'src/commons/pipes/parse-uuid-optional.pipe';
 import { CreateDealernetBudgetDTO } from 'src/dealernet/budget/dto/create-budget.dto';
 import { DealernetBudgetResponse } from 'src/dealernet/response/budget-response';
 
@@ -14,17 +15,22 @@ export class BudgetController {
   @Post()
   @ApiResponse({ status: 200, type: DealernetBudgetResponse })
   @ApiOperation({ summary: 'Utiliza para gerar um novo orçamento' })
+  @ApiQuery({ name: 'budget_id', required: false })
   async create(
     @Param('order_id', ParseUUIDPipe) order_id: string,
-    @Body() dto: CreateDealernetBudgetDTO,
-  ): Promise<DealernetBudgetResponse> {
-    return this.service.create(order_id, dto);
+    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
+  ): Promise<DealernetBudgetResponse[]> {
+    return this.service.create(order_id, budget_id);
   }
 
   @Get('/schema')
   @ApiResponse({ status: 200 })
   @ApiOperation({ summary: 'Retorna um corpo XML baseado em informações extraídas da ordem informada' })
-  async findSchema(@Param('order_id', ParseUUIDPipe) order_id: string): Promise<string> {
+  @ApiQuery({ name: 'budget_id', required: false })
+  async findSchema(
+    @Param('order_id', ParseUUIDPipe) order_id: string,
+    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
+  ): Promise<string> {
     return this.service.createSchema(order_id);
   }
 }

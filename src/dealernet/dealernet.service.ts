@@ -5,6 +5,7 @@ import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
 import { webClient } from 'src/commons/web-client';
+import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
 import { DealernetBudgetService } from './budget/budget.service';
 import { DealernetCustomerService } from './customer/customer.service';
@@ -315,13 +316,13 @@ export class DealernetService {
             </soapenv:Envelope>
         `;
     try {
-      const response = await webClient.post(url, xmlBody, { headers });
-      const xmlData = response.data;
-      const parser = new XMLParser();
-      const parsedData = parser.parse(xmlData);
+      const response = await webClient.post(url, xmlBody, { headers }).then(({ data }) => new XMLParser().parse(data));
+      const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.PRODUTOResponse']['Sdt_fsprodutooutlista']['SDT_FSProdutoOut'];
 
-      const products =
-        parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.PRODUTOResponse']['Sdt_fsprodutooutlista']['SDT_FSProdutoOut'];
+      const products = Array.isArray(parsedData) ? parsedData : [parsedData];
+
+      if (products.first().Chave == '0') return [];
+
       return products;
     } catch (error) {
       console.error('Erro ao fazer a requisição:', cod);
@@ -778,15 +779,9 @@ export class DealernetService {
     }
   }
 
-  async findProductByReference(
-    api: string,
-    user: string,
-    key: string,
-    doc: string,
-    ref: string,
-  ): Promise<ProdutoDealernetResponse[] | ProdutoDealernetResponse> {
-    Logger.log(`Buscando produto pela ref: ${ref}, api:${api}`, 'Produtos');
-    const url = `${api}/aws_fastserviceapi.aspx`;
+  async findProductByReference(connection: IntegrationDealernet, ref: string): Promise<ProdutoDealernetResponse[]> {
+    Logger.log(`Buscando produto pela ref: ${ref}, api:${connection.url}`, 'Produtos');
+    const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const headers = {
       'Content-Type': 'text/xml;charset=utf-8',
     };
@@ -795,10 +790,10 @@ export class DealernetService {
             <soapenv:Header/>
             <soapenv:Body>
                 <deal:WS_FastServiceApi.PRODUTO>
-                    <deal:Usuario>${user}</deal:Usuario>
-                    <deal:Senha>${key}</deal:Senha>
+                    <deal:Usuario>${connection.user}</deal:Usuario>
+                    <deal:Senha>${connection.key}</deal:Senha>
                     <deal:Sdt_fsprodutoin>
-                        <deal:EmpresaDocumento>${doc}</deal:EmpresaDocumento >
+                        <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento >
                         <deal:ProdutoCodigo>?</deal:ProdutoCodigo >
                         <deal:ProdutoReferencia>
                           <deal:item>${ref}</deal:item>
@@ -811,13 +806,12 @@ export class DealernetService {
             </soapenv:Envelope>
         `;
     try {
-      const response = await webClient.post(url, xmlBody, { headers });
-      const xmlData = response.data;
-      const parser = new XMLParser();
-      const parsedData = parser.parse(xmlData);
+      const response = await webClient.post(url, xmlBody, { headers }).then(({ data }) => new XMLParser().parse(data));
+      const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.PRODUTOResponse']['Sdt_fsprodutooutlista']['SDT_FSProdutoOut'];
 
-      const products =
-        parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.PRODUTOResponse']['Sdt_fsprodutooutlista']['SDT_FSProdutoOut'];
+      const products = Array.isArray(parsedData) ? parsedData : [parsedData];
+
+      if (products.first().Chave == '0') return [];
 
       return products;
     } catch (error) {
@@ -825,6 +819,7 @@ export class DealernetService {
       throw error;
     }
   }
+
   async findServiceByReference(
     api: string,
     user: string,
