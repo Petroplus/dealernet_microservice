@@ -1,17 +1,17 @@
 import { BadRequestException, HttpException, Injectable, Logger } from '@nestjs/common';
+import { isArray } from 'class-validator';
 
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { MarcacaoUpdateDto, ProdutoUpdateDto, ServicoUpdateDto, UpdateOsDTO } from 'src/dealernet/dto/update-os.dto';
 import { DealernetOrder } from 'src/dealernet/response/os-response';
+import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
+import { OrderAppointmentEntity } from 'src/petroplay/order/entity/order-appointment.entity';
 import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entity';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
 import { OrderFilter } from './filters/order.filters';
-import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
-import { isArray } from 'class-validator';
-import { OrderAppointmentEntity } from 'src/petroplay/order/entity/order-appointment.entity';
 
 @Injectable()
 export class OsService {
@@ -41,7 +41,7 @@ export class OsService {
 
     const budgets = await this.petroplay.order.findOrderBudget(order.id, budget_id);
 
-    const osDTO = await this.osDtoToDealernetOs(order, budgets,integration.dealernet);
+    const osDTO = await this.osDtoToDealernetOs(order, budgets, integration.dealernet);
 
     return this.Dealernet.order.createOsXmlSchema(integration.dealernet, osDTO);
   }
@@ -60,7 +60,10 @@ export class OsService {
       const schema = await this.osDtoToDealernetOs(order, [budget], integration.dealernet);
 
       await this.Dealernet.order.createOs(integration.dealernet, schema).then(async (response) => {
-        await this.petroplay.order.updateOrderBudget(order_id, budget.id, { os_number: response.NumeroOS, integration_data: response});
+        await this.petroplay.order.updateOrderBudget(order_id, budget.id, {
+          os_number: response.NumeroOS,
+          integration_data: response,
+        });
         os.push(response);
       });
     }
@@ -68,10 +71,14 @@ export class OsService {
     return os;
   }
 
-  async osDtoToDealernetOs(order: PetroplayOrderEntity, budgets: OrderBudgetEntity[], connection: IntegrationDealernet): Promise<CreateOsDTO> {
+  async osDtoToDealernetOs(
+    order: PetroplayOrderEntity,
+    budgets: OrderBudgetEntity[],
+    connection: IntegrationDealernet,
+  ): Promise<CreateOsDTO> {
     const services: ServicoCreateDTO[] = [];
     const products_hashtable = {};
-    const os_types: string[]=[]
+    const os_types: string[] = [];
     let aux_os_type = order?.os_type?.external_id;
     budgets.map((budget) => {
       if (!aux_os_type) {
@@ -82,21 +89,15 @@ export class OsService {
         if (!aux_os_type) {
           aux_os_type = product?.os_type?.external_id;
         }
-       if (!os_types?.some(type => type === product.os_type.external_id)) {
+        if (!os_types?.some((type) => type === product.os_type.external_id)) {
           os_types.push(product.os_type.external_id);
         }
         const tipo_os_sigla = product?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
-        let product_validate = await this.Dealernet.findProductByCodigo(connection.url,connection.user, connection.key, connection.document, product.integration_id)
-        if(!isArray(product_validate)){
-          product_validate = [product_validate]
-        }
-        const product_validate_checked = product_validate?.filter(product_check=>{
-          if(product_check &&  product_check?.QuantidadeDisponivel>0 && !product_check.Mensagem){
-            return product_check
-          }
-        })
-        if(product_validate_checked.length >0){
+        const product_validate = await this.Dealernet.findProductByReference(connection, product.integration_id);
 
+        const product_validate_checked = product_validate?.first((product_check) => product_check?.QuantidadeDisponivel > 0);
+
+        if (product_validate_checked) {
           const productEntry = {
             tipo_os_sigla,
             produto_referencia: product.integration_id,
@@ -116,7 +117,7 @@ export class OsService {
         if (!aux_os_type) {
           aux_os_type = service?.os_type?.external_id;
         }
-        if (!os_types?.some(type => type === service.os_type.external_id)) {
+        if (!os_types?.some((type) => type === service.os_type.external_id)) {
           os_types.push(service.os_type.external_id);
         }
         const tipo_os_sigla = service?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
@@ -141,7 +142,7 @@ export class OsService {
 
     const OS: CreateOsDTO = {
       veiculo_placa_chassi: order.vehicle_chassis_number,
-      tipo_os_array:os_types,
+      tipo_os_array: os_types,
       veiculo_Km: Number(order.mileage) || 0,
       cliente_documento: order.customer_document,
       consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
@@ -172,7 +173,7 @@ export class OsService {
 
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
-    const osDTO = await this.osDtoAppointments(order, budget,appointments, integration.dealernet);
+    const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
 
     return this.Dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
   }
@@ -185,24 +186,28 @@ export class OsService {
 
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
-    const osDTO = await this.osDtoAppointments(order, budget, appointments,integration.dealernet);
-   const result= await this.Dealernet.order.updateOs(integration.dealernet, osDTO);
-    appointments.map(async appointment=>{
-      await this.petroplay.order.updateOrderAppointment(order.id, appointment.id, {was_sent_to_dms: false})
-    })
-    return result
+    const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
+    const result = await this.Dealernet.order.updateOs(integration.dealernet, osDTO);
+    appointments.map(async (appointment) => {
+      await this.petroplay.order.updateOrderAppointment(order.id, appointment.id, { was_sent_to_dms: false });
+    });
+    return result;
   }
 
-  async osDtoAppointments(order: PetroplayOrderEntity, budget: OrderBudgetEntity, appointments: OrderAppointmentEntity[], connection: IntegrationDealernet): Promise<UpdateOsDTO> {
-
-    const services_key_hashtable = {}
-    const integration_data_services = budget.integration_data?.Servicos.Servico
+  async osDtoAppointments(
+    order: PetroplayOrderEntity,
+    budget: OrderBudgetEntity,
+    appointments: OrderAppointmentEntity[],
+    connection: IntegrationDealernet,
+  ): Promise<UpdateOsDTO> {
+    const services_key_hashtable = {};
+    const integration_data_services = budget.integration_data?.Servicos.Servico;
     if (isArray(integration_data_services)) {
-      integration_data_services.map(service => {
+      integration_data_services.map((service) => {
         if (service.TMOReferencia) {
-          services_key_hashtable[service.TMOReferencia] = service?.Chave
+          services_key_hashtable[service.TMOReferencia] = service?.Chave;
         }
-      })
+      });
     }
 
     const products: ProdutoUpdateDto[] = [];
@@ -236,8 +241,7 @@ export class OsService {
           if (appointment.integration_id === service.integration_id) {
             const user = await this.Dealernet.customer.findUser(connection, appointment?.mechanic.cod_consultor);
             appointment.was_sent_to_dms = true;
-            usuario_ind_responsavel = user.Usuario_Identificador,
-            produtivo_documento = user.Usuario_DocIdentificador
+            (usuario_ind_responsavel = user.Usuario_Identificador), (produtivo_documento = user.Usuario_DocIdentificador);
 
             aux_appointments.push({
               usuario_documento_produtivo: user.Usuario_Identificador,
@@ -288,7 +292,6 @@ export class OsService {
     return OS;
   }
 
-
   async formatarDoc(doc?: string): Promise<string> {
     if (!doc) return '?';
     if (doc?.length === 11) return doc;
@@ -338,5 +341,4 @@ export class OsService {
 
     return `${year}-${month}-${day}T${formattedHours}:${formattedMinutes}`;
   }
-
 }
