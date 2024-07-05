@@ -10,6 +10,7 @@ import { OrderBudgetEntity } from './entity/order-budget.entity';
 import { OrderItemEntity } from './entity/order-items.entity';
 import { OrderStatus } from './enum/order-status.enum';
 import { OrderRelations } from './filters/expand-orders';
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 
 @Injectable()
 export class PetroplayOrderService {
@@ -97,11 +98,21 @@ export class PetroplayOrderService {
   async findOrderAppointments(order_id: string, budget_id: string): Promise<OrderAppointmentEntity[]> {
     const client = await petroplay.v2();
     return await client
-      .get(`/v2/orders/${order_id}/appointments`, { params: { budget_ids: [budget_id] } })
+      .get(`/v2/orders/${order_id}/appointments?expand=reason_stopped&expand=mechanic`, { params: { budget_ids: [budget_id] } })
       .then(({ data }) => data)
       .catch((err) => {
         Logger.error('Error on find order appointments:', err, 'PetroplayOrderService.findOrderAppointments');
         throw new BadRequestException('Error on find order appointments');
+      });
+  }
+  async updateOrderAppointment(order_id: string, appointment_id: string , updateDto: UpdateAppointmentDto): Promise<OrderAppointmentEntity>{
+    const client = await petroplay.v2();
+    return await client
+      .put(`/v2/orders/${order_id}/appointments/${appointment_id}`, updateDto)
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on update order appointment:', err, 'PetroplayOrderService.updateOrderAppointment');
+        throw new BadRequestException('Error on update order appointment');
       });
   }
 }

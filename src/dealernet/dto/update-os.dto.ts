@@ -53,6 +53,8 @@ export class ProdutoUpdateDto {
 
 export class ServicoUpdateDto {
   @ApiProperty()
+  chave: string;
+  @ApiProperty()
   tipo_os_sigla: string;
 
   @ApiProperty()
@@ -66,6 +68,12 @@ export class ServicoUpdateDto {
 
   @ApiProperty()
   quantidade: number;
+
+  @ApiProperty()
+  produtivo_documento?:string;
+
+  @ApiProperty()
+  usuario_ind_responsavel?: string;
 
   @ApiProperty({ type: ProdutoUpdateDto })
   produtos: ProdutoUpdateDto[];
