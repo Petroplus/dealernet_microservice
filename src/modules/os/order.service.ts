@@ -80,18 +80,21 @@ export class OsService {
     const products_hashtable = {};
     const os_types: string[] = [];
     let aux_os_type = order?.os_type?.external_id;
-    budgets.map((budget) => {
+    for await (const budget of budgets) {
       if (!aux_os_type) {
         aux_os_type = budget?.os_type?.external_id;
       }
       let already_used_os_type_products = false;
-      budget.products.map(async (product) => {
+
+      for await (const product of budget.products) {
         if (!aux_os_type) {
           aux_os_type = product?.os_type?.external_id;
         }
+
         if (!os_types?.some((type) => type === product.os_type.external_id)) {
           os_types.push(product.os_type.external_id);
         }
+
         const tipo_os_sigla = product?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
         const product_validate = await this.Dealernet.findProductByReference(connection, product.integration_id);
 
@@ -111,7 +114,7 @@ export class OsService {
             products_hashtable[aux_os_type] = [...(products_hashtable[aux_os_type] || []), productEntry];
           }
         }
-      });
+      }
 
       budget.services.map((service, index) => {
         if (!aux_os_type) {
@@ -138,7 +141,7 @@ export class OsService {
           produtos,
         });
       });
-    });
+    }
 
     const OS: CreateOsDTO = {
       veiculo_placa_chassi: order.vehicle_chassis_number,
