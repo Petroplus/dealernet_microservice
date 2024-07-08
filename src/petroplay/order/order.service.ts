@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
 import { petroplay } from 'src/commons/web-client';
 
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpsertOrderDto } from './dto/upsert-order.dto';
 import { PetroplayOrderEntity } from './entity/order.entity';
@@ -10,7 +11,6 @@ import { OrderBudgetEntity } from './entity/order-budget.entity';
 import { OrderItemEntity } from './entity/order-items.entity';
 import { OrderStatus } from './enum/order-status.enum';
 import { OrderRelations } from './filters/expand-orders';
-import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 
 @Injectable()
 export class PetroplayOrderService {
@@ -21,6 +21,7 @@ export class PetroplayOrderService {
       throw new BadRequestException('Error on import order');
     });
   }
+
   async upsert(dto: UpsertOrderDto[]): Promise<void> {
     const client = await petroplay.v2();
     await client.put('/v2/orders', dto).catch((err) => {
@@ -29,6 +30,7 @@ export class PetroplayOrderService {
       throw new BadRequestException('Error on upsert order');
     });
   }
+
   async findById(order_id: string, expand?: OrderRelations[]): Promise<PetroplayOrderEntity> {
     const client = await petroplay.v2();
     return await client
@@ -105,7 +107,12 @@ export class PetroplayOrderService {
         throw new BadRequestException('Error on find order appointments');
       });
   }
-  async updateOrderAppointment(order_id: string, appointment_id: string , updateDto: UpdateAppointmentDto): Promise<OrderAppointmentEntity>{
+
+  async updateOrderAppointment(
+    order_id: string,
+    appointment_id: string,
+    updateDto: UpdateAppointmentDto,
+  ): Promise<OrderAppointmentEntity> {
     const client = await petroplay.v2();
     return await client
       .put(`/v2/orders/${order_id}/appointments/${appointment_id}`, updateDto)
@@ -113,6 +120,17 @@ export class PetroplayOrderService {
       .catch((err) => {
         Logger.error('Error on update order appointment:', err, 'PetroplayOrderService.updateOrderAppointment');
         throw new BadRequestException('Error on update order appointment');
+      });
+  }
+
+  async findOrderCustomerRequests(order_id: string): Promise<any[]> {
+    const client = await petroplay.v2();
+    return await client
+      .get(`/v2/orders/${order_id}/customers-requests?expand[]=services&expand[]=products`)
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on find order customer requests:', err, 'PetroplayOrderService.findOrderCustomerRequests');
+        throw new BadRequestException('Error on find order customer requests');
       });
   }
 }

@@ -1,8 +1,63 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsNotEmpty, IsOptional, ValidateNested } from 'class-validator';
 
 import { IsRegExp } from 'src/commons/validations/is-regexp';
+
+export class UpsertScheduleProductDto {
+  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
+  Chave?: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  ProdutoReferencia: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  TipoOSSigla: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  Quantidade: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  ValorUnitario: number;
+}
+
+export class UpsertScheduleServiceDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  Chave?: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  TMOReferencia: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  TipoOSSigla: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  Tempo: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  ValorUnitario: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  Quantidade: number;
+
+  @ApiProperty({ required: false, type: [UpsertScheduleProductDto] })
+  @IsOptional()
+  @Type(() => UpsertScheduleProductDto)
+  @ValidateNested({ each: true })
+  Produtos?: UpsertScheduleProductDto[];
+}
 
 export class UpsertScheduleDto {
   @ApiProperty({ required: false })
@@ -40,6 +95,10 @@ export class UpsertScheduleDto {
   ClienteDocumento: string;
 
   @ApiProperty()
+  @IsOptional()
+  Data: string;
+
+  @ApiProperty()
   @IsNotEmpty()
   DataInicial: string;
 
@@ -58,4 +117,10 @@ export class UpsertScheduleDto {
   @ApiProperty({ required: false })
   @IsOptional()
   Observacao?: string;
+
+  @ApiProperty({ required: false, type: [UpsertScheduleServiceDto] })
+  @IsOptional()
+  @Type(() => UpsertScheduleServiceDto)
+  @ValidateNested({ each: true })
+  Servicos?: UpsertScheduleServiceDto[];
 }

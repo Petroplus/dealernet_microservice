@@ -195,7 +195,7 @@ export class ScheduleService {
       });
     }
 
-    return this.dealernet.schedule.create(integration.dealernet, {
+    return this.dealernet.schedule.upsert(integration.dealernet, {
       ...dto,
       ConsultorDocumento: dto.ConsultorDocumento ?? this.context.currentUser().cod_consultor,
     });

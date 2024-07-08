@@ -12,8 +12,42 @@ import { DealernetSchedule } from './response/schedule-response';
 
 @Injectable()
 export class DealernetScheduleService {
-  async create(connection: IntegrationDealernet, schedule: UpsertScheduleDto): Promise<DealernetSchedule> {
+  async upsert(connection: IntegrationDealernet, schedule: UpsertScheduleDto): Promise<DealernetSchedule> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
+
+
+    const services = () => {
+      const Servicos = schedule.Servicos ?? [];
+      if (Servicos.length == 0) return '';
+
+      const products = (Produtos = []) => {
+        if (Produtos?.length == 0) return '';
+
+        return Produtos.map((item) => `
+        <deal:Produto>
+          <deal:TipoOSSigla>${item.TipoOSSigla}</deal:TipoOSSigla>
+          <deal:ProdutoReferencia>${item.ProdutoReferencia}</deal:ProdutoReferencia>
+          <deal:ValorUnitario>${item.ValorUnitario}</deal:ValorUnitario>
+          <deal:Quantidade>${item.Quantidade}</deal:Quantidade>
+        </deal:Produto>
+      `).join('\n');
+      };
+
+      return Servicos.map((item) => `
+        <deal:Servico>
+          <deal:TipoOSSigla>${item.TipoOSSigla}</deal:TipoOSSigla>
+          <deal:TMOReferencia>${item.TMOReferencia}</deal:TMOReferencia>
+          <deal:Tempo>${item.Tempo}</deal:Tempo>
+          <deal:ValorUnitario>${item.ValorUnitario}</deal:ValorUnitario>
+          <deal:Quantidade>${item.Quantidade}</deal:Quantidade>
+          <deal:Produtos>
+            ${products(item.Produtos)}
+          </deal:Produtos>
+        </deal:Servico>
+      `).join('\n');
+    }
+
+
     const xmlBody = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
             <soapenv:Header/>
@@ -30,16 +64,21 @@ export class DealernetScheduleService {
                     <deal:ClienteDocumento>${schedule?.ClienteDocumento ?? '?'}</deal:ClienteDocumento>
                     <deal:ConsultorDocumento>${schedule?.ConsultorDocumento ?? '?'}</deal:ConsultorDocumento>
                     <deal:TipoOSSigla>${schedule?.TipoOSSigla ?? '?'}</deal:TipoOSSigla>
-                    <deal:Data>${schedule?.DataInicial ?? '?'}</deal:Data>
+                    <deal:Data>${schedule?.DataInicial ?? schedule?.Data ?? '?'}</deal:Data>
                     <deal:DataFinal>${schedule?.DataFinal ?? '?'}</deal:DataFinal>
                     <deal:Observacao>${schedule?.Observacao ?? '?'}</deal:Observacao>
+                    <deal:Servicos>
+                        ${services()}
+                    </deal:Servicos>
                     <deal:Acao>${schedule?.Chave ? 'ALT' : 'INC'}</deal:Acao>
                 </deal:Sdt_fsagendamentoin>
                 </deal:WS_FastServiceApi.AGENDAMENTO>
             </soapenv:Body>
             </soapenv:Envelope>
         `;
+
     console.log(xmlBody);
+
     try {
       const client = await dealernet();
 
@@ -57,6 +96,7 @@ export class DealernetScheduleService {
       throw error;
     }
   }
+
   async find(connection: IntegrationDealernet, filter: ScheduleFilter): Promise<DealernetSchedule[]> {
     const dataInicio = filter?.start_date?.format('yyyy-MM-dd') ?? new Date().addDays(0).format('yyyy-MM-dd');
     const dataFim = filter?.end_date?.format('yyyy-MM-dd') ?? new Date().addDays(0).format('yyyy-MM-dd');
