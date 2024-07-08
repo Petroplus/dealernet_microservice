@@ -14,7 +14,7 @@ export class ServiceService {
   ) {}
   async find(client_id: string, filter: ServiceFilter): Promise<DealernetServiceTMOResponse[]> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
-    if (!integration) throw new BadRequestException('Integration not found');
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
     return this.dealernet.service.find(integration.dealernet, filter);
   }

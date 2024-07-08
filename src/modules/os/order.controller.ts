@@ -2,7 +2,7 @@ import { Controller, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ParseUUIDOptionalPipe } from 'src/commons/pipes/parse-uuid-optional.pipe';
-import { DealernetOrder } from 'src/dealernet/response/os-response';
+import { DealernetOrder, DealernetOrderResponse } from 'src/dealernet/response/os-response';
 
 import { OsService } from './order.service';
 
@@ -13,20 +13,24 @@ export class OsController {
   constructor(private readonly service: OsService) {}
 
   @Get()
-  @ApiResponse({ status: 200, type: DealernetOrder, isArray: true })
+  @ApiResponse({ status: 200, type: DealernetOrderResponse, isArray: true })
   @ApiOperation({ summary: 'Busca uma lista ordem de serviço baseado no integration_id dentro da order informada' })
-  async findByOrderId(@Param('order_id', ParseUUIDPipe) order_id: string): Promise<DealernetOrder[]> {
-    return this.service.findByPPsOrderId(order_id);
+  @ApiQuery({ name: 'budget_id', required: false })
+  async findByOrderId(
+    @Param('order_id', ParseUUIDPipe) order_id: string,
+    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
+  ): Promise<DealernetOrderResponse[]> {
+    return this.service.findByPPsOrderId(order_id, budget_id);
   }
 
   @Post()
-  @ApiResponse({ status: 200, type: DealernetOrder, isArray: true })
+  @ApiResponse({ status: 200, type: DealernetOrderResponse, isArray: true })
   @ApiOperation({ summary: 'Utiliza o body da rota para inserir uma nova ordem' })
   @ApiQuery({ name: 'budget_id', required: false })
   async create(
     @Param('order_id', ParseUUIDPipe) order_id: string,
     @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
-  ): Promise<DealernetOrder[]> {
+  ): Promise<DealernetOrderResponse[]> {
     return this.service.createOs(order_id, budget_id);
   }
 
@@ -47,7 +51,7 @@ export class OsController {
   async update(
     @Param('order_id', ParseUUIDPipe) order_id: string,
     @Param('budget_id', ParseUUIDPipe) budget_id: string,
-  ): Promise<DealernetOrder> {
+  ): Promise<DealernetOrderResponse> {
     return this.service.updateOs(order_id, budget_id);
   }
 

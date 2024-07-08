@@ -15,7 +15,7 @@ export class CustomerService {
 
   async find(client_id: string, filter: CustomerFilter): Promise<any> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
-    if (!integration) throw new BadRequestException('Integration not found', { description: 'Integração não encontrada' });
+    if (!integration.dealernet) throw new BadRequestException('Integration not found', { description: 'Integração não encontrada' });
 
     const customers = [];
     if (filter.id || filter.name || filter.document) {
@@ -29,7 +29,7 @@ export class CustomerService {
 
   async upsert(client_id: string, dto: CreateCustomerDTO): Promise<void> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
-    if (!integration) throw new BadRequestException('Integration not found', { description: 'Integração não encontrada' });
+    if (!integration.dealernet) throw new BadRequestException('Integration not found', { description: 'Integração não encontrada' });
 
     const customer = await this.dealernet.customer.findByDocument(integration.dealernet, dto.Pessoa_DocIdentificador);
 

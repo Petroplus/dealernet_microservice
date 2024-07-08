@@ -153,7 +153,7 @@ export class ScheduleService {
 
   async create(client_id: string, dto: CreateScheduleDto): Promise<DealernetSchedule> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
-    if (!integration) throw new BadRequestException('Integration not found');
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
     const vehicles = await this.petroplay.integration.findVehicles(integration.client_id);
 
     const vehicle = await this.dealernet.vehicle.findByPlate(integration.dealernet, dto.VeiculoPlaca);
