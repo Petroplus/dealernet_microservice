@@ -28,7 +28,7 @@ export class OsService {
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
     if (!order.integration_id) throw new HttpException(`Order '${order_id}' not sent to Dealernet`, 404);
-    console.log(order.budgets)
+
     if(budget_id){
       const budget = await this.petroplay.order.findOrderBudget(order_id, budget_id)
       const filter = {
