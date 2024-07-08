@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
 import { ContextService } from 'src/context/context.service';
-import { CreateDealernetBudgetDTO } from 'src/dealernet/budget/dto/create-budget.dto';
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { DealernetBudgetResponse } from 'src/dealernet/response/budget-response';
