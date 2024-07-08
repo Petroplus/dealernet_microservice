@@ -8,14 +8,14 @@ import { dealernet } from 'src/commons/web-client';
 import { OrderFilter } from 'src/modules/os/filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
-import { DealernetOrder } from '../response/os-response';
+import { DealernetOrder, DealernetOrderResponse, Servico } from '../response/os-response';
 
 import { CreateDealernetOsDTO } from './dto/create-order.dto';
 import { UpdateOsDTO } from '../dto/update-os.dto';
 
 @Injectable()
 export class DealernetOsService {
-  async findOS(connection: IntegrationDealernet, filter?: OrderFilter): Promise<DealernetOrder[]> {
+  async findOS(connection: IntegrationDealernet, filter?: OrderFilter): Promise<DealernetOrderResponse[]> {
     Logger.log(`Buscando OS Dealernet`, 'OS');
     const xmlBody = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
@@ -27,6 +27,7 @@ export class DealernetOsService {
                   <deal:Sdt_fsordemservicoin>
                     <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento>
                     <deal:Chave>${filter?.integration_id ?? '?'}</deal:Chave>
+                    <deal:NumeroOS>${filter?.os_number ?? '?'}</deal:NumeroOS>
                     <deal:VeiculoPlacaChassi>${filter?.veiculoPlacaChassi ?? '?'}</deal:VeiculoPlacaChassi>
                     <deal:Data>${filter?.dataInicio}</deal:Data>
                     <deal:DataFinal>${filter?.dataFim ?? '?'}</deal:DataFinal>
@@ -56,10 +57,34 @@ export class DealernetOsService {
         if (orders.Mensagem) {
           throw new BadRequestException(orders.Mensagem);
         }
-        return [orders];
+        const refactored_service: Servico[] = []
+        if(isArray(orders.Servicos.Servico)){
+          orders.Servicos.Servico.map(service=>
+            refactored_service.push(service)
+          )
+        }else{
+          refactored_service.push(orders.Servicos.Servico)
+        }
+        return [{
+          ...orders,
+          Servicos: refactored_service
+        }];
       }
+      const refactored_orders: DealernetOrderResponse[] = []
+      orders.map(order=>{
+        const refactored_service: Servico[] = []
 
-      return orders;
+        if(isArray(order.Servicos.Servico)){
+          order.Servicos.Servico.map(service=>
+            refactored_service.push(service)
+          )
+        }else{
+          refactored_service.push(order.Servicos.Servico)
+        }
+        refactored_orders.push({...order, Servicos: refactored_service})
+      }
+      )
+      return  refactored_orders
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetOrderService.findOS');
       throw error;
@@ -249,11 +274,11 @@ export class DealernetOsService {
             <soapenv:Header/>
             <soapenv:Body>
               <deal:WS_FastServiceApi.ORDEMSERVICO>
-                    <deal:Usuario>${connection.user}</deal:Usuario>
-                    <deal:Senha>${connection.key}</deal:Senha>
+                    <deal:Usuario>${connection?.user}</deal:Usuario>
+                    <deal:Senha>${connection?.key}</deal:Senha>
                   <deal:Sdt_fsordemservicoin>
                     <deal:Chave>${dto.chave}</deal:Chave>
-                    <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento>
+                    <deal:EmpresaDocumento>${connection?.document}</deal:EmpresaDocumento>
                     <deal:VeiculoPlacaChassi>${dto.veiculo_placa_chassi ?? '?'}</deal:VeiculoPlacaChassi>
                     <deal:VeiculoKM>${dto.veiculo_Km ?? '?'}</deal:VeiculoKM>
                     <deal:ClienteDocumento>${dto.cliente_documento ?? '?'}</deal:ClienteDocumento>
@@ -293,7 +318,7 @@ export class DealernetOsService {
 
     return xmlBody;
   }
-  async createOs(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<DealernetOrder> {
+  async createOs(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<DealernetOrderResponse> {
     Logger.log(`Criando OS Dealernet`, 'DealernetOsService.createOs');
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const xmlBody = await this.createOsXmlSchema(connection, dto);
@@ -313,13 +338,26 @@ export class DealernetOsService {
       if (order.Mensagem && order.Chave === 0) {
         throw new BadRequestException(order.Mensagem);
       }
-      return order;
+
+      const refactored_service: Servico[] = []
+      if(isArray(order.Servicos.Servico)){
+        order.Servicos.Servico.map(service=>
+          refactored_service.push(service)
+        )
+      }else{
+        refactored_service.push(order.Servicos.Servico)
+      }
+      const responseOrder : DealernetOrderResponse ={
+        ...order,
+        Servicos: refactored_service,
+      }
+      return responseOrder;
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetOrderService.createOs');
       throw error;
     }
   }
-  async updateOs(connection: IntegrationDealernet, dto: UpdateOsDTO): Promise<DealernetOrder> {
+  async updateOs(connection: IntegrationDealernet, dto: UpdateOsDTO): Promise<DealernetOrderResponse> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const xmlBody = await this.updateOsXmlSchema(connection, dto);
     try {
@@ -337,7 +375,19 @@ export class DealernetOsService {
       if (order.Mensagem && order.Chave === 0) {
         throw new BadRequestException(order.Mensagem);
       }
-      return order;
+      const refactored_service: Servico[] = []
+      if(isArray(order.Servicos.Servico)){
+        order.Servicos.Servico.map(service=>
+          refactored_service.push(service)
+        )
+      }else{
+        refactored_service.push(order.Servicos.Servico)
+      }
+      const responseOrder : DealernetOrderResponse ={
+        ...order,
+        Servicos:  refactored_service,
+      }
+      return responseOrder;
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetOrderService.createOs');
       throw error;

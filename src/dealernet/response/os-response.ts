@@ -273,7 +273,104 @@ export class DealernetOrder {
   Mensagem: string;
 
   @ApiProperty({ type: Servico })
-  Servicos: { Servico: Servico[] };
+  Servicos: { Servico: Servico[] | Servico };
+
+  @ApiProperty({ type: TipoOS })
+  TipoOS: TipoOS;
+}
+export class DealernetOrderResponse {
+  @ApiProperty()
+  Chave: number;
+
+  @ApiProperty()
+  NumeroOS: number;
+
+  @ApiProperty()
+  EmpresaDocumento: number;
+
+  @ApiProperty()
+  VeiculoPlaca: string;
+
+  @ApiProperty()
+  VeiculoChassi: string;
+
+  @ApiProperty()
+  VeiculoKM: number;
+
+  @ApiProperty()
+  ModeloVeiculo: string;
+
+  @ApiProperty()
+  VeiculoMarca: string;
+
+  @ApiProperty()
+  VeiculoAnoModelo: number;
+
+  @ApiProperty()
+  VeiculoAnoFabricacao: number;
+
+  @ApiProperty()
+  ClienteDocumento: number;
+
+  @ApiProperty()
+  ClienteNome: string;
+
+  @ApiProperty()
+  Data: string;
+
+  @ApiProperty()
+  Observacao: string;
+
+  @ApiProperty()
+  DiasPrazoEntrega: number;
+
+  @ApiProperty()
+  DataProximoContato: string;
+
+  @ApiProperty()
+  DataPrometida: string;
+
+  @ApiProperty()
+  CondicaoPagamento: number;
+
+  @ApiProperty()
+  PercentualCombustivel: number;
+
+  @ApiProperty()
+  PercentualBateria: number;
+
+  @ApiProperty()
+  ExigeLavagem: boolean;
+
+  @ApiProperty()
+  ClienteAguardando: boolean;
+
+  @ApiProperty()
+  ClienteRetorno: string;
+
+  @ApiProperty()
+  InspecionadoElevador: boolean;
+
+  @ApiProperty()
+  BloquearProduto: boolean;
+
+  @ApiProperty()
+  CorPrisma_Codigo: number;
+
+  @ApiProperty()
+  NroPrisma: string;
+
+  @ApiProperty()
+  TipoOSSigla: string;
+
+  @ApiProperty()
+  ExisteObjetoValor: boolean;
+
+  @ApiProperty()
+  Mensagem: string;
+
+  @ApiProperty({ type: Servico })
+  Servicos: Servico[];
 
   @ApiProperty({ type: TipoOS })
   TipoOS: TipoOS;

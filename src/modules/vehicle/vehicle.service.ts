@@ -15,7 +15,7 @@ export class VehicleService {
   ) {}
   async find(client_id: string, filter: VehicleFilter): Promise<VeiculoApiResponse> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
-    if (!integration) throw new BadRequestException('Integration not found');
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
     if (filter.license_plate) {
       return this.dealernet.vehicle.findByPlate(integration.dealernet, filter.license_plate);
@@ -28,7 +28,7 @@ export class VehicleService {
 
   async create(client_id: string, dto: CreateDealernetVehicleDTO): Promise<VeiculoApiResponse> {
     const integration = await this.petroplay.integration.findByClientId(client_id);
-    if (!integration) throw new BadRequestException('Integration not found');
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
     await this.dealernet.vehicle.create(integration.dealernet, dto);
 

@@ -20,7 +20,7 @@ export class BudgetService {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
-    if (!integration) throw new BadRequestException('Integration not found');
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
     return await this.dealernet.budget.find(integration.dealernet, integration_id);
   }
@@ -41,7 +41,7 @@ export class BudgetService {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
-    if (!integration) throw new BadRequestException('Integration not found');
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
     const budgets = order.budgets.filter((x) => x.id === budget_id || !budget_id);
 
