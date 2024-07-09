@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsOptional, IsUUID } from 'class-validator'
+import { IsDateString, IsEnum, IsOptional, IsUUID } from 'class-validator';
+
 import { AppointmentStatus, AppointmentStatusEnum } from '../entity/order-appointment.entity';
 
 export class UpdateAppointmentDto {

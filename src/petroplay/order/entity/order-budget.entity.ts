@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
+
 import { OrderBudgetProductEntity } from './order-budget-product.entity';
 import { OrderBudgetServiceEntity } from './order-budget-service.entity';
 import { ClientOsTypeEntity } from './os-type.entity';
 import { UserEntity } from './user.entity';
 
-
-export class OrderBudgetEntity  {
+export class OrderBudgetEntity {
   @ApiProperty()
   id: string;
 
@@ -34,7 +34,6 @@ export class OrderBudgetEntity  {
   is_additional_budget: boolean;
 
   @ApiProperty()
-
   os_type_id: string;
 
   @ApiProperty()

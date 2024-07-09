@@ -83,7 +83,7 @@ export class OsService {
 
       await this.dealernet.order.createOs(integration.dealernet, schema).then(async (response) => {
         await this.petroplay.order.updateOrderBudget(order_id, budget.id, {
-          os_number: response.NumeroOS,
+          os_number: response.NumeroOS?.toString(),
           integration_data: response,
         });
         os.push(response);
@@ -218,11 +218,15 @@ export class OsService {
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
     const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
-    const result = await this.dealernet.order.updateOs(integration.dealernet, osDTO);
-    appointments.map(async (appointment) => {
-      await this.petroplay.order.updateOrderAppointment(order.id, appointment.id, { was_sent_to_dms: false });
+    const os = await this.dealernet.order.updateOs(integration.dealernet, osDTO);
+
+    appointments.map(async ({ id }) => this.petroplay.order.updateOrderAppointment(order.id, id, { was_sent_to_dms: true }));
+
+    await this.petroplay.order.updateOrderBudget(order_id, budget_id, {
+      integration_data: { ...budget.integration_data, os: os },
     });
-    return result;
+
+    return os;
   }
 
   async osDtoAppointments(
@@ -266,28 +270,27 @@ export class OsService {
       if (!aux_os_type) {
         aux_os_type = service?.os_type?.external_id;
       }
-      let usuario_ind_responsavel;
-      let produtivo_documento;
+
+      let usuario_ind_responsavel: string;
+      let produtivo_documento: string;
       const aux_appointments: MarcacaoUpdateDto[] = [];
-      for (const appointment of appointments || []) {
-        if (!appointment?.was_sent_to_dms) {
-          if (appointment.integration_id === service.integration_id) {
-            const user = await this.dealernet.customer.findUser(connection, appointment?.mechanic.cod_consultor);
-            appointment.was_sent_to_dms = true;
-            (usuario_ind_responsavel = user.Usuario_Identificador), (produtivo_documento = user.Usuario_DocIdentificador);
 
-            const marcacao = {
-              usuario_documento_produtivo: user.Usuario_Identificador,
-              data_inicial: new Date(appointment.start_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
-              data_final: new Date(appointment.end_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
-              motivo_parada: appointment?.reason_stopped?.external_id,
-              observacao: '?',
-            };
+      for await (const item of appointments.filter((x) => !x.was_sent_to_dms && x.integration_id == service.integration_id)) {
+        const user = await this.dealernet.customer.findUser(connection, item?.mechanic.cod_consultor);
+        usuario_ind_responsavel = user.Usuario_Identificador;
+        produtivo_documento = user.Usuario_DocIdentificador;
 
-            aux_appointments.push(marcacao);
-          }
-        }
+        const marcacao = {
+          usuario_documento_produtivo: user.Usuario_Identificador,
+          data_inicial: new Date(item.start_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
+          data_final: new Date(item.end_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
+          motivo_parada: item?.reason_stopped?.external_id,
+          observacao: '?',
+        };
+
+        aux_appointments.push(marcacao);
       }
+
       const tipo_os_sigla = service?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
       const Servicos = budget.integration_data?.os?.Servicos;
       const chave = Servicos?.first((x: any) => x.TMOReferencia == service.integration_id)?.Chave;
@@ -307,7 +310,7 @@ export class OsService {
     }
 
     const OS: UpdateOsDTO = {
-      chave: budget.integration_data?.Chave,
+      chave: budget.integration_data?.os.Chave,
       numero_os: budget.os_number,
       veiculo_placa_chassi: order.vehicle_chassis_number,
       veiculo_Km: Number(order.mileage) || 0,

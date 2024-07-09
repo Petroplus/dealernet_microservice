@@ -55,7 +55,7 @@ export class BudgetService {
       const schema = await this.createSchema(order_id, budget.id);
 
       await this.dealernet.budget.create(integration.dealernet, schema).then(async (response) => {
-        await this.petroplay.order.updateOrderBudget(order_id, budget.id, { budget_number: response.Chave });
+        await this.petroplay.order.updateOrderBudget(order_id, budget.id, { budget_number: response.Chave?.toString() });
         os.push(response);
       });
     }

@@ -86,7 +86,7 @@ export class PetroplayOrderService {
       });
   }
 
-  async updateOrderBudget(order_id: string, budget_id: string, dto: any): Promise<OrderBudgetEntity> {
+  async updateOrderBudget(order_id: string, budget_id: string, dto: Partial<OrderBudgetEntity>): Promise<OrderBudgetEntity> {
     const client = await petroplay.v2();
     return client
       .put(`/v2/orders/${order_id}/budgets/${budget_id}`, dto)
