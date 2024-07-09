@@ -142,10 +142,12 @@ export class DealernetScheduleService {
         const Cliente_DocIdentificador = x?.ClienteDocumento.toString();
         const Cliente_TipoPessoa = Cliente_DocIdentificador.length <= 11 ? 'F' : 'J';
 
-        const document = Cliente_TipoPessoa == 'F' ? Cliente_DocIdentificador.padStart(11, '0') : Cliente_DocIdentificador.padStart(14, '0');
+        const ClienteDocumento = Cliente_TipoPessoa == 'F' ? Cliente_DocIdentificador.padStart(11, '0') : Cliente_DocIdentificador.padStart(14, '0');
+        const ConsultorDocumento = x?.ConsultorDocumento.toString().padStart(11, '0');
         return {
           ...x,
-          ClienteDocumento: document,
+          ClienteDocumento: ClienteDocumento,
+          ConsultorDocumento: ConsultorDocumento,
           Servicos: Servicos
         };
       });
