@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class Produto {
+export class DealernetBudgetProduto {
   @ApiProperty()
   Chave: number;
 
@@ -74,14 +74,84 @@ export class Produto {
   CampanhaCodigo: number;
 }
 
-export class Servico {
-  @ApiProperty({ type: Produto, isArray: true })
-  Produto: Produto[];
-}
+export class DealernetBudgetServico {
+  @ApiProperty()
+  Chave: number;
 
-export class Servicos {
-  @ApiProperty({ type: Servico })
-  Servico: Servico;
+  @ApiProperty()
+  TipoOS: number;
+
+  @ApiProperty()
+  TipoOSSigla: string;
+
+  @ApiProperty()
+  TMO: number;
+
+  @ApiProperty()
+  TMOReferencia: string;
+
+  @ApiProperty()
+  Descricao: string;
+
+  @ApiProperty()
+  Tempo: number;
+
+  @ApiProperty()
+  ValorUnitario: number;
+
+  @ApiProperty()
+  Quantidade: number;
+
+  @ApiProperty()
+  Desconto: number;
+
+  @ApiProperty()
+  DescontoPercentual: number;
+
+  @ApiProperty()
+  Observacao: string;
+
+  @ApiProperty()
+  Produtivo: number;
+
+  @ApiProperty()
+  ProdutivoDocumento: string;
+
+  @ApiProperty()
+  UsuarioIndResponsavel: string;
+
+  @ApiProperty()
+  Executar: boolean;
+
+  @ApiProperty()
+  Cobrar: boolean;
+
+  @ApiProperty()
+  DataPrevisao: string;
+
+  @ApiProperty()
+  StatusAutorizacao: string;
+
+  @ApiProperty()
+  StatusAndamento: string;
+
+  @ApiProperty()
+  StatusDesconto: string;
+
+  @ApiProperty()
+  KitCodigo: number;
+
+  @ApiProperty()
+  KitPrecoFechado: boolean;
+
+  @ApiProperty()
+  CampanhaCodigo: number;
+
+  @ApiProperty()
+  StatusExecucao: string;
+
+  @ApiProperty()
+  Produtos: DealernetBudgetProduto[];
 }
 
 export class DealernetBudgetResponse {
@@ -166,6 +236,6 @@ export class DealernetBudgetResponse {
   @ApiProperty()
   Mensagem: string;
 
-  @ApiProperty({ type: Servicos })
-  Servicos: Servicos;
+  @ApiProperty({ type: DealernetBudgetServico })
+  Servicos: DealernetBudgetServico;
 }

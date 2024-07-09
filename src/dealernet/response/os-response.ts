@@ -143,8 +143,8 @@ export class Servico {
   @ApiProperty()
   CampanhaCodigo: number;
 
-  @ApiProperty({ type: Produto })
-  Produtos: { Produto: Produto[] | Produto };
+  @ApiProperty()
+  Produtos: Produto[];
 
   @ApiProperty({ type: Marcacao })
   Marcacoes: Marcacao[];
@@ -272,11 +272,11 @@ export class DealernetOrder {
   @ApiProperty()
   Mensagem: string;
 
-  @ApiProperty({ type: Servico })
-  Servicos: { Servico: Servico[] | Servico };
+  @ApiProperty()
+  Servicos: Servico[];
 
   @ApiProperty({ type: TipoOS })
-  TipoOS: TipoOS;
+  TipoOS: TipoOS[];
 }
 
 export class DealernetOrderResponse {
@@ -370,9 +370,9 @@ export class DealernetOrderResponse {
   @ApiProperty()
   Mensagem: string;
 
-  @ApiProperty({ type: Servico})
+  @ApiProperty({ type: Servico })
   Servicos: Servico[];
 
-  @ApiProperty({ type:  TipoOSItem})
-  TipoOS:  TipoOSItem[];
+  @ApiProperty({ type: TipoOSItem })
+  TipoOS: TipoOSItem[];
 }

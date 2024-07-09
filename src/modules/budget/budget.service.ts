@@ -16,13 +16,17 @@ export class BudgetService {
     private readonly dealernet: DealernetService,
   ) {}
 
-  async find(order_id: string, integration_id: string): Promise<DealernetBudgetResponse> {
-    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type']);
+  async find(order_id: string, budget_id: string): Promise<DealernetBudgetResponse> {
+    const order = await this.petroplay.order.findById(order_id);
+    if (!order) throw new BadRequestException('Order not found');
+
+    const budget = await this.petroplay.order.findOrderBudget(order_id, budget_id).then((budgets) => budgets?.first());
+    if (!budget) throw new BadRequestException('Budget not found');
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
-    return await this.dealernet.budget.find(integration.dealernet, integration_id);
+    return this.dealernet.budget.findByBudgetNumber(integration.dealernet, budget.budget_number);
   }
 
   async createSchema(order_id: string, budget_id?: string): Promise<string> {

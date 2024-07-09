@@ -1,22 +1,21 @@
 /* eslint-disable prettier/prettier */
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
 import { dealernet } from 'src/commons/web-client';
 import { OrderFilter } from 'src/modules/os/filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
-import { DealernetOrder, DealernetOrderResponse, Produto, Servico, TipoOSItem } from '../response/os-response';
+import { UpdateOsDTO } from '../dto/update-os.dto';
+import { DealernetOrder, DealernetOrderResponse } from '../response/os-response';
 
 import { CreateDealernetOsDTO } from './dto/create-order.dto';
-import { UpdateOsDTO } from '../dto/update-os.dto';
 
 @Injectable()
 export class DealernetOsService {
-  async findOS(connection: IntegrationDealernet, filter?: OrderFilter): Promise<DealernetOrderResponse[]> {
-    Logger.log(`Buscando OS Dealernet`, 'OS');
+  async find(connection: IntegrationDealernet, filter?: OrderFilter): Promise<DealernetOrderResponse[]> {
+
     const xmlBody = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
             <soapenv:Header/>
@@ -40,100 +39,38 @@ export class DealernetOsService {
             </soapenv:Envelope>
         `;
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
+
     try {
       const client = await dealernet();
 
-      const response = await client.post(url, xmlBody);
-      const xmlData = response.data;
-      const parser = new XMLParser();
-      const parsedData = parser.parse(xmlData);
+      const response = await client.post(url, xmlBody).then((response) => new XMLParser().parse(response.data));
+      const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista']['SDT_FSOrdemServicoOut'];
 
-      const orders: DealernetOrder | DealernetOrder[] =
-        parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista'][
-        'SDT_FSOrdemServicoOut'
-        ];
+      const orders = Array.isArray(parsedData) ? parsedData : [parsedData];
 
-      if (!isArray(orders)) {
-        if (orders.Mensagem) {
-          throw new BadRequestException(orders.Mensagem);
-        }
-        const refactored_service = []
-        if(isArray(orders.Servicos.Servico)){
-          const refactored_products: Produto[]=[]
-          orders.Servicos.Servico.map(service=>{
-            if(isArray(service.Produtos.Produto)){
-              refactored_products.push(...service.Produtos.Produto)
-            } else{
-              refactored_products.push(service.Produtos.Produto)
-            }
-            refactored_service.push({...service, Produtos: refactored_products})
-          })
+      if (orders[0].Chave === 0) throw new BadRequestException(orders[0].Mensagem);
 
-        }else{
-          const refactored_products: Produto[]=[]
-          if(isArray(orders.Servicos.Servico.Produtos.Produto)){
-            refactored_products.push(...orders.Servicos.Servico.Produtos.Produto)
-          } else{
-            refactored_products.push(orders.Servicos.Servico.Produtos.Produto)
-          }
-          refactored_service.push({...orders.Servicos.Servico, Produtos: refactored_products})
-        }
-        const refactored_tipo_os : TipoOSItem[] = []
-      if(isArray(orders.TipoOS.TipoOSItem)){
-        orders.TipoOS.TipoOSItem.map(item=>
-          refactored_tipo_os.push(item)
-        )
-      }else{
-          refactored_tipo_os.push(orders.TipoOS.TipoOSItem)
-      }
-        return [{
-          ...orders,
-          Servicos: refactored_service,
-          TipoOS: refactored_tipo_os,
-        }];
-      }
-      const refactored_orders: DealernetOrderResponse[] = []
-      orders.map(order=>{
-        const refactored_service = []
 
-        if(isArray(order.Servicos.Servico)){
 
-          order.Servicos.Servico.map(service=>{
-            const refactored_products: Produto[]=[]
-            if(isArray(service.Produtos.Produto)){
-              refactored_products.push(...service.Produtos.Produto)
-            } else{
-              refactored_products.push(service.Produtos.Produto)
-            }
-            refactored_service.push({...service, Produtos: refactored_products})
+      return orders.map((order) => {
+        const Servicos = (Array.isArray(order.Servicos?.Servico) ? order.Servicos.Servico : order.Servicos?.Servico ? [order.Servicos.Servico] : []).map((servico: any) => {
+          const Produtos = Array.isArray(servico.Produtos?.Produto) ? servico.Produtos.Produto : servico.Produtos?.Produto ? [servico.Produtos.Produto] : [];
 
-          }
-          )
-        }else{
-          const refactored_products: Produto[]=[]
-          if(isArray(order.Servicos.Servico.Produtos.Produto)){
-            refactored_products.push(...order.Servicos.Servico.Produtos.Produto)
-          } else{
-            refactored_products.push(order.Servicos.Servico.Produtos.Produto)
-          }
-          refactored_service.push({...order.Servicos.Servico, Produtos: refactored_products})
-        }
-        const refactored_tipo_os : TipoOSItem[] = []
-            if(isArray(order.TipoOS.TipoOSItem)){
-              order.TipoOS.TipoOSItem.map(item=>
-                refactored_tipo_os.push(item)
-              )
-            }else{
-                refactored_tipo_os.push(order.TipoOS.TipoOSItem)
-            }
-        refactored_orders.push({...order, Servicos: refactored_service, TipoOS: refactored_tipo_os})
-      }
-      )
-      return  refactored_orders
+          return { ...servico, Produtos }
+        });
+
+        const TipoOS = Array.isArray(order.TipoOS?.TipoOSItem) ? order.TipoOS.TipoOSItem : order.TipoOS?.TipoOSItem ? [order.TipoOS.TipoOSItem] : [];
+
+        return { ...order, Servicos, TipoOS }
+      }) as any;
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetOrderService.findOS');
       throw error;
     }
+  }
+
+  async findByOsNumber(connection: IntegrationDealernet, os_number: string | number): Promise<DealernetOrderResponse> {
+    return this.find(connection, { os_number: os_number?.toString() }).then((orders) => orders.first());
   }
 
   async createOsXmlSchema(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<string> {
@@ -180,14 +117,14 @@ export class DealernetOsService {
     `
         : '';
 
-        const os_types =
-        dto.tipo_os_array.length>0?
+    const os_types =
+      dto.tipo_os_array.length > 0 ?
         `
         <deal:TipoOS>
-        ${dto.tipo_os_array.map(tipo_os=>{
-          return`
+        ${dto.tipo_os_array.map(tipo_os => {
+          return `
           <deal:TipoOSItem>
-            <deal:TipoOSSigla>${tipo_os?? '?'}</deal:TipoOSSigla>
+            <deal:TipoOSSigla>${tipo_os ?? '?'}</deal:TipoOSSigla>
             <deal:ConsultorDocumento>${dto.tipo_os.tipo_os_item.consultor_documento ?? '?'}</deal:ConsultorDocumento>
             <deal:CondicaoPagamento>${dto.tipo_os.tipo_os_item.condicao_pagamento ?? '?'}</deal:CondicaoPagamento>
           </deal:TipoOSItem>`
@@ -209,8 +146,8 @@ export class DealernetOsService {
             <soapenv:Header/>
             <soapenv:Body>
               <deal:WS_FastServiceApi.ORDEMSERVICO>
-                    <deal:Usuario>${connection.user}</deal:Usuario>
-                    <deal:Senha>${connection.key}</deal:Senha>
+                  <deal:Usuario>${connection.user}</deal:Usuario>
+                  <deal:Senha>${connection.key}</deal:Senha>
                   <deal:Sdt_fsordemservicoin>
                     <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento>
                     <deal:VeiculoPlacaChassi>${dto.veiculo_placa_chassi ?? '?'}</deal:VeiculoPlacaChassi>
@@ -246,6 +183,7 @@ export class DealernetOsService {
 
     return xmlBody;
   }
+
   async updateOsXmlSchema(connection: IntegrationDealernet, dto: UpdateOsDTO): Promise<string> {
     Logger.log(`Criando Schema OS Dealernet`, 'OS');
     const services =
@@ -253,14 +191,14 @@ export class DealernetOsService {
         ? `
         <deal:Servicos>
           ${dto.servicos
-            .map((item) => {
-              const products =
-                item.produtos?.length > 0
-                  ? `
+          .map((item) => {
+            const products =
+              item.produtos?.length > 0
+                ? `
             <deal:Produtos>
               ${item.produtos
-                .map((product) => {
-                  return `
+                  .map((product) => {
+                    return `
                 <deal:Produto>
                   <deal:TipoOSSigla>${product.tipo_os_sigla}</deal:TipoOSSigla>
                   <deal:ProdutoReferencia>${product.produto_referencia}</deal:ProdutoReferencia>
@@ -268,18 +206,18 @@ export class DealernetOsService {
                   <deal:Quantidade>${product.quantidade}</deal:Quantidade>
                 </deal:Produto>
                   `;
-                })
-                .join('\n')}
+                  })
+                  .join('\n')}
             </deal:Produtos>
             `
-                  : '';
-              const appointments =
-                  item.marcacoes?.length > 0
-                  ?`
+                : '';
+            const appointments =
+              item.marcacoes?.length > 0
+                ? `
                   <deal:Marcacoes>
               ${item.marcacoes
-                .map((marcacao) => {
-                  return `
+                  .map((marcacao) => {
+                    return `
                 <deal:Marcacao>
                   <deal:UsuarioDocumentoProdutivo>${marcacao.usuario_documento_produtivo}</deal:UsuarioDocumentoProdutivo>
                   <deal:DataInicial>${marcacao.data_inicial}</deal:DataInicial>
@@ -288,12 +226,12 @@ export class DealernetOsService {
                   <deal:Observacao>${marcacao.observacao}</deal:Observacao>
                 </deal:Marcacao>
                   `;
-                })
-                .join('\n')}
+                  })
+                  .join('\n')}
             </deal:Marcacoes>
             `
-            : '';
-              return `
+                : '';
+            return `
             <deal:Servico>
               <deal:Chave>${item.chave}</deal:Chave>
               <deal:TipoOSSigla>${item.tipo_os_sigla}</deal:TipoOSSigla>
@@ -301,14 +239,14 @@ export class DealernetOsService {
               <deal:Tempo>${item.tempo}</deal:Tempo>
               <deal:ValorUnitario>${item.valor_unitario}</deal:ValorUnitario>
               <deal:Quantidade>${item.quantidade}</deal:Quantidade>
-              ${item.usuario_ind_responsavel? `<deal:UsuarioIndResponsavel>${item.usuario_ind_responsavel}</deal:UsuarioIndResponsavel>` : ''}
-              ${item.produtivo_documento? `<deal:ProdutivoDocumento>${item.produtivo_documento}</deal:ProdutivoDocumento>`:''}
+              ${item.usuario_ind_responsavel ? `<deal:UsuarioIndResponsavel>${item.usuario_ind_responsavel}</deal:UsuarioIndResponsavel>` : ''}
+              ${item.produtivo_documento ? `<deal:ProdutivoDocumento>${item.produtivo_documento}</deal:ProdutivoDocumento>` : ''}
               ${products}
               ${appointments}
             </deal:Servico>
             `;
-            })
-            .join('\n')}
+          })
+          .join('\n')}
         </deal:Servicos>
         `
         : '';
@@ -363,6 +301,7 @@ export class DealernetOsService {
 
     return xmlBody;
   }
+
   async createOs(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<DealernetOrderResponse> {
     Logger.log(`Criando OS Dealernet`, 'DealernetOsService.createOs');
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
@@ -384,47 +323,13 @@ export class DealernetOsService {
         throw new BadRequestException(order.Mensagem);
       }
 
-      const refactored_service = []
-      if(isArray(order.Servicos.Servico)){
-        order.Servicos.Servico.map(service=>{
-          const refactored_products: Produto[]=[]
-          if(isArray(service.Produtos.Produto)){
-            refactored_products.push(...service.Produtos.Produto)
-          }else{
-            refactored_products.push(service.Produtos.Produto)
-          }
-          refactored_service.push({...service, Produtos: refactored_products})
-        }
-      )
-      }else{
-        const refactored_products: Produto[]=[]
-        if(isArray(order.Servicos.Servico.Produtos.Produto)){
-          refactored_products.push(...order.Servicos.Servico.Produtos.Produto)
-        } else{
-          refactored_products.push(order.Servicos.Servico.Produtos.Produto)
-        }
-        refactored_service.push({...order.Servicos.Servico, Produtos: refactored_products})
-      }
-
-      const refactored_tipo_os : TipoOSItem[] = []
-      if(isArray(order.TipoOS.TipoOSItem)){
-        order.TipoOS.TipoOSItem.map(item=>
-          refactored_tipo_os.push(item)
-        )
-      }else{
-          refactored_tipo_os.push(order.TipoOS.TipoOSItem)
-      }
-      const responseOrder : DealernetOrderResponse ={
-        ...order,
-        Servicos: refactored_service,
-        TipoOS: refactored_tipo_os,
-      }
-      return responseOrder;
+      return this.findByOsNumber(connection, order.NumeroOS);
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetOrderService.createOs');
       throw error;
     }
   }
+
   async updateOs(connection: IntegrationDealernet, dto: UpdateOsDTO): Promise<DealernetOrderResponse> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const xmlBody = await this.updateOsXmlSchema(connection, dto);
@@ -437,47 +342,14 @@ export class DealernetOsService {
       const parsedData = parser.parse(xmlData);
       const order: DealernetOrder =
         parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista'][
-          'SDT_FSOrdemServicoOut'
+        'SDT_FSOrdemServicoOut'
         ];
 
       if (order.Mensagem && order.Chave === 0) {
         throw new BadRequestException(order.Mensagem);
       }
-      const refactored_service = []
-      if(isArray(order.Servicos.Servico)){
-        order.Servicos.Servico.map(service=>{
-          const refactored_products: Produto[]=[]
-          if(isArray(service.Produtos.Produto)){
-            refactored_products.push(...service.Produtos.Produto)
-          }else{
-            refactored_products.push(service.Produtos.Produto)
-          }
-          refactored_service.push({...service, Produtos: refactored_products})
-        }
-      )
-      }else{
-        const refactored_products: Produto[]=[]
-        if(isArray(order.Servicos.Servico.Produtos.Produto)){
-          refactored_products.push(...order.Servicos.Servico.Produtos.Produto)
-        } else{
-          refactored_products.push(order.Servicos.Servico.Produtos.Produto)
-        }
-        refactored_service.push({...order.Servicos.Servico, Produtos: refactored_products})
-      }
-      const refactored_tipo_os : TipoOSItem[] = []
-      if(isArray(order.TipoOS.TipoOSItem)){
-        order.TipoOS.TipoOSItem.map(item=>
-          refactored_tipo_os.push(item)
-        )
-      }else{
-          refactored_tipo_os.push(order.TipoOS.TipoOSItem)
-      }
-      const responseOrder : DealernetOrderResponse ={
-        ...order,
-        Servicos:  refactored_service,
-        TipoOS: refactored_tipo_os,
-      }
-      return responseOrder;
+
+      return this.findByOsNumber(connection, order.NumeroOS);
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetOrderService.createOs');
       throw error;

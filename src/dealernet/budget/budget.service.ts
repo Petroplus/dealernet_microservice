@@ -1,19 +1,18 @@
+/* eslint-disable prettier/prettier */
+
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { XMLParser } from 'fast-xml-parser';
 
 import { dealernet } from 'src/commons/web-client';
-import { ProductFilter } from 'src/modules/product/filters/product.filter';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
-import { CreateDealernetOsDTO } from '../order/dto/create-order.dto';
 import { DealernetBudgetResponse } from '../response/budget-response';
-import { ProdutoDealernetResponse } from '../response/produto-response';
 
 import { CreateDealernetBudgetDTO } from './dto/create-budget.dto';
 
 @Injectable()
 export class DealernetBudgetService {
-  async find(connection: IntegrationDealernet, integration_id: string): Promise<DealernetBudgetResponse> {
+  async findByBudgetNumber(connection: IntegrationDealernet, integration_id: string): Promise<DealernetBudgetResponse> {
     const xmlBody = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
             <soapenv:Header/>
@@ -43,10 +42,21 @@ export class DealernetBudgetService {
       const budget =
         parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORCAMENTOResponse']['Sdt_fsorcamentoout'];
 
-      if (budget.Mensage) {
+      if (budget.Chave == 0) {
         throw new BadRequestException(budget.Mensagem);
       }
-      return budget;
+
+      const Servicos = (Array.isArray(budget.Servicos?.Servico) ? budget.Servicos.Servico : budget.Servicos?.Servico ? [budget.Servicos?.Servico] : []).map((servico: any) => {
+        const Produtos = Array.isArray(servico.Produtos?.Produto) ? servico.Produtos.Produto : servico.Produtos?.Produto ? [servico.Produtos?.Produto] : [];
+        return {
+          ...servico,
+          Produtos: Produtos
+        }
+      });
+      return {
+        ...budget,
+        Servicos: Servicos
+      }
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetProductService.find');
       throw error;

@@ -29,13 +29,13 @@ export class OsService {
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
     if (!order.integration_id) throw new HttpException(`Order '${order_id}' not sent to Dealernet`, 404);
 
-    if(budget_id){
+    if (budget_id) {
       const budget = await this.petroplay.order.findOrderBudget(order_id, budget_id)
       const filter = {
         os_number: budget[0].os_number
       };
-      return this.dealernet.order.findOS(integration.dealernet, filter)
-    } else{
+      return this.dealernet.order.find(integration.dealernet, filter)
+    } else {
       const budget_numbers = order.budgets.map(budget => budget.os_number);
 
       let result = [];
@@ -43,7 +43,7 @@ export class OsService {
         const filter = {
           os_number: number
         };
-        const dealernetOrder = await this.dealernet.order.findOS(integration.dealernet, filter);
+        const dealernetOrder = await this.dealernet.order.find(integration.dealernet, filter);
         result.push(...dealernetOrder);
       }));
 

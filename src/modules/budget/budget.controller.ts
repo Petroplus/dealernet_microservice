@@ -23,6 +23,16 @@ export class BudgetController {
     return this.service.create(order_id, budget_id);
   }
 
+  @Get()
+  @ApiResponse({ status: 200, type: DealernetBudgetResponse })
+  @ApiOperation({ summary: 'Retorna um orçamento' })
+  async find(
+    @Param('order_id', ParseUUIDPipe) order_id: string,
+    @Query('budget_id', ParseUUIDPipe) budget_id: string,
+  ): Promise<DealernetBudgetResponse> {
+    return this.service.find(order_id, budget_id);
+  }
+
   @Get('/schema')
   @ApiResponse({ status: 200 })
   @ApiOperation({ summary: 'Retorna um corpo XML baseado em informações extraídas da ordem informada' })
