@@ -98,8 +98,8 @@ export class DealernetScheduleService {
   }
 
   async find(connection: IntegrationDealernet, filter: ScheduleFilter): Promise<DealernetSchedule[]> {
-    const dataInicio = filter?.start_date?.format('yyyy-MM-dd') ?? new Date().addDays(0).format('yyyy-MM-dd');
-    const dataFim = filter?.end_date?.format('yyyy-MM-dd') ?? new Date().addDays(0).format('yyyy-MM-dd');
+    const dataInicio = filter?.start_date?.formatUTC('yyyy-MM-dd') ?? new Date().addDays(0).format('yyyy-MM-dd');
+    const dataFim = filter?.end_date?.formatUTC('yyyy-MM-dd') ?? new Date().addDays(0).format('yyyy-MM-dd');
 
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 

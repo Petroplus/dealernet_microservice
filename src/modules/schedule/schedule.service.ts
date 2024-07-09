@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { Task } from 'system-x64';
 
 import { ContextService } from 'src/context/context.service';
 import { DealernetService } from 'src/dealernet/dealernet.service';
@@ -51,6 +52,7 @@ export class ScheduleService {
       Logger.warn(`Found ${schedules.length} schedules to ${integration.client_id}`);
       await this.scheduleToOs(integration, schedules).then((data) => orders.push(...data));
       Logger.warn(`Schema mounted with success to ${integration.client_id}`);
+      Task.delay(1000 * 2);
     }
 
     return orders;

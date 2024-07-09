@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional } from 'class-validator';
+import { IsOptional } from 'class-validator';
 
 import { IsArray } from 'src/commons/validations/is-array.validation';
+import { IsDateString } from 'src/commons/validations/is-date.validation';
 
 export class ScheduleFilter {
   @ApiProperty({ required: false, isArray: true })
