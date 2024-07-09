@@ -132,15 +132,22 @@ export class DealernetScheduleService {
 
       if (agendamentos.filter((agendamento) => agendamento?.Mensagem).length > 0) return [];
 
-      return agendamentos.map((agendamento) => {
-        const services = (isArray(agendamento?.Servicos?.Servico) ? agendamento.Servicos?.Servico : agendamento.Servicos?.Servico && [agendamento.Servicos?.Servico]);
+      return agendamentos.map((x) => {
+        const services = (isArray(x?.Servicos?.Servico) ? x.Servicos?.Servico : x.Servicos?.Servico && [x.Servicos?.Servico]);
 
         const Servicos = services?.map((item: any) => ({
           ...item,
           Produtos: isArray(item?.Produtos?.Produto) ? item.Produtos?.Produto : item.Produtos?.Produto && [item.Produtos?.Produto],
         }));
+        const Cliente_DocIdentificador = x?.ClienteDocumento.toString();
+        const Cliente_TipoPessoa = Cliente_DocIdentificador.length <= 11 ? 'F' : 'J';
 
-        return { ...agendamento, Servicos: Servicos };
+        const document = Cliente_TipoPessoa == 'F' ? Cliente_DocIdentificador.padStart(11, '0') : Cliente_DocIdentificador.padStart(14, '0');
+        return {
+          ...x,
+          ClienteDocumento: document,
+          Servicos: Servicos
+        };
       });
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealerNetScheduleService.find');
