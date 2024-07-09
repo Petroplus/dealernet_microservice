@@ -8,7 +8,7 @@ import { dealernet } from 'src/commons/web-client';
 import { OrderFilter } from 'src/modules/os/filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
-import { DealernetOrder, DealernetOrderResponse, Servico } from '../response/os-response';
+import { DealernetOrder, DealernetOrderResponse, Produto, Servico } from '../response/os-response';
 
 import { CreateDealernetOsDTO } from './dto/create-order.dto';
 import { UpdateOsDTO } from '../dto/update-os.dto';
@@ -57,13 +57,26 @@ export class DealernetOsService {
         if (orders.Mensagem) {
           throw new BadRequestException(orders.Mensagem);
         }
-        const refactored_service: Servico[] = []
+        const refactored_service = []
         if(isArray(orders.Servicos.Servico)){
-          orders.Servicos.Servico.map(service=>
-            refactored_service.push(service)
-          )
+          const refactored_products: Produto[]=[]
+          orders.Servicos.Servico.map(service=>{
+            if(isArray(service.Produtos.Produto)){
+              refactored_products.push(...service.Produtos.Produto)
+            } else{
+              refactored_products.push(service.Produtos.Produto)
+            }
+            refactored_service.push({...service, Produtos: refactored_products})
+          })
+
         }else{
-          refactored_service.push(orders.Servicos.Servico)
+          const refactored_products: Produto[]=[]
+          if(isArray(orders.Servicos.Servico.Produtos.Produto)){
+            refactored_products.push(...orders.Servicos.Servico.Produtos.Produto)
+          } else{
+            refactored_products.push(orders.Servicos.Servico.Produtos.Produto)
+          }
+          refactored_service.push({...orders.Servicos.Servico, Produtos: refactored_products})
         }
         return [{
           ...orders,
@@ -72,15 +85,31 @@ export class DealernetOsService {
       }
       const refactored_orders: DealernetOrderResponse[] = []
       orders.map(order=>{
-        const refactored_service: Servico[] = []
+        const refactored_service = []
 
         if(isArray(order.Servicos.Servico)){
-          order.Servicos.Servico.map(service=>
-            refactored_service.push(service)
+
+          order.Servicos.Servico.map(service=>{
+            const refactored_products: Produto[]=[]
+            if(isArray(service.Produtos.Produto)){
+              refactored_products.push(...service.Produtos.Produto)
+            } else{
+              refactored_products.push(service.Produtos.Produto)
+            }
+            refactored_service.push({...service, Produtos: refactored_products})
+
+          }
           )
         }else{
-          refactored_service.push(order.Servicos.Servico)
+          const refactored_products: Produto[]=[]
+          if(isArray(order.Servicos.Servico.Produtos.Produto)){
+            refactored_products.push(...order.Servicos.Servico.Produtos.Produto)
+          } else{
+            refactored_products.push(order.Servicos.Servico.Produtos.Produto)
+          }
+          refactored_service.push({...order.Servicos.Servico, Produtos: refactored_products})
         }
+
         refactored_orders.push({...order, Servicos: refactored_service})
       }
       )
@@ -339,13 +368,26 @@ export class DealernetOsService {
         throw new BadRequestException(order.Mensagem);
       }
 
-      const refactored_service: Servico[] = []
+      const refactored_service = []
       if(isArray(order.Servicos.Servico)){
-        order.Servicos.Servico.map(service=>
-          refactored_service.push(service)
-        )
+        order.Servicos.Servico.map(service=>{
+          const refactored_products: Produto[]=[]
+          if(isArray(service.Produtos.Produto)){
+            refactored_products.push(...service.Produtos.Produto)
+          }else{
+            refactored_products.push(service.Produtos.Produto)
+          }
+          refactored_service.push({...service, Produtos: refactored_products})
+        }
+      )
       }else{
-        refactored_service.push(order.Servicos.Servico)
+        const refactored_products: Produto[]=[]
+        if(isArray(order.Servicos.Servico.Produtos.Produto)){
+          refactored_products.push(...order.Servicos.Servico.Produtos.Produto)
+        } else{
+          refactored_products.push(order.Servicos.Servico.Produtos.Produto)
+        }
+        refactored_service.push({...order.Servicos.Servico, Produtos: refactored_products})
       }
       const responseOrder : DealernetOrderResponse ={
         ...order,
@@ -375,13 +417,26 @@ export class DealernetOsService {
       if (order.Mensagem && order.Chave === 0) {
         throw new BadRequestException(order.Mensagem);
       }
-      const refactored_service: Servico[] = []
+      const refactored_service = []
       if(isArray(order.Servicos.Servico)){
-        order.Servicos.Servico.map(service=>
-          refactored_service.push(service)
-        )
+        order.Servicos.Servico.map(service=>{
+          const refactored_products: Produto[]=[]
+          if(isArray(service.Produtos.Produto)){
+            refactored_products.push(...service.Produtos.Produto)
+          }else{
+            refactored_products.push(service.Produtos.Produto)
+          }
+          refactored_service.push({...service, Produtos: refactored_products})
+        }
+      )
       }else{
-        refactored_service.push(order.Servicos.Servico)
+        const refactored_products: Produto[]=[]
+        if(isArray(order.Servicos.Servico.Produtos.Produto)){
+          refactored_products.push(...order.Servicos.Servico.Produtos.Produto)
+        } else{
+          refactored_products.push(order.Servicos.Servico.Produtos.Produto)
+        }
+        refactored_service.push({...order.Servicos.Servico, Produtos: refactored_products})
       }
       const responseOrder : DealernetOrderResponse ={
         ...order,
