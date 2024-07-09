@@ -8,7 +8,7 @@ import { dealernet } from 'src/commons/web-client';
 import { OrderFilter } from 'src/modules/os/filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
-import { DealernetOrder, DealernetOrderResponse, Produto, Servico } from '../response/os-response';
+import { DealernetOrder, DealernetOrderResponse, Produto, Servico, TipoOSItem } from '../response/os-response';
 
 import { CreateDealernetOsDTO } from './dto/create-order.dto';
 import { UpdateOsDTO } from '../dto/update-os.dto';
@@ -78,9 +78,18 @@ export class DealernetOsService {
           }
           refactored_service.push({...orders.Servicos.Servico, Produtos: refactored_products})
         }
+        const refactored_tipo_os : TipoOSItem[] = []
+      if(isArray(orders.TipoOS.TipoOSItem)){
+        orders.TipoOS.TipoOSItem.map(item=>
+          refactored_tipo_os.push(item)
+        )
+      }else{
+          refactored_tipo_os.push(orders.TipoOS.TipoOSItem)
+      }
         return [{
           ...orders,
-          Servicos: refactored_service
+          Servicos: refactored_service,
+          TipoOS: refactored_tipo_os,
         }];
       }
       const refactored_orders: DealernetOrderResponse[] = []
@@ -109,8 +118,15 @@ export class DealernetOsService {
           }
           refactored_service.push({...order.Servicos.Servico, Produtos: refactored_products})
         }
-
-        refactored_orders.push({...order, Servicos: refactored_service})
+        const refactored_tipo_os : TipoOSItem[] = []
+            if(isArray(order.TipoOS.TipoOSItem)){
+              order.TipoOS.TipoOSItem.map(item=>
+                refactored_tipo_os.push(item)
+              )
+            }else{
+                refactored_tipo_os.push(order.TipoOS.TipoOSItem)
+            }
+        refactored_orders.push({...order, Servicos: refactored_service, TipoOS: refactored_tipo_os})
       }
       )
       return  refactored_orders
@@ -389,9 +405,19 @@ export class DealernetOsService {
         }
         refactored_service.push({...order.Servicos.Servico, Produtos: refactored_products})
       }
+
+      const refactored_tipo_os : TipoOSItem[] = []
+      if(isArray(order.TipoOS.TipoOSItem)){
+        order.TipoOS.TipoOSItem.map(item=>
+          refactored_tipo_os.push(item)
+        )
+      }else{
+          refactored_tipo_os.push(order.TipoOS.TipoOSItem)
+      }
       const responseOrder : DealernetOrderResponse ={
         ...order,
         Servicos: refactored_service,
+        TipoOS: refactored_tipo_os,
       }
       return responseOrder;
     } catch (error) {
@@ -438,9 +464,18 @@ export class DealernetOsService {
         }
         refactored_service.push({...order.Servicos.Servico, Produtos: refactored_products})
       }
+      const refactored_tipo_os : TipoOSItem[] = []
+      if(isArray(order.TipoOS.TipoOSItem)){
+        order.TipoOS.TipoOSItem.map(item=>
+          refactored_tipo_os.push(item)
+        )
+      }else{
+          refactored_tipo_os.push(order.TipoOS.TipoOSItem)
+      }
       const responseOrder : DealernetOrderResponse ={
         ...order,
         Servicos:  refactored_service,
+        TipoOS: refactored_tipo_os,
       }
       return responseOrder;
     } catch (error) {

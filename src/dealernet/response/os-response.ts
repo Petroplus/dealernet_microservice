@@ -178,7 +178,7 @@ export class TipoOSItem {
 
 export class TipoOS {
   @ApiProperty({ type: [TipoOSItem] })
-  TipoOSItem: TipoOSItem[];
+  TipoOSItem: TipoOSItem[] | TipoOSItem;
 }
 
 export class DealernetOrder {
@@ -373,6 +373,6 @@ export class DealernetOrderResponse {
   @ApiProperty({ type: Servico})
   Servicos: Servico[];
 
-  @ApiProperty({ type: TipoOS })
-  TipoOS: TipoOS;
+  @ApiProperty({ type:  TipoOSItem})
+  TipoOS:  TipoOSItem[];
 }
