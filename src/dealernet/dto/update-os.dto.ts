@@ -1,22 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-
 export class MarcacaoUpdateDto {
-    @ApiProperty()
-    usuario_documento_produtivo: string;
+  @ApiProperty()
+  usuario_documento_produtivo: string;
 
-    @ApiProperty()
-    data_inicial:string;
+  @ApiProperty()
+  data_inicial: string;
 
-    @ApiProperty()
-    data_final:string;
+  @ApiProperty()
+  data_final: string;
 
-    @ApiProperty()
-    motivo_parada:string;
+  @ApiProperty()
+  motivo_parada: string;
 
-    @ApiProperty()
-    observacao:string;
-
+  @ApiProperty()
+  observacao: string;
 }
 
 export class ProdutoUpdateDto {
@@ -70,7 +68,7 @@ export class ServicoUpdateDto {
   quantidade: number;
 
   @ApiProperty()
-  produtivo_documento?:string;
+  produtivo_documento?: string;
 
   @ApiProperty()
   usuario_ind_responsavel?: string;
@@ -102,8 +100,8 @@ export class UpdateOsDTO {
   @ApiProperty()
   chave: string;
 
-  // @ApiProperty()
-  // numero_os:string;
+  @ApiProperty()
+  numero_os: string;
 
   @ApiProperty()
   veiculo_placa_chassi: string;

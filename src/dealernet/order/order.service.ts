@@ -260,8 +260,9 @@ export class DealernetOsService {
                     <deal:Usuario>${connection?.user}</deal:Usuario>
                     <deal:Senha>${connection?.key}</deal:Senha>
                   <deal:Sdt_fsordemservicoin>
-                    <deal:Chave>${dto.chave}</deal:Chave>
-                    <deal:EmpresaDocumento>${connection?.document}</deal:EmpresaDocumento>
+                  <deal:EmpresaDocumento>${connection?.document}</deal:EmpresaDocumento>
+                    <deal:Chave>${dto.chave ?? '?'}</deal:Chave>
+                    <deal:NumeroOS>${dto.numero_os ?? '?'}</deal:NumeroOS>
                     <deal:VeiculoPlacaChassi>${dto.veiculo_placa_chassi ?? '?'}</deal:VeiculoPlacaChassi>
                     <deal:VeiculoKM>${dto.veiculo_Km ?? '?'}</deal:VeiculoKM>
                     <deal:ClienteDocumento>${dto.cliente_documento ?? '?'}</deal:ClienteDocumento>
@@ -334,6 +335,7 @@ export class DealernetOsService {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const xmlBody = await this.updateOsXmlSchema(connection, dto);
     try {
+      console.log(xmlBody);
       const client = await dealernet();
 
       const response = await client.post(url, xmlBody);

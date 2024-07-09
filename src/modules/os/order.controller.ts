@@ -2,7 +2,7 @@ import { Controller, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ParseUUIDOptionalPipe } from 'src/commons/pipes/parse-uuid-optional.pipe';
-import { DealernetOrder, DealernetOrderResponse } from 'src/dealernet/response/os-response';
+import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 
 import { OsService } from './order.service';
 

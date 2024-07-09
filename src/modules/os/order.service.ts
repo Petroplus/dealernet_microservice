@@ -1,5 +1,6 @@
 import { BadRequestException, HttpException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { isArray } from 'class-validator';
+import { Convert } from 'system-x64';
 
 import { ContextService } from 'src/context/context.service';
 import { DealernetService } from 'src/dealernet/dealernet.service';
@@ -30,22 +31,24 @@ export class OsService {
     if (!order.integration_id) throw new HttpException(`Order '${order_id}' not sent to Dealernet`, 404);
 
     if (budget_id) {
-      const budget = await this.petroplay.order.findOrderBudget(order_id, budget_id)
+      const budget = await this.petroplay.order.findOrderBudget(order_id, budget_id);
       const filter = {
-        os_number: budget[0].os_number
+        os_number: budget[0].os_number,
       };
-      return this.dealernet.order.find(integration.dealernet, filter)
+      return this.dealernet.order.find(integration.dealernet, filter);
     } else {
-      const budget_numbers = order.budgets.map(budget => budget.os_number);
+      const budget_numbers = order.budgets.map((budget) => budget.os_number);
 
-      let result = [];
-      await Promise.all(budget_numbers.map(async number => {
-        const filter = {
-          os_number: number
-        };
-        const dealernetOrder = await this.dealernet.order.find(integration.dealernet, filter);
-        result.push(...dealernetOrder);
-      }));
+      const result = [];
+      await Promise.all(
+        budget_numbers.map(async (number) => {
+          const filter = {
+            os_number: number,
+          };
+          const dealernetOrder = await this.dealernet.order.find(integration.dealernet, filter);
+          result.push(...dealernetOrder);
+        }),
+      );
 
       return result;
     }
@@ -132,6 +135,11 @@ export class OsService {
           } else {
             products_hashtable[aux_os_type] = [...(products_hashtable[aux_os_type] || []), productEntry];
           }
+        } else {
+          Logger.warn(
+            `Produto ${product.integration_id}  ${product.name} não encontrado ou sem quantidade disponível`,
+            'OsService',
+          );
         }
       }
 
@@ -232,12 +240,15 @@ export class OsService {
         }
       });
     }
+
     const products: ProdutoUpdateDto[] = [];
     const services: ServicoUpdateDto[] = [];
     let aux_os_type = order?.os_type?.external_id;
+
     if (!aux_os_type) {
       aux_os_type = budget?.os_type?.external_id;
     }
+
     budget.products.map((product) => {
       if (!aux_os_type) {
         aux_os_type = product?.os_type?.external_id;
@@ -265,19 +276,24 @@ export class OsService {
             appointment.was_sent_to_dms = true;
             (usuario_ind_responsavel = user.Usuario_Identificador), (produtivo_documento = user.Usuario_DocIdentificador);
 
-            aux_appointments.push({
+            const marcacao = {
               usuario_documento_produtivo: user.Usuario_Identificador,
-              data_inicial: await this.formatDate(appointment.start_date),
-              data_final: await this.formatDate(appointment.end_date, appointment.start_date),
+              data_inicial: new Date(appointment.start_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
+              data_final: new Date(appointment.end_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
               motivo_parada: appointment?.reason_stopped?.external_id,
               observacao: '?',
-            });
+            };
+
+            aux_appointments.push(marcacao);
           }
         }
       }
       const tipo_os_sigla = service?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
+      const Servicos = budget.integration_data?.os?.Servicos;
+      const chave = Servicos?.first((x: any) => x.TMOReferencia == service.integration_id)?.Chave;
+
       services.push({
-        chave: services_key_hashtable[service.integration_id],
+        chave: chave,
         tipo_os_sigla,
         tmo_referencia: service.integration_id,
         tempo: service.quantity,
@@ -285,13 +301,14 @@ export class OsService {
         quantidade: Math.ceil(service.quantity),
         usuario_ind_responsavel,
         produtivo_documento,
-        produtos: services.length == 0 ? [...products] : [],
+        produtos: Servicos.Produtos,
         marcacoes: aux_appointments,
       });
     }
 
     const OS: UpdateOsDTO = {
       chave: budget.integration_data?.Chave,
+      numero_os: budget.os_number,
       veiculo_placa_chassi: order.vehicle_chassis_number,
       veiculo_Km: Number(order.mileage) || 0,
       cliente_documento: order.customer_document,
