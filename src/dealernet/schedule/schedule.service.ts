@@ -58,7 +58,7 @@ export class DealernetScheduleService {
                 <deal:Sdt_fsagendamentoin>
                     <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento>
                     <deal:Chave>${schedule?.Chave ?? '?'}</deal:Chave>
-                    <deal:VeiculoPlacaChassi>${schedule?.VeiculoChassi ?? schedule?.VeiculoPlaca ?? '?'}</deal:VeiculoPlacaChassi>
+                    <deal:VeiculoPlacaChassi>${schedule?.VeiculoPlaca ?? schedule?.VeiculoChassi ?? '?'}</deal:VeiculoPlacaChassi>
                     <deal:VeiculoKM>${schedule?.VeiculoKM ?? '?'}</deal:VeiculoKM>
                     <deal:ClienteNome>${schedule?.ClienteNome ?? '?'}</deal:ClienteNome>
                     <deal:ClienteDocumento>${schedule?.ClienteDocumento ?? '?'}</deal:ClienteDocumento>

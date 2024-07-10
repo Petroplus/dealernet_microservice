@@ -36,7 +36,7 @@ export class DealernetVehicleService {
                         <deal:Veiculo_DataVenda>${dto.Veiculo_DataVenda ?? '?'}</deal:Veiculo_DataVenda>
                         <deal:Veiculo_NumeroMotor>${dto.Veiculo_NumeroMotor ?? '?'}</deal:Veiculo_NumeroMotor>
                         <deal:Cliente_Documento>${dto.Cliente_Documento ?? '?'}</deal:Cliente_Documento>
-                        <deal:Acao>INC</deal:Acao>
+                        <deal:Acao>${dto.Veiculo_Codigo ? 'ALT' : 'INC'}</deal:Acao>
                     </deal:Sdt_fsveiculoin>
                 </deal:WS_FastServiceApi.VEICULO>
             </soapenv:Body>
