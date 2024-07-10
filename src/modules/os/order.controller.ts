@@ -45,7 +45,7 @@ export class OsController {
     return this.service.createSchema(order_id, budget_id);
   }
 
-  @Put('appointments/:budget_id')
+  @Put(':budget_id/appointments')
   @ApiResponse({ status: 200 })
   @ApiOperation({ summary: 'Atualiza os apontamentos da ordem de serviço baseado em informações extraídas da ordem informada' })
   async appointment(
@@ -55,7 +55,7 @@ export class OsController {
     return this.service.appointment(order_id, budget_id);
   }
 
-  @Get(`appointments/:budget_id/schema`)
+  @Get(`:budget_id/appointments/schema`)
   @ApiResponse({ status: 200 })
   @ApiOperation({
     summary:

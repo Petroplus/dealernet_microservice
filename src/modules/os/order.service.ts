@@ -6,7 +6,7 @@ import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { MarcacaoUpdateDto, ProdutoUpdateDto, ServicoUpdateDto, UpdateOsDTO } from 'src/dealernet/dto/update-os.dto';
 import { TipoOSItemCreateDTO } from 'src/dealernet/order/dto/create-order.dto';
-import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
+import { DealernetOrder, DealernetOrderResponse } from 'src/dealernet/response/os-response';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 import { OrderAppointmentEntity } from 'src/petroplay/order/entity/order-appointment.entity';
@@ -252,7 +252,7 @@ export class OsService {
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
     const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
 
-    return this.dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
+    return this.dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO as any);
   }
 
   async appointment(order_id: string, budget_id: string): Promise<DealernetOrderResponse> {
@@ -264,9 +264,11 @@ export class OsService {
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
     const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
-    const os = await this.dealernet.order.updateOs(integration.dealernet, osDTO);
+    const os = await this.dealernet.order.updateOs(integration.dealernet, osDTO as any);
 
-    appointments.map(async ({ id }) => this.petroplay.order.updateOrderAppointment(order.id, id, { was_sent_to_dms: true }));
+    for await (const { id } of appointments) {
+      await this.petroplay.order.updateOrderAppointment(order.id, id, { was_sent_to_dms: true });
+    }
 
     await this.petroplay.order.updateOrderBudget(order_id, budget_id, {
       integration_data: { ...budget.integration_data, os: os },
@@ -281,103 +283,30 @@ export class OsService {
     appointments: OrderAppointmentEntity[],
     connection: IntegrationDealernet,
   ): Promise<UpdateOsDTO> {
-    const services_key_hashtable = {};
-    const integration_data_services = budget.integration_data?.Servicos;
-    if (isArray(integration_data_services)) {
-      integration_data_services.map((service) => {
-        if (service.TMOReferencia) {
-          services_key_hashtable[service.TMOReferencia] = service?.Chave;
-        }
-      });
-    }
+    const os = await this.dealernet.findOsByNumber(connection, budget.os_number);
 
-    const products: ProdutoUpdateDto[] = [];
-    const services: ServicoUpdateDto[] = [];
-    let aux_os_type = order?.os_type?.external_id;
-
-    if (!aux_os_type) {
-      aux_os_type = budget?.os_type?.external_id;
-    }
-
-    budget.products.map((product) => {
-      if (!aux_os_type) {
-        aux_os_type = product?.os_type?.external_id;
-      }
-      const tipo_os_sigla = product?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
-      products.push({
-        tipo_os_sigla,
-        produto_referencia: product.integration_id,
-        valor_unitario: product.price,
-        quantidade: product.quantity,
-      });
-    });
-
-    for (const service of budget.services) {
-      if (!aux_os_type) {
-        aux_os_type = service?.os_type?.external_id;
-      }
-
+    const services: any[] = [];
+    for (const service of os.Servicos) {
       let usuario_ind_responsavel: string;
       let produtivo_documento: string;
-      const aux_appointments: MarcacaoUpdateDto[] = [];
-
-      for await (const item of appointments.filter((x) => !x.was_sent_to_dms && x.integration_id == service.integration_id)) {
+      for await (const item of appointments.filter((x) => !x.was_sent_to_dms && x.integration_id == service.TMOReferencia)) {
         const user = await this.dealernet.customer.findUser(connection, item?.mechanic.cod_consultor);
         usuario_ind_responsavel = user.Usuario_Identificador;
         produtivo_documento = user.Usuario_DocIdentificador;
 
-        const marcacao = {
-          usuario_documento_produtivo: user.Usuario_Identificador,
-          data_inicial: new Date(item.start_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
-          data_final: new Date(item.end_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
-          motivo_parada: item?.reason_stopped?.external_id,
-          observacao: '?',
-        };
-
-        aux_appointments.push(marcacao);
+        service.Marcacoes.push({
+          UsuarioDocumentoProdutivo: user.Usuario_Identificador,
+          DataFinal: new Date(item.end_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
+          DataInicial: new Date(item.start_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
+          MotivoParada: item?.reason_stopped?.external_id,
+        });
       }
 
-      const tipo_os_sigla = service?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
-      const Servicos = budget.integration_data?.os?.Servicos;
-      const chave = Servicos?.first((x: any) => x.TMOReferencia == service.integration_id)?.Chave;
-
-      services.push({
-        chave: chave,
-        tipo_os_sigla,
-        tmo_referencia: service.integration_id,
-        tempo: service.quantity,
-        valor_unitario: service.price,
-        quantidade: Math.ceil(service.quantity),
-        usuario_ind_responsavel,
-        produtivo_documento,
-        produtos: Servicos.Produtos,
-        marcacoes: aux_appointments,
-      });
+      services.push({ ...service });
     }
 
-    const OS: UpdateOsDTO = {
-      chave: budget.integration_data?.os.Chave,
-      numero_os: budget.os_number,
-      veiculo_placa_chassi: order.vehicle_chassis_number,
-      veiculo_Km: Number(order.mileage) || 0,
-      cliente_documento: order.customer_document,
-      consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
-      data: new Date(order.inspection).toISOString(),
-      data_final: new Date().toISOString(),
-      data_prometida: new Date(order.conclusion).toISOString(),
-      nro_prisma: order.prisma,
-      observacao: order.notes,
-      prisma_codigo: order.prisma,
-      tipo_os_sigla: aux_os_type,
-      servicos: services,
-      tipo_os: {
-        tipo_os_item: {
-          tipo_os_sigla: aux_os_type,
-          consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
-        },
-      },
-    };
-    return OS;
+    const dto: DealernetOrder = { ...os, Servicos: services };
+    return dto as never;
   }
 
   async formatarDoc(doc?: string): Promise<string> {

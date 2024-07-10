@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+
 import { AppointmentReasonStoppedOptionEntity } from './appointment-reason-stopped-option.entity';
 import { UserEntity } from './user.entity';
 export enum AppointmentStatusEnum {
-  STOPED = 'STOPED',
+  STOPPED = 'STOPPED',
   CANCELED = 'CANCELED',
   IN_PROGRESS = 'IN_PROGRESS',
   DONE = 'DONE',

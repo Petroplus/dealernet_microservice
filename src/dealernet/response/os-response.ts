@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class Marcacao {
   @ApiProperty()
-  Chave: number;
+  Chave?: number;
 
   @ApiProperty()
-  UsuarioDocumentoProdutivo: number;
+  UsuarioDocumentoProdutivo: number | string;
 
   @ApiProperty()
   DataInicial: string;
@@ -14,10 +14,10 @@ export class Marcacao {
   DataFinal: string;
 
   @ApiProperty()
-  MotivoParada: number;
+  MotivoParada: number | string;
 
   @ApiProperty()
-  Observacao: string;
+  Observacao?: string;
 }
 
 export class Produto {

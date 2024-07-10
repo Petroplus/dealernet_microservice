@@ -4,7 +4,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
-import { webClient } from 'src/commons/web-client';
+import { dealernet, webClient } from 'src/commons/web-client';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
 import { DealernetBudgetService } from './budget/budget.service';
@@ -422,40 +422,23 @@ export class DealernetService {
     }
   }
 
-  async findOs(
-    api: string,
-    user: string,
-    key: string,
-    doc: string,
-    integration_id?: string,
-    dataInicio?: string,
-    dataFim?: string,
-    status?: string,
-    veiculoPlacaChassi?: string,
-  ): Promise<DealernetOrder[]> {
+  async findOs(connection: IntegrationDealernet, filter: any): Promise<DealernetOrder[]> {
     Logger.log(`Buscando  OS Dealernet`, 'OS');
-    const url = `${api}/aws_fastserviceapi.aspx`;
-    const headers = {
-      'Content-Type': 'text/xml;charset=utf-8',
-    };
-    if (dataInicio) {
-      dataInicio = new Date(dataInicio).addDays(0).format('yyyy-MM-dd');
-    }
+    const url = `${connection.url}/aws_fastserviceapi.aspx`;
+
+    const data_inicial = (filter?.dataInicio ? new Date(filter?.dataInicio) : new Date()).formatUTC('yyyy-MM-dd');
 
     const xmlBody = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
             <soapenv:Header/>
             <soapenv:Body>
                 <deal:WS_FastServiceApi.ORDEMSERVICO>
-                    <deal:Usuario>${user}</deal:Usuario>
-                    <deal:Senha>${key}</deal:Senha>
+                    <deal:Usuario>${connection.user}</deal:Usuario>
+                    <deal:Senha>${connection.key}</deal:Senha>
             <deal:Sdt_fsordemservicoin>
-                <deal:EmpresaDocumento>${doc}</deal:EmpresaDocumento>
-                <deal:Chave>${integration_id ?? '?'}</deal:Chave>
-                <deal:VeiculoPlacaChassi>${veiculoPlacaChassi ?? '?'}</deal:VeiculoPlacaChassi>
-                <deal:Data>${dataInicio}</deal:Data>
-                <deal:DataFinal>${dataFim ?? '?'}</deal:DataFinal>
-                <deal:Status>${status ?? '?'}</deal:Status>
+                <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento>
+                <deal:NumeroOS>${filter.number_os ?? '?'}</deal:NumeroOS>
+                <deal:Data>${data_inicial}</deal:Data>
                 <deal:Acao>LST</deal:Acao>
             </deal:Sdt_fsordemservicoin>
         </deal:WS_FastServiceApi.ORDEMSERVICO>
@@ -463,28 +446,35 @@ export class DealernetService {
 </soapenv:Envelope>
     `;
     try {
-      const response = await webClient.post(url, xmlBody, { headers });
-      const xmlData = response.data;
-      const parser = new XMLParser();
-      const parsedData = parser.parse(xmlData);
 
-      const orders: DealernetOrder | DealernetOrder[] =
-        parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista'][
-        'SDT_FSOrdemServicoOut'
-        ];
+      console.log(xmlBody.toString());
 
-      if (!isArray(orders)) {
-        if (orders.Mensagem) {
-          throw new BadRequestException(orders.Mensagem);
-        }
-        return [orders];
-      }
+      const client = await dealernet()
+      const response = await client.post(url, xmlBody).then(({ data }) => new XMLParser().parse(data));
+      const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista']['SDT_FSOrdemServicoOut'];
 
-      return orders;
+      const orders = Array.isArray(parsedData) ? parsedData : [parsedData];
+
+      if (orders.filter(order => order.Chave === 0).length > 0) return [];
+
+      return orders.map(order => {
+        const Servicos = Array.isArray(order.Servicos?.Servico) ? order.Servicos.Servico : order.Servicos?.Servico ? [order.Servicos.Servico] : [];
+
+        Servicos.forEach((servico: any) => {
+          servico.Produtos = Array.isArray(servico.Produtos?.Produto) ? servico.Produtos.Produto : servico.Produtos?.Produto ? [servico.Produtos.Produto] : [];
+          servico.Marcacoes = Array.isArray(servico.Marcacoes?.Marcacao) ? servico.Marcacoes.Marcacao : servico.Marcacoes?.Marcacao ? [servico.Marcacoes.Marcacao] : [];
+        });
+
+        return { ...order, Servicos }
+      });
     } catch (error) {
       console.error('Erro ao fazer a requisição:', error);
       throw error;
     }
+  }
+
+  async findOsByNumber(connection: IntegrationDealernet, number_os: string | number): Promise<DealernetOrder> {
+    return this.findOs(connection, { number_os }).then((orders) => orders.first());
   }
 
   async createOs(api: string, user: string, key: string, doc: string, dto: CreateOsDTO): Promise<DealernetOrder> {

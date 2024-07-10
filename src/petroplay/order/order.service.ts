@@ -117,7 +117,9 @@ export class PetroplayOrderService {
   async findOrderAppointments(order_id: string, budget_id: string): Promise<OrderAppointmentEntity[]> {
     const client = await petroplay.v2();
     return await client
-      .get(`/v2/orders/${order_id}/appointments?expand=reason_stopped&expand=mechanic`, { params: { budget_ids: [budget_id] } })
+      .get(`/v2/orders/${order_id}/appointments`, {
+        params: { budget_ids: [budget_id], expand: ['reason_stopped', 'mechanic'] },
+      })
       .then(({ data }) => data)
       .catch((err) => {
         Logger.error('Error on find order appointments:', err, 'PetroplayOrderService.findOrderAppointments');
