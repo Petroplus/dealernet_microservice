@@ -29,6 +29,15 @@ export class CustomerController {
     return this.service.upsert(client_id, dto);
   }
 
+  @Put(':client_id/customers/:id')
+  @ApiResponse({ status: 200 })
+  async updateByCustomerId(
+    @Param('client_id', ParseUUIDPipe) client_id: string,
+    @Param('customer_id', ParseUUIDPipe) customer_id: string,
+  ): Promise<void> {
+    // return this.service.upsert(client_id, dto);
+  }
+
   // @Get(':id')
   // @ApiResponse({ status: 200 })
   // async findById(@Param('client_id', ParseUUIDPipe) client_id: string, @Param('id', ParseUUIDPipe) id: string): Promise<unknown> {

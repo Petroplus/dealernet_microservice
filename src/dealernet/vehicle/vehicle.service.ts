@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { XMLParser } from 'fast-xml-parser';
+import { Task } from 'system-x64';
 
 import { dealernet } from 'src/commons/web-client';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
@@ -49,9 +50,12 @@ export class DealernetVehicleService {
       const response = await client.post(url, xmlBody).then(({ data }) => new XMLParser().parse(data));
       const vehicle = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.VEICULOResponse']['Sdt_fsveiculoout']['SDT_FSVeiculoOut']
 
+      console.log(vehicle);
       if (vehicle.Veiculo == "0") {
         throw new BadRequestException('Erro ao criar/alterar veículo', { description: vehicle.Mensagem });
       }
+
+      Task.delay(1000);
       return vehicle;
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetVehicleService.create');
