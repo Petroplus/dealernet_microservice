@@ -780,7 +780,7 @@ export class DealernetService {
   }
 
   async findProductByReference(connection: IntegrationDealernet, ref: string): Promise<ProdutoDealernetResponse[]> {
-    Logger.log(`Buscando produto pela ref: ${ref}, api:${connection.url}`, 'Produtos');
+    Logger.warn(`Buscando produto por ProdutoReferencia: ${ref}`, 'Produtos');
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const headers = {
       'Content-Type': 'text/xml;charset=utf-8',

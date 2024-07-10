@@ -8,6 +8,7 @@ import { UpsertOrderDto } from './dto/upsert-order.dto';
 import { PetroplayOrderEntity } from './entity/order.entity';
 import { OrderAppointmentEntity } from './entity/order-appointment.entity';
 import { OrderBudgetEntity } from './entity/order-budget.entity';
+import { OrderBudgetProductEntity } from './entity/order-budget-product.entity';
 import { OrderItemEntity } from './entity/order-items.entity';
 import { OrderStatus } from './enum/order-status.enum';
 import { OrderRelations } from './filters/expand-orders';
@@ -94,6 +95,22 @@ export class PetroplayOrderService {
       .catch((err) => {
         Logger.error('Error on update order budget:', err, 'PetroplayOrderService.updateOrderBudget');
         throw new BadRequestException('Error on update order budget');
+      });
+  }
+
+  async updateOrderBudgetProduct(
+    order_id: string,
+    budget_id: string,
+    product_id: string,
+    dto: Partial<OrderBudgetProductEntity>,
+  ): Promise<OrderBudgetProductEntity> {
+    const client = await petroplay.v2();
+    return client
+      .put(`/v2/orders/${order_id}/budgets/${budget_id}/products/${product_id}`, { dto })
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on update order budget product:', err, 'PetroplayOrderService.updateOrderBudgetProduct');
+        throw new BadRequestException('Error on update order budget product');
       });
   }
 

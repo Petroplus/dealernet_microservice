@@ -48,6 +48,9 @@ export class ServicoCreateDTO {
   @ApiProperty()
   quantidade: number;
 
+  @ApiProperty()
+  cobra?: boolean;
+
   @ApiProperty({ type: ProdutoCreateDTO })
   produtos: ProdutoCreateDTO[];
 }
@@ -142,8 +145,11 @@ export class CreateOsDTO {
   servicos: ServicoCreateDTO[];
 
   @ApiProperty({ type: TipoOSCreateDTO })
-  tipo_os: TipoOSCreateDTO;
+  tipo_os?: TipoOSCreateDTO;
 
   @ApiProperty()
   tipo_os_array?: string[];
+
+  @ApiProperty()
+  tipo_os_types?: TipoOSItemCreateDTO[];
 }

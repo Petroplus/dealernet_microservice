@@ -1,19 +1,17 @@
 import { BadRequestException, HttpException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { isArray } from 'class-validator';
-import { Convert } from 'system-x64';
 
 import { ContextService } from 'src/context/context.service';
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { MarcacaoUpdateDto, ProdutoUpdateDto, ServicoUpdateDto, UpdateOsDTO } from 'src/dealernet/dto/update-os.dto';
-import { DealernetOrder, DealernetOrderResponse } from 'src/dealernet/response/os-response';
+import { TipoOSItemCreateDTO } from 'src/dealernet/order/dto/create-order.dto';
+import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 import { OrderAppointmentEntity } from 'src/petroplay/order/entity/order-appointment.entity';
 import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entity';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
-
-import { OrderFilter } from './filters/order.filters';
 
 @Injectable()
 export class OsService {
@@ -59,13 +57,16 @@ export class OsService {
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
 
-    // if (!integration.dealernet) throw new BadRequestException('Integration not found');
-
     const budgets = await this.petroplay.order.findOrderBudget(order.id, budget_id);
 
-    const osDTO = await this.osDtoToDealernetOs(order, budgets, integration.dealernet);
+    const schemas = [];
+    for await (const budget of budgets) {
+      const dto = await this.osDtoToDealernetOs(order, budget, integration.dealernet);
+      const schema = await this.dealernet.order.createOsXmlSchema(integration.dealernet, dto);
+      schemas.push(schema);
+    }
 
-    return this.dealernet.order.createOsXmlSchema(integration.dealernet, osDTO);
+    return schemas.join('\n');
   }
 
   async createOs(order_id: string, budget_id?: string): Promise<DealernetOrderResponse[]> {
@@ -79,7 +80,7 @@ export class OsService {
     Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
     const os = [];
     for await (const budget of budgets.filter((x) => !x.os_number)) {
-      const schema = await this.osDtoToDealernetOs(order, [budget], integration.dealernet);
+      const schema = await this.osDtoToDealernetOs(order, budget, integration.dealernet);
 
       await this.dealernet.order.createOs(integration.dealernet, schema).then(async (response) => {
         await this.petroplay.order.updateOrderBudget(order_id, budget.id, {
@@ -95,85 +96,137 @@ export class OsService {
 
   async osDtoToDealernetOs(
     order: PetroplayOrderEntity,
-    budgets: OrderBudgetEntity[],
+    budget: OrderBudgetEntity,
     connection: IntegrationDealernet,
   ): Promise<CreateOsDTO> {
+    const tipo_os_sigla = order?.os_type?.external_id;
+    const os_types: TipoOSItemCreateDTO[] = [];
+
     const services: ServicoCreateDTO[] = [];
-    const products_hashtable = {};
-    const os_types: string[] = [];
-    let aux_os_type = order?.os_type?.external_id;
-    for await (const budget of budgets) {
-      if (!aux_os_type) {
-        aux_os_type = budget?.os_type?.external_id;
-      }
-      let already_used_os_type_products = false;
-
-      for await (const product of budget.products) {
-        if (!aux_os_type) {
-          aux_os_type = product?.os_type?.external_id;
-        }
-
-        if (!os_types?.some((type) => type === product.os_type.external_id)) {
-          os_types.push(product.os_type.external_id);
-        }
-
-        const tipo_os_sigla = product?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
-        const product_validate = await this.dealernet.findProductByReference(connection, product.integration_id);
-
-        const product_validate_checked = product_validate?.first((product_check) => product_check?.QuantidadeDisponivel > 0);
-
-        if (product_validate_checked) {
-          const productEntry = {
-            tipo_os_sigla,
-            produto_referencia: product.integration_id,
-            valor_unitario: Number(product.price) > 0 ? Number(product.price) : 0.01,
-            quantidade: Number(product.quantity) > 0 ? Number(product.quantity) : 1,
-          };
-
-          if (product.service_id) {
-            products_hashtable[product.service_id] = [...(products_hashtable[product.service_id] || []), productEntry];
-          } else {
-            products_hashtable[aux_os_type] = [...(products_hashtable[aux_os_type] || []), productEntry];
-          }
-        } else {
-          Logger.warn(
-            `Produto ${product.integration_id}  ${product.name} não encontrado ou sem quantidade disponível`,
-            'OsService',
-          );
-        }
-      }
-
-      budget.services.map((service, index) => {
-        if (!aux_os_type) {
-          aux_os_type = service?.os_type?.external_id;
-        }
-        if (!os_types?.some((type) => type === service.os_type.external_id)) {
-          os_types.push(service.os_type.external_id);
-        }
-        const tipo_os_sigla = service?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
-        let produtos = [];
-
-        if (products_hashtable[service.service_id]) {
-          produtos = [...products_hashtable[service.service_id]];
-        } else if (products_hashtable[aux_os_type] && !already_used_os_type_products) {
-          produtos = [...products_hashtable[aux_os_type]];
-          already_used_os_type_products = true;
-        }
-        services.push({
-          tipo_os_sigla,
-          tmo_referencia: service.integration_id,
-          tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
-          valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
-          quantidade: Number(service.quantity) > 0 ? Math.ceil(service.quantity) : 1,
-          produtos,
+    for await (const service of budget.services.filter((x) => x.is_approved)) {
+      const os_type = service?.os_type ?? budget?.os_type ?? order?.os_type;
+      if (!os_types?.find((x) => x.tipo_os_sigla == os_type.external_id)) {
+        os_types.push({
+          tipo_os_sigla: os_type.external_id,
+          consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
         });
+      }
+
+      services.push({
+        tipo_os_sigla,
+        tmo_referencia: service.integration_id,
+        tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
+        valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
+        quantidade: Number(service.quantity) > 0 ? Math.ceil(service.quantity) : 1,
+        cobra: service?.is_charged_for ?? true,
+        produtos: [],
       });
+
+      // if (!aux_os_type) {
+      //   aux_os_type = budget?.os_type?.external_id;
+      // }
+      // let already_used_os_type_products = false;
+      // for await (const product of budget.products) {
+      //   if (!aux_os_type) {
+      //     aux_os_type = product?.os_type?.external_id;
+      //   }
+      //   if (!os_types?.some((type) => type === product.os_type.external_id)) {
+      //     os_types.push(product.os_type.external_id);
+      //   }
+      //   const tipo_os_sigla = product?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
+      //   const product_validate = await this.dealernet.findProductByReference(connection, product.integration_id);
+      //   const product_validate_checked = product_validate?.first((product_check) => product_check?.QuantidadeDisponivel > 0);
+      //   if (product_validate_checked) {
+      //     const productEntry = {
+      //       tipo_os_sigla,
+      //       produto_referencia: product.integration_id,
+      //       valor_unitario: Number(product.price) > 0 ? Number(product.price) : 0.01,
+      //       quantidade: Number(product.quantity) > 0 ? Number(product.quantity) : 1,
+      //     };
+      //     if (product.service_id) {
+      //       products_hashtable[product.service_id] = [...(products_hashtable[product.service_id] || []), productEntry];
+      //     } else {
+      //       products_hashtable[aux_os_type] = [...(products_hashtable[aux_os_type] || []), productEntry];
+      //     }
+      //   } else {
+      //     Logger.warn(
+      //       `Produto ${product.integration_id}  ${product.name} não encontrado ou sem quantidade disponível`,
+      //       'OsService',
+      //     );
+      //   }
+      // }
+      // budget.services.map((service) => {
+      //   if (!aux_os_type) {
+      //     aux_os_type = service?.os_type?.external_id;
+      //   }
+      //   if (!os_types?.some((type) => type === service.os_type.external_id)) {
+      //     os_types.push(service.os_type.external_id);
+      //   }
+      //   const tipo_os_sigla = service?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
+      //   let produtos = [];
+      //   if (products_hashtable[service.service_id]) {
+      //     produtos = [...products_hashtable[service.service_id]];
+      //   } else if (products_hashtable[aux_os_type] && !already_used_os_type_products) {
+      //     produtos = [...products_hashtable[aux_os_type]];
+      //     already_used_os_type_products = true;
+      //   }
+      //   services.push({
+      //     tipo_os_sigla,
+      //     tmo_referencia: service.integration_id,
+      //     tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
+      //     valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
+      //     quantidade: Number(service.quantity) > 0 ? Math.ceil(service.quantity) : 1,
+      //     produtos,
+      //   });
+      // });
+    }
+
+    for await (const product of budget.products.filter((x) => x.is_approved)) {
+      const os_type = product?.os_type ?? budget.os_type ?? order?.os_type;
+      if (!os_types?.find((x) => x.tipo_os_sigla == os_type.external_id)) {
+        os_types.push({
+          tipo_os_sigla: os_type.external_id,
+          consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
+        });
+      }
+
+      const produtos = await this.dealernet.findProductByReference(connection, product.integration_id);
+      const produto = produtos?.orderBy((x) => x.QuantidadeDisponivel, 'desc').first();
+
+      if (!produto) {
+        Logger.warn(`Produto ${product.integration_id}  ${product.name} não encontrado`, 'OsService');
+        await this.petroplay.order.updateOrderBudgetProduct(budget.order_id, budget.id, product.product_id, {
+          is_error: true,
+          error_details: 'Produto não encontrado',
+        });
+      } else if (produto.QuantidadeDisponivel >= 0) {
+        const dto = new ProdutoUpdateDto({
+          produto: produto.ProdutoCodigo?.toString(),
+          produto_referencia: produto.ProdutoReferencia,
+          quantidade: product.quantity,
+          valor_unitario: product.price,
+          tipo_os_sigla: os_type.external_id,
+          cobrar: product?.is_charged_for ?? true,
+        });
+
+        const service = services.find((x) => x.tmo_referencia == product.service_id && x.tipo_os_sigla == os_type.external_id);
+        if (service) {
+          service.produtos.push(dto);
+        } else {
+          services[0].produtos.push(dto);
+        }
+      } else {
+        Logger.warn(`Produto ${product.integration_id}  ${product.name} sem quantidade disponível`, 'OsService');
+        await this.petroplay.order.updateOrderBudgetProduct(budget.order_id, budget.id, product.product_id, {
+          is_error: true,
+          error_details: 'Produto sem quantidade disponível',
+        });
+      }
     }
 
     const cod_consultor = order.consultant?.cod_consultor ?? this.context.currentUser()?.cod_consultor;
     const OS: CreateOsDTO = {
       veiculo_placa_chassi: order.vehicle_chassis_number,
-      tipo_os_array: os_types,
       veiculo_Km: Number(order.mileage) || 0,
       cliente_documento: order.customer_document,
       consultor_documento: await this.formatarDoc(cod_consultor),
@@ -183,24 +236,17 @@ export class OsService {
       nro_prisma: order.prisma,
       observacao: order.notes,
       prisma_codigo: order.prisma,
-      tipo_os_sigla: aux_os_type,
+      tipo_os_sigla: tipo_os_sigla,
       servicos: services,
-      tipo_os: {
-        tipo_os_item: {
-          tipo_os_sigla: aux_os_type,
-          consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
-        },
-      },
+      tipo_os_types: os_types,
     };
     return OS;
   }
 
-  async updateXmlSchemaOs(order_id: string, budget_id: string): Promise<string> {
+  async appointmentXmlSchema(order_id: string, budget_id: string): Promise<string> {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
-
-    // if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
@@ -209,7 +255,7 @@ export class OsService {
     return this.dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
   }
 
-  async updateOs(order_id: string, budget_id: string): Promise<DealernetOrderResponse> {
+  async appointment(order_id: string, budget_id: string): Promise<DealernetOrderResponse> {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);

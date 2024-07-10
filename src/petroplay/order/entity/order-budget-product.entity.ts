@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+
 import { ClientOsTypeEntity } from './os-type.entity';
 
-
-export class OrderBudgetProductEntity  {
+export class OrderBudgetProductEntity {
   @ApiProperty()
   order_id: string;
 
@@ -75,7 +75,7 @@ export class OrderBudgetProductEntity  {
   @ApiProperty()
   error_details: string;
 
-  @ApiProperty({ type: () => ClientOsTypeEntity})
+  @ApiProperty({ type: () => ClientOsTypeEntity })
   os_type: ClientOsTypeEntity;
 
   constructor(partial: Partial<OrderBudgetProductEntity>) {

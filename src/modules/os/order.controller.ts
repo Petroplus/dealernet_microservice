@@ -48,11 +48,11 @@ export class OsController {
   @Put('appointments/:budget_id')
   @ApiResponse({ status: 200 })
   @ApiOperation({ summary: 'Atualiza os apontamentos da ordem de serviço baseado em informações extraídas da ordem informada' })
-  async update(
+  async appointment(
     @Param('order_id', ParseUUIDPipe) order_id: string,
     @Param('budget_id', ParseUUIDPipe) budget_id: string,
   ): Promise<DealernetOrderResponse> {
-    return this.service.updateOs(order_id, budget_id);
+    return this.service.appointment(order_id, budget_id);
   }
 
   @Get(`appointments/:budget_id/schema`)
@@ -61,10 +61,10 @@ export class OsController {
     summary:
       'Retorna um corpo XML para atualizar os apontamentos da ordem de serviço baseado em informações extraídas da ordem informada',
   })
-  async updateXmlSchema(
+  async appointmentXmlSchema(
     @Param('order_id', ParseUUIDPipe) order_id: string,
     @Param('budget_id', ParseUUIDPipe) budget_id: string,
   ): Promise<string> {
-    return this.service.updateXmlSchemaOs(order_id, budget_id);
+    return this.service.appointmentXmlSchema(order_id, budget_id);
   }
 }

@@ -34,6 +34,9 @@ export class ProdutoUpdateDto {
   quantidade: number;
 
   @ApiProperty()
+  cobrar?: boolean;
+
+  @ApiProperty()
   desconto?: number;
 
   @ApiProperty()
@@ -47,6 +50,10 @@ export class ProdutoUpdateDto {
 
   @ApiProperty()
   selecionado?: boolean;
+
+  constructor(partial: Partial<ProdutoUpdateDto>) {
+    Object.assign(this, partial);
+  }
 }
 
 export class ServicoUpdateDto {
