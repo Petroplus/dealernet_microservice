@@ -129,64 +129,6 @@ export class OsService {
         cobra: service?.is_charged_for ?? true,
         produtos: [],
       });
-
-      // if (!aux_os_type) {
-      //   aux_os_type = budget?.os_type?.external_id;
-      // }
-      // let already_used_os_type_products = false;
-      // for await (const product of budget.products) {
-      //   if (!aux_os_type) {
-      //     aux_os_type = product?.os_type?.external_id;
-      //   }
-      //   if (!os_types?.some((type) => type === product.os_type.external_id)) {
-      //     os_types.push(product.os_type.external_id);
-      //   }
-      //   const tipo_os_sigla = product?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
-      //   const product_validate = await this.dealernet.findProductByReference(connection, product.integration_id);
-      //   const product_validate_checked = product_validate?.first((product_check) => product_check?.QuantidadeDisponivel > 0);
-      //   if (product_validate_checked) {
-      //     const productEntry = {
-      //       tipo_os_sigla,
-      //       produto_referencia: product.integration_id,
-      //       valor_unitario: Number(product.price) > 0 ? Number(product.price) : 0.01,
-      //       quantidade: Number(product.quantity) > 0 ? Number(product.quantity) : 1,
-      //     };
-      //     if (product.service_id) {
-      //       products_hashtable[product.service_id] = [...(products_hashtable[product.service_id] || []), productEntry];
-      //     } else {
-      //       products_hashtable[aux_os_type] = [...(products_hashtable[aux_os_type] || []), productEntry];
-      //     }
-      //   } else {
-      //     Logger.warn(
-      //       `Produto ${product.integration_id}  ${product.name} não encontrado ou sem quantidade disponível`,
-      //       'OsService',
-      //     );
-      //   }
-      // }
-      // budget.services.map((service) => {
-      //   if (!aux_os_type) {
-      //     aux_os_type = service?.os_type?.external_id;
-      //   }
-      //   if (!os_types?.some((type) => type === service.os_type.external_id)) {
-      //     os_types.push(service.os_type.external_id);
-      //   }
-      //   const tipo_os_sigla = service?.os_type?.external_id || budget?.os_type?.external_id || order?.os_type?.external_id;
-      //   let produtos = [];
-      //   if (products_hashtable[service.service_id]) {
-      //     produtos = [...products_hashtable[service.service_id]];
-      //   } else if (products_hashtable[aux_os_type] && !already_used_os_type_products) {
-      //     produtos = [...products_hashtable[aux_os_type]];
-      //     already_used_os_type_products = true;
-      //   }
-      //   services.push({
-      //     tipo_os_sigla,
-      //     tmo_referencia: service.integration_id,
-      //     tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
-      //     valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
-      //     quantidade: Number(service.quantity) > 0 ? Math.ceil(service.quantity) : 1,
-      //     produtos,
-      //   });
-      // });
     }
 
     for await (const product of budget.products.filter((x) => x.is_approved)) {
@@ -304,10 +246,11 @@ export class OsService {
         usuario_ind_responsavel = user.Usuario_Identificador;
         produtivo_documento = user.Usuario_DocIdentificador;
 
+        const dateDiff = (new Date(item.end_date).getTime() - new Date(item.start_date).getTime()) / 1000; // seconds
         service.Marcacoes.push({
           UsuarioDocumentoProdutivo: user.Usuario_Identificador,
-          DataFinal: new Date(item.end_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
-          DataInicial: new Date(item.start_date).addMinutes(1).formatUTC('yyyy-MM-ddThh:mm:ss'),
+          DataInicial: new Date(item.start_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
+          DataFinal: new Date(item.end_date).addMinutes(dateDiff <= 60 ? 1 : 0).formatUTC('yyyy-MM-ddThh:mm:ss'),
           MotivoParada: item?.reason_stopped?.external_id,
         });
       }
