@@ -31,3 +31,11 @@ export function parserToXml(data: Object) {
     .replace(`<root>`, '') // Remove a tag root
     .replace(`</root>`, '');
 }
+
+export function formatarDoc(doc: number | string): string {
+  if (!doc) return '?';
+
+  const document = doc.toString().replace(/\D/g, '');
+
+  return document.length <= 11 ? document?.padStart(11, '0') : document?.padStart(14, '0');
+}

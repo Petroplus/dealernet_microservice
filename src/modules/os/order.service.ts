@@ -1,11 +1,19 @@
 import { BadRequestException, HttpException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { isArray } from 'class-validator';
 
+import { formatarDoc } from 'src/commons';
 import { ContextService } from 'src/context/context.service';
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { MarcacaoUpdateDto, ProdutoUpdateDto, ServicoUpdateDto, UpdateOsDTO } from 'src/dealernet/dto/update-os.dto';
 import { TipoOSItemCreateDTO } from 'src/dealernet/order/dto/create-order.dto';
+import {
+  UpdateDealernetMarcacaoDto,
+  UpdateDealernetOsDTO,
+  UpdateDealernetProductDTO,
+  UpdateDealernetServiceDTO,
+  UpdateDealernetTipoOSDto,
+} from 'src/dealernet/order/dto/update-order.dto';
 import { DealernetOrder, DealernetOrderResponse } from 'src/dealernet/response/os-response';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
@@ -108,7 +116,7 @@ export class OsService {
       if (!os_types?.find((x) => x.tipo_os_sigla == os_type.external_id)) {
         os_types.push({
           tipo_os_sigla: os_type.external_id,
-          consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
+          consultor_documento: formatarDoc(order.consultant?.cod_consultor),
         });
       }
 
@@ -186,7 +194,7 @@ export class OsService {
       if (!os_types?.find((x) => x.tipo_os_sigla == os_type.external_id)) {
         os_types.push({
           tipo_os_sigla: os_type.external_id,
-          consultor_documento: await this.formatarDoc(order.consultant?.cod_consultor),
+          consultor_documento: formatarDoc(order.consultant?.cod_consultor),
         });
       }
 
@@ -229,7 +237,7 @@ export class OsService {
       veiculo_placa_chassi: order.vehicle_chassis_number,
       veiculo_Km: Number(order.mileage) || 0,
       cliente_documento: order.customer_document,
-      consultor_documento: await this.formatarDoc(cod_consultor),
+      consultor_documento: formatarDoc(cod_consultor),
       data: new Date(order.inspection).toISOString(),
       data_final: new Date().toISOString(),
       data_prometida: new Date(order.conclusion).toISOString(),
@@ -252,7 +260,7 @@ export class OsService {
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
     const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
 
-    return this.dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO as any);
+    return this.dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
   }
 
   async appointment(order_id: string, budget_id: string): Promise<DealernetOrderResponse> {
@@ -264,7 +272,7 @@ export class OsService {
     const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
     const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
-    const os = await this.dealernet.order.updateOs(integration.dealernet, osDTO as any);
+    const os = await this.dealernet.order.updateOs(integration.dealernet, osDTO);
 
     for await (const { id } of appointments) {
       await this.petroplay.order.updateOrderAppointment(order.id, id, { was_sent_to_dms: true });
@@ -282,10 +290,12 @@ export class OsService {
     budget: OrderBudgetEntity,
     appointments: OrderAppointmentEntity[],
     connection: IntegrationDealernet,
-  ): Promise<UpdateOsDTO> {
+  ): Promise<UpdateDealernetOsDTO> {
     const os = await this.dealernet.findOsByNumber(connection, budget.os_number);
 
-    const services: any[] = [];
+    if (!os) throw new NotFoundException(`OS not found`);
+
+    const Servicos: UpdateDealernetServiceDTO[] = [];
     for (const service of os.Servicos) {
       let usuario_ind_responsavel: string;
       let produtivo_documento: string;
@@ -297,33 +307,89 @@ export class OsService {
         service.Marcacoes.push({
           UsuarioDocumentoProdutivo: user.Usuario_Identificador,
           DataFinal: new Date(item.end_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
-          DataInicial: new Date(item.start_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
+          DataInicial: new Date(item.start_date).addMinutes(1).formatUTC('yyyy-MM-ddThh:mm:ss'),
           MotivoParada: item?.reason_stopped?.external_id,
         });
       }
 
-      services.push({ ...service });
+      const Produtos: UpdateDealernetProductDTO[] = service.Produtos.map((product) => ({
+        Chave: product.Chave,
+        TipoOSSigla: product.TipoOSSigla,
+        Produto: product.Produto,
+        ProdutoReferencia: product.ProdutoReferencia,
+        ValorUnitario: product.ValorUnitario,
+        Quantidade: product.Quantidade,
+        Desconto: product.Desconto,
+        DescontoPercentual: product.DescontoPercentual,
+        KitCodigo: product.KitCodigo,
+        CampanhaCodigo: product.CampanhaCodigo,
+      }));
+
+      const Marcacoes: UpdateDealernetMarcacaoDto[] = service.Marcacoes.map((mark) => ({
+        Chave: mark.Chave,
+        UsuarioDocumentoProdutivo: mark.UsuarioDocumentoProdutivo,
+        DataInicial: mark.DataInicial,
+        DataFinal: mark.DataFinal,
+        MotivoParada: mark.MotivoParada,
+        Observacao: mark.Observacao,
+      }));
+
+      Servicos.push({
+        Chave: service.Chave,
+        TipoOSSigla: service.TipoOSSigla,
+        TMOReferencia: service.TMOReferencia,
+        Tempo: service.Tempo,
+        ValorUnitario: service.ValorUnitario,
+        Quantidade: service.Quantidade,
+        Desconto: service.Desconto,
+        DescontoPercentual: service.DescontoPercentual,
+        Observacao: service.Observacao,
+        ProdutivoDocumento: formatarDoc(produtivo_documento),
+        UsuarioIndResponsavel: usuario_ind_responsavel,
+        Executar: service.Executar,
+        Cobrar: service.Cobrar,
+        DataPrevisao: service.DataPrevisao,
+        KitCodigo: service.KitCodigo,
+        KitPrecoFechado: service.KitPrecoFechado,
+        CampanhaCodigo: service.CampanhaCodigo,
+        Produtos: Produtos,
+        Marcacoes: Marcacoes,
+      });
     }
 
-    const dto: DealernetOrder = { ...os, Servicos: services };
-    return dto as never;
-  }
+    const TipoOS: UpdateDealernetTipoOSDto[] = os.TipoOS.map((type) => ({
+      TipoOSSigla: type.TipoOSSigla,
+      ConsultorDocumento: formatarDoc(type.ConsultorDocumento),
+      CondicaoPagamento: type.CondicaoPagamento,
+    }));
 
-  async formatarDoc(doc?: string): Promise<string> {
-    if (!doc) return '?';
-    if (doc?.length === 11) return doc;
-    else {
-      const totalZeros = 11 - doc?.length;
-      let result = '';
-
-      for (let i = 0; i < totalZeros; i++) {
-        result += '0';
-      }
-
-      result += doc;
-
-      return result;
-    }
+    const dto: UpdateDealernetOsDTO = {
+      Chave: os.Chave,
+      NumeroOS: os.NumeroOS,
+      VeiculoPlacaChassi: os.VeiculoPlaca,
+      VeiculoKM: os.VeiculoKM,
+      ClienteCodigo: os.ClienteCodigo,
+      ClienteDocumento: formatarDoc(os.ClienteDocumento),
+      ConsultorDocumento: formatarDoc(os.TipoOS.first().ConsultorDocumento),
+      Data: os.Data,
+      DataFinal: os.DataPrometida,
+      Status: os.TipoOS.first().StatusAndamento,
+      Observacao: os.Observacao,
+      DataPrometida: os.DataPrometida,
+      PercentualCombustivel: os.PercentualCombustivel,
+      PercentualBateria: os.PercentualBateria,
+      ExigeLavagem: os.ExigeLavagem,
+      ClienteAguardando: os.ClienteAguardando,
+      InspecionadoElevador: os.InspecionadoElevador,
+      BloquearProduto: os.BloquearProduto,
+      CorPrisma_Codigo: os.CorPrisma_Codigo,
+      NroPrisma: os.NroPrisma,
+      TipoOSSigla: order.os_type?.external_id ?? TipoOS?.first().TipoOSSigla,
+      ExisteObjetoValor: os.ExisteObjetoValor,
+      Servicos: Servicos,
+      TipoOS: TipoOS,
+    };
+    return dto;
   }
 
   async formatDate(date?: Date, compare_date?: Date): Promise<string> {

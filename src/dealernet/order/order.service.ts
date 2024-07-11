@@ -11,6 +11,7 @@ import { IntegrationDealernet } from 'src/petroplay/integration/entities/integra
 import { DealernetOrder, DealernetOrderResponse } from '../response/os-response';
 
 import { CreateDealernetOsDTO } from './dto/create-order.dto';
+import { UpdateDealernetOsDTO } from './dto/update-order.dto';
 
 @Injectable()
 export class DealernetOsService {
@@ -171,7 +172,7 @@ export class DealernetOsService {
     return xmlBody;
   }
 
-  async updateOsXmlSchema(connection: IntegrationDealernet, dto: DealernetOrderResponse): Promise<string> {
+  async updateOsXmlSchema(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<string> {
     Logger.log(`Criando Schema OS Dealernet`, 'OS');
 
     const body = {
@@ -201,7 +202,8 @@ export class DealernetOsService {
                     <deal:Usuario>${connection?.user}</deal:Usuario>
                     <deal:Senha>${connection?.key}</deal:Senha>
                   <deal:Sdt_fsordemservicoin>
-                    <deal:Acao>ALT</deal:Acao>
+                  <deal:EmpresaDocumento>${connection?.document}</deal:EmpresaDocumento>
+                  <deal:Acao>ALT</deal:Acao>
                     ${parserToXml(body)}
                 </deal:Sdt_fsordemservicoin>
             </deal:WS_FastServiceApi.ORDEMSERVICO>
@@ -240,9 +242,9 @@ export class DealernetOsService {
     }
   }
 
-  async updateOs(connection: IntegrationDealernet, dto: DealernetOrderResponse): Promise<DealernetOrderResponse> {
+  async updateOs(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<DealernetOrderResponse> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
-    const xmlBody = await this.updateOsXmlSchema(connection, dto as any);
+    const xmlBody = await this.updateOsXmlSchema(connection, dto);
     try {
 
       console.log(xmlBody);

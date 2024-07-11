@@ -213,6 +213,9 @@ export class DealernetOrder {
   VeiculoAnoFabricacao: number;
 
   @ApiProperty()
+  ClienteCodigo: number;
+
+  @ApiProperty()
   ClienteDocumento: number;
 
   @ApiProperty()
@@ -275,8 +278,8 @@ export class DealernetOrder {
   @ApiProperty()
   Servicos: Servico[];
 
-  @ApiProperty({ type: TipoOS })
-  TipoOS: TipoOS[];
+  @ApiProperty()
+  TipoOS: TipoOSItem[];
 }
 
 export class DealernetOrderResponse {
@@ -309,6 +312,9 @@ export class DealernetOrderResponse {
 
   @ApiProperty()
   VeiculoAnoFabricacao: number;
+
+  @ApiProperty()
+  ClienteCodigo: number;
 
   @ApiProperty()
   ClienteDocumento: number;

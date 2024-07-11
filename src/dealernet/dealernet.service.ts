@@ -426,7 +426,7 @@ export class DealernetService {
     Logger.log(`Buscando  OS Dealernet`, 'OS');
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
-    const data_inicial = (filter?.dataInicio ? new Date(filter?.dataInicio) : new Date()).formatUTC('yyyy-MM-dd');
+    const data_inicial = (filter?.dataInicio ? new Date(filter?.dataInicio) : new Date().addDays(-30)).formatUTC('yyyy-MM-dd');
 
     const xmlBody = `
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
@@ -465,7 +465,9 @@ export class DealernetService {
           servico.Marcacoes = Array.isArray(servico.Marcacoes?.Marcacao) ? servico.Marcacoes.Marcacao : servico.Marcacoes?.Marcacao ? [servico.Marcacoes.Marcacao] : [];
         });
 
-        return { ...order, Servicos }
+        const TipoOS = Array.isArray(order.TipoOS?.TipoOSItem) ? order.TipoOS.TipoOSItem : order.TipoOS?.TipoOSItem ? [order.TipoOS.TipoOSItem] : [];
+
+        return { ...order, Servicos, TipoOS }
       });
     } catch (error) {
       console.error('Erro ao fazer a requisição:', error);
