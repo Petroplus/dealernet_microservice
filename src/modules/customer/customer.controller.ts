@@ -29,13 +29,13 @@ export class CustomerController {
     return this.service.upsert(client_id, dto);
   }
 
-  @Put(':client_id/customers/:id')
+  @Put(':client_id/customers/:customer_id')
   @ApiResponse({ status: 200 })
   async updateByCustomerId(
     @Param('client_id', ParseUUIDPipe) client_id: string,
     @Param('customer_id', ParseUUIDPipe) customer_id: string,
   ): Promise<void> {
-    // return this.service.upsert(client_id, dto);
+    return this.service.updateByCustomerId(client_id, customer_id);
   }
 
   // @Get(':id')

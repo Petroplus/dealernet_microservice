@@ -1,11 +1,10 @@
 import { BadRequestException, HttpException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { isArray } from 'class-validator';
 
 import { formatarDoc } from 'src/commons';
 import { ContextService } from 'src/context/context.service';
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
-import { MarcacaoUpdateDto, ProdutoUpdateDto, ServicoUpdateDto, UpdateOsDTO } from 'src/dealernet/dto/update-os.dto';
+import { ProdutoUpdateDto } from 'src/dealernet/dto/update-os.dto';
 import { TipoOSItemCreateDTO } from 'src/dealernet/order/dto/create-order.dto';
 import {
   UpdateDealernetMarcacaoDto,
@@ -14,7 +13,7 @@ import {
   UpdateDealernetServiceDTO,
   UpdateDealernetTipoOSDto,
 } from 'src/dealernet/order/dto/update-order.dto';
-import { DealernetOrder, DealernetOrderResponse } from 'src/dealernet/response/os-response';
+import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 import { OrderAppointmentEntity } from 'src/petroplay/order/entity/order-appointment.entity';

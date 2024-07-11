@@ -129,13 +129,13 @@ export class DealernetCustomerService {
                         <deal:Pessoa_Telefone_Fone>${dto?.Pessoa_Telefone_Fone ?? '?'}</deal:Pessoa_Telefone_Fone>
                         <deal:Acao>${dto?.Pessoa_Codigo ? 'ALT' : 'INC'}</deal:Acao>
                         <deal:Endereco>
-                            ${address}
+                            ${address ?? ''}
                         </deal:Endereco>
                         <deal:Telefone>
-                             ${phone}
+                             ${phone ?? ''}
                         </deal:Telefone>
                         <deal:MeioContato>
-                            ${meioContato}
+                            ${meioContato ?? ''}
                         </deal:MeioContato>
                     </deal:Sdt_fspessoain>
                 </deal:WS_FastServiceApi.PESSOA>
@@ -143,6 +143,8 @@ export class DealernetCustomerService {
         </soapenv:Envelope>
         `;
     const client = await dealernet();
+
+    console.log(xmlBody);
 
     await client.post(url, xmlBody).catch((err) => {
       Logger.error('Erro ao fazer a requisição:', err, 'DealernetCustomerService.upsert');
