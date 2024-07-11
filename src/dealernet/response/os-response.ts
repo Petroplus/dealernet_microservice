@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class Marcacao {
   @ApiProperty()
-  Chave: number;
+  Chave?: number;
 
   @ApiProperty()
-  UsuarioDocumentoProdutivo: number;
+  UsuarioDocumentoProdutivo: number | string;
 
   @ApiProperty()
   DataInicial: string;
@@ -14,10 +14,10 @@ export class Marcacao {
   DataFinal: string;
 
   @ApiProperty()
-  MotivoParada: number;
+  MotivoParada: number | string;
 
   @ApiProperty()
-  Observacao: string;
+  Observacao?: string;
 }
 
 export class Produto {
@@ -213,6 +213,9 @@ export class DealernetOrder {
   VeiculoAnoFabricacao: number;
 
   @ApiProperty()
+  ClienteCodigo: number;
+
+  @ApiProperty()
   ClienteDocumento: number;
 
   @ApiProperty()
@@ -275,8 +278,8 @@ export class DealernetOrder {
   @ApiProperty()
   Servicos: Servico[];
 
-  @ApiProperty({ type: TipoOS })
-  TipoOS: TipoOS[];
+  @ApiProperty()
+  TipoOS: TipoOSItem[];
 }
 
 export class DealernetOrderResponse {
@@ -309,6 +312,9 @@ export class DealernetOrderResponse {
 
   @ApiProperty()
   VeiculoAnoFabricacao: number;
+
+  @ApiProperty()
+  ClienteCodigo: number;
 
   @ApiProperty()
   ClienteDocumento: number;
