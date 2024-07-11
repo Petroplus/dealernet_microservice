@@ -191,6 +191,9 @@ export class DealernetOsService {
             }
           }
         }),
+      },
+      TipoOS: {
+        TipoOSItem: dto.TipoOS.map((tipo) => tipo)
       }
     }
 
