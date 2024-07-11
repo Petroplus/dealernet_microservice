@@ -237,11 +237,13 @@ export class OsService {
 
     if (!os) throw new NotFoundException(`OS not found`);
 
+    const appointmentsToSend = appointments.filter((x) => x.end_date && x.was_sent_to_dms == false && x.status == 'DONE');
+
     const Servicos: UpdateDealernetServiceDTO[] = [];
     for (const service of os.Servicos) {
       let usuario_ind_responsavel: string;
       let produtivo_documento: string;
-      for await (const item of appointments.filter((x) => !x.was_sent_to_dms && x.integration_id == service.TMOReferencia)) {
+      for await (const item of appointmentsToSend.filter((x) => x.integration_id == service.TMOReferencia)) {
         const user = await this.dealernet.customer.findUser(connection, item?.mechanic.cod_consultor);
         usuario_ind_responsavel = user.Usuario_Identificador;
         produtivo_documento = user.Usuario_DocIdentificador;
