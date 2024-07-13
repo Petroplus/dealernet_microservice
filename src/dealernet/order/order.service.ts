@@ -3,7 +3,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { XMLParser } from 'fast-xml-parser';
 
-import { parserToXml } from 'src/commons';
+import { parserJsonToXml } from 'src/commons';
 import { dealernet } from 'src/commons/web-client';
 import { OrderFilter } from 'src/modules/os/filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
@@ -207,7 +207,7 @@ export class DealernetOsService {
                   <deal:Sdt_fsordemservicoin>
                   <deal:EmpresaDocumento>${connection?.document}</deal:EmpresaDocumento>
                   <deal:Acao>ALT</deal:Acao>
-                    ${parserToXml(body)}
+                    ${parserJsonToXml(body)}
                 </deal:Sdt_fsordemservicoin>
             </deal:WS_FastServiceApi.ORDEMSERVICO>
        </soapenv:Body>

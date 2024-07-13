@@ -1,6 +1,7 @@
-import { Builder } from 'xml2js';
+import { ParserOptions } from '@json2csv/plainjs';
+import { Builder, Parser } from 'xml2js';
 
-export function parserToXml(data: Object) {
+export function parserJsonToXml(data: Object) {
   if (Array.isArray(data)) {
     throw new Error('Data must be an object');
   }
@@ -30,6 +31,11 @@ export function parserToXml(data: Object) {
     .replace(/<\?xml(.+?)\?>/g, '') // Remove a declaração XML
     .replace(`<root>`, '') // Remove a tag root
     .replace(`</root>`, '');
+}
+
+export function parserXmlToJson(xml: string, options?: ParserOptions): Promise<JSON> {
+  const parser = new Parser({ explicitArray: false, mergeAttrs: true, ignoreAttrs: true, ...options });
+  return parser.parseStringPromise(xml);
 }
 
 export function formatarDoc(doc: number | string): string {
