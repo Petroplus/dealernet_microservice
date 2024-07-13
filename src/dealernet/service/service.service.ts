@@ -14,15 +14,17 @@ import { DealernetServiceTMOResponse } from './response/service.response';
 export class DealernetServiceService {
   async find(connection: IntegrationDealernet, filter: ServiceFilter): Promise<DealernetServiceTMOResponse[]> {
 
-    const references = (filter.service_ids?.map((x) => ({ item: x })) ?? []);
-    if (filter.service_id) references.push({ item: filter.service_id });
+    const references = (filter.service_ids?.map((x) => (x)) ?? []);
+    if (filter.service_id) references.push(filter.service_id);
 
     const body = {
       Empresa_Documento: connection.document,
       TMO_Codigo: '?',
       TMO_Descricao: filter.name,
       TipoOS_Sigla: filter.os_type_acronym,
-      TMO_Referencia: references,
+      TMO_Referencia: {
+        item: references,
+      },
     }
 
     const xmlBody = `
@@ -33,7 +35,6 @@ export class DealernetServiceService {
                     <deal:Usuario>${connection.user}</deal:Usuario>
                     <deal:Senha>${connection.key}</deal:Senha>
                     <deal:Sdt_fstmoin>
-                    <deal:Empresa_Documento>${connection.document}</deal:Empresa_Documento>
                       ${parserJsonToXml(body)}
                     </deal:Sdt_fstmoin>
               </deal:WS_FastServiceApi.TMO>
