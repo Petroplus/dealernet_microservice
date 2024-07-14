@@ -225,14 +225,8 @@ export class DealernetOsService {
     try {
       const client = await dealernet();
 
-      const response = await client.post(url, xmlBody);
-      const xmlData = response.data;
-      const parser = new XMLParser();
-      const parsedData = parser.parse(xmlData);
-      const order: DealernetOrder =
-        parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista'][
-        'SDT_FSOrdemServicoOut'
-        ];
+      const response = await client.post(url, xmlBody).then((response) => new XMLParser().parse(response.data));
+      const order: DealernetOrder = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista']['SDT_FSOrdemServicoOut'];
 
       if (order.Mensagem && order.Chave === 0) {
         throw new BadRequestException(order.Mensagem);
@@ -281,8 +275,29 @@ export class DealernetOsService {
             </soapenv:Envelope>
         `;
 
-
     return xmlBody;
+  }
+
+  async requestParts(connection: IntegrationDealernet, os_number: string | number): Promise<DealernetOrderResponse> {
+    const xmlBody = await this.requestPartsXmlSchema(connection, os_number);
+    const url = `${connection.url}/aws_fastserviceapi.aspx`;
+
+    console.log(xmlBody);
+    try {
+      const client = await dealernet();
+
+      const response = await client.post(url, xmlBody).then((response) => new XMLParser().parse(response.data));
+      const order: DealernetOrder = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista']['SDT_FSOrdemServicoOut'];
+
+      if (order.Chave === 0 && order.Mensagem) {
+        throw new BadRequestException(order.Mensagem);
+      }
+
+      return this.findByOsNumber(connection, order.NumeroOS);
+    } catch (error) {
+      Logger.error('Erro ao fazer a requisição:', error, 'DealernetOrderService.createOs');
+      throw error;
+    }
   }
 
   async updateOs(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<DealernetOrderResponse> {

@@ -40,6 +40,9 @@ export class OrderBudgetEntity {
   sector_id: string;
 
   @ApiProperty()
+  is_request_products: boolean;
+
+  @ApiProperty()
   integration_id: string;
 
   @ApiProperty()

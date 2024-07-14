@@ -89,13 +89,19 @@ export class OsService {
     for await (const budget of budgets.filter((x) => !x.os_number)) {
       const schema = await this.osDtoToDealernetOs(order, budget, integration.dealernet);
 
-      await this.dealernet.order.createOs(integration.dealernet, schema).then(async (response) => {
+      const response = await this.dealernet.order.createOs(integration.dealernet, schema).then(async (response) => {
         await this.petroplay.order.updateOrderBudget(order_id, budget.id, {
           os_number: response.NumeroOS?.toString(),
           integration_data: response,
         });
-        os.push(response);
+        return response;
       });
+
+      if (budget.is_request_products) {
+        await this.dealernet.order.requestParts(integration.dealernet, response.NumeroOS);
+      }
+
+      os.push(response);
     }
 
     return os;
