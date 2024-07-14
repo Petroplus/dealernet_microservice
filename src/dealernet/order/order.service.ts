@@ -112,6 +112,8 @@ export class DealernetOsService {
         <deal:Tempo>${item.tempo}</deal:Tempo>
         <deal:ValorUnitario>${item.valor_unitario}</deal:ValorUnitario>
         <deal:Quantidade>${item.quantidade}</deal:Quantidade>
+        <deal:ProdutivoDocumento>${item.produtivo_documento ?? '?'}</deal:ProdutivoDocumento>
+        <deal:UsuarioIndResponsavel>${item.usuario_ind_responsavel ?? '?'}</deal:UsuarioIndResponsavel>
          ${products}
         </deal:Servico>
     `;

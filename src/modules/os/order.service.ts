@@ -104,7 +104,10 @@ export class OsService {
       if (budget.is_request_products) {
         const dto = await this.requestPartsDto(integration, order_id, budget.id);
 
-        await this.dealernet.order.requestParts(integration.dealernet, dto);
+        await this.dealernet.order.requestParts(integration.dealernet, dto).catch((error) => {
+          this.context.setWarning('Erro ao solicitar peças para a ordem');
+          Logger.error(`Erro ao solicitar peças para a ordem ${order_id}`, error, 'OsService');
+        });
       }
 
       os.push(response);
@@ -121,6 +124,8 @@ export class OsService {
     const tipo_os_sigla = order?.os_type?.external_id;
     const os_types: TipoOSItemCreateDTO[] = [];
 
+    const users = await this.dealernet.customer.findUsers(connection, 'PRD');
+
     const services: ServicoCreateDTO[] = [];
     for await (const service of budget.services.filter((x) => x.is_approved)) {
       const os_type = service?.os_type ?? budget?.os_type ?? order?.os_type;
@@ -131,12 +136,18 @@ export class OsService {
         });
       }
 
+      const document = service.mechanic?.cod_consultant ?? budget.mechanic?.cod_consultor ?? connection?.mechanic_document;
+
+      const Produtivo = users.find((x) => x.Usuario_DocIdentificador == formatarDoc(document));
+
       services.push({
         tipo_os_sigla,
         tmo_referencia: service.integration_id,
         tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
         valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
         quantidade: Number(service.quantity) > 0 ? Math.ceil(service.quantity) : 1,
+        produtivo_documento: budget.is_request_products ? formatarDoc(Produtivo.Usuario_DocIdentificador) : null,
+        usuario_ind_responsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         cobra: service?.is_charged_for ?? true,
         produtos: [],
       });
@@ -216,6 +227,8 @@ export class OsService {
 
   async requestPartsDto(integration: IntegrationResponse, order_id: string, budget_id: string): Promise<RequestPartOrderDTO> {
     const budget = await this.petroplay.order.findOrderBudgets(order_id, budget_id).then((budgets) => budgets?.first());
+
+    if (budget?.os_number == null) throw new BadRequestException('OS number not found');
 
     const os = await this.dealernet.order.findByOsNumber(integration.dealernet, budget.os_number);
 

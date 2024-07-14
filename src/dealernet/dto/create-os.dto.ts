@@ -49,6 +49,12 @@ export class ServicoCreateDTO {
   quantidade: number;
 
   @ApiProperty()
+  produtivo_documento?: string | number;
+
+  @ApiProperty()
+  usuario_ind_responsavel?: string | number;
+
+  @ApiProperty()
   cobra?: boolean;
 
   @ApiProperty({ type: ProdutoCreateDTO })
