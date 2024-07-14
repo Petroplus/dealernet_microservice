@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 
 import { DealernetCustomerService } from './customer.service';
 
@@ -6,4 +6,11 @@ import { DealernetCustomerService } from './customer.service';
   providers: [DealernetCustomerService],
   exports: [DealernetCustomerService],
 })
-export class DealernetCustomerModule {}
+export class DealernetCustomerModule {
+  static forRoot(): DynamicModule {
+    return {
+      global: true,
+      module: this,
+    };
+  }
+}

@@ -23,6 +23,8 @@ export interface IntegrationDealernet {
   user: string;
   key: string;
   document?: string;
+  mechanic_document?: string;
+  consultant_document?: string;
 }
 
 export interface IntegrationDealernetVehicle {

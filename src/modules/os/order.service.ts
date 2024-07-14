@@ -6,6 +6,7 @@ import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { ProdutoUpdateDto } from 'src/dealernet/dto/update-os.dto';
 import { TipoOSItemCreateDTO } from 'src/dealernet/order/dto/create-order.dto';
+import { RequestPartOrderDTO } from 'src/dealernet/order/dto/request-part-order.dto';
 import {
   UpdateDealernetMarcacaoDto,
   UpdateDealernetOsDTO,
@@ -14,7 +15,7 @@ import {
   UpdateDealernetTipoOSDto,
 } from 'src/dealernet/order/dto/update-order.dto';
 import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
-import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
+import { IntegrationDealernet, IntegrationResponse } from 'src/petroplay/integration/entities/integration.entity';
 import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 import { OrderAppointmentEntity } from 'src/petroplay/order/entity/order-appointment.entity';
 import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entity';
@@ -92,13 +93,18 @@ export class OsService {
       const response = await this.dealernet.order.createOs(integration.dealernet, schema).then(async (response) => {
         await this.petroplay.order.updateOrderBudget(order_id, budget.id, {
           os_number: response.NumeroOS?.toString(),
-          integration_data: response,
+          integration_data: { ...budget.integration_data, os: response },
         });
+
+        budget.os_number = response.NumeroOS?.toString();
+
         return response;
       });
 
       if (budget.is_request_products) {
-        await this.dealernet.order.requestParts(integration.dealernet, response.NumeroOS);
+        const dto = await this.requestPartsDto(integration, order_id, budget.id);
+
+        await this.dealernet.order.requestParts(integration.dealernet, dto);
       }
 
       os.push(response);
@@ -203,9 +209,36 @@ export class OsService {
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
 
-    const budget = await this.petroplay.order.findOrderBudgets(order.id, budget_id).then((budgets) => budgets?.first());
+    const dto = await this.requestPartsDto(integration, order_id, budget_id);
 
-    return this.dealernet.order.requestPartsXmlSchema(integration.dealernet, budget.os_number);
+    return this.dealernet.order.requestPartsXmlSchema(integration.dealernet, dto);
+  }
+
+  async requestPartsDto(integration: IntegrationResponse, order_id: string, budget_id: string): Promise<RequestPartOrderDTO> {
+    const budget = await this.petroplay.order.findOrderBudgets(order_id, budget_id).then((budgets) => budgets?.first());
+
+    const os = await this.dealernet.order.findByOsNumber(integration.dealernet, budget.os_number);
+
+    const users = await this.dealernet.customer.findUsers(integration.dealernet, 'PRD');
+
+    const Servicos = os.Servicos.map((item) => {
+      const service = budget.services.find((x) => x.integration_id == item.TMOReferencia);
+      const document =
+        service.mechanic?.cod_consultant ?? budget.mechanic?.cod_consultor ?? integration.dealernet?.mechanic_document;
+
+      const Produtivo = users.find((x) => x.Usuario_DocIdentificador == formatarDoc(document));
+      return {
+        Chave: item.Chave,
+        ProdutivoDocumento: formatarDoc(Produtivo.Usuario_DocIdentificador),
+        UsuarioIndResponsavel: Produtivo.Usuario_Identificador,
+        Produtos: item.Produtos.map((product) => ({
+          Chave: product.Chave,
+          Selecionado: true,
+        })),
+      };
+    });
+
+    return { Chave: os.Chave, NumeroOS: os.NumeroOS, Servicos: Servicos };
   }
 
   async appointmentXmlSchema(order_id: string, budget_id: string): Promise<string> {

@@ -8,13 +8,16 @@ import { dealernet } from 'src/commons/web-client';
 import { OrderFilter } from 'src/modules/os/filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
+import { DealernetCustomerService } from '../customer/customer.service';
 import { DealernetOrder, DealernetOrderResponse } from '../response/os-response';
 
 import { CreateDealernetOsDTO } from './dto/create-order.dto';
+import { RequestPartOrderDTO } from './dto/request-part-order.dto';
 import { UpdateDealernetOsDTO } from './dto/update-order.dto';
 
 @Injectable()
 export class DealernetOsService {
+
   async find(connection: IntegrationDealernet, filter?: OrderFilter): Promise<DealernetOrderResponse[]> {
 
     const xmlBody = `
@@ -239,17 +242,16 @@ export class DealernetOsService {
     }
   }
 
-  async requestPartsXmlSchema(connection: IntegrationDealernet, os_number: string | number): Promise<string> {
-    const os = await this.findByOsNumber(connection, os_number);
+  async requestPartsXmlSchema(connection: IntegrationDealernet, dto: RequestPartOrderDTO): Promise<string> {
     const body = {
       Servicos:
       {
-        Servico: os.Servicos.map((servico) => ({
-          Chave: servico.Chave,
+        Servico: dto.Servicos.map((servico) => ({
+          ...servico,
           Produtos: {
             Produto: servico.Produtos.map((produto) => ({
-              Chave: produto.Chave,
-              Selecionado: true,
+              ...produto,
+              Selecionado: true
             }))
           }
         }))
@@ -265,8 +267,8 @@ export class DealernetOsService {
                     <deal:Senha>${connection.key}</deal:Senha>
                   <deal:Sdt_fsordemservicoin>
                     <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento>
-                    <deal:NumeroOS>${os_number}</deal:NumeroOS>
-                    <deal:Chave>${os.Chave}</deal:Chave>
+                    <deal:NumeroOS>${dto.NumeroOS}</deal:NumeroOS>
+                    <deal:Chave>${dto.Chave}</deal:Chave>
                     <deal:Acao>REQ</deal:Acao>
                     ${parserJsonToXml(body)}
                   </deal:Sdt_fsordemservicoin>
@@ -278,8 +280,8 @@ export class DealernetOsService {
     return xmlBody;
   }
 
-  async requestParts(connection: IntegrationDealernet, os_number: string | number): Promise<DealernetOrderResponse> {
-    const xmlBody = await this.requestPartsXmlSchema(connection, os_number);
+  async requestParts(connection: IntegrationDealernet, dto: RequestPartOrderDTO): Promise<DealernetOrderResponse> {
+    const xmlBody = await this.requestPartsXmlSchema(connection, dto);
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
     console.log(xmlBody);

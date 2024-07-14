@@ -79,7 +79,9 @@ export class PetroplayOrderService {
   async findOrderBudgets(order_id: string, budget_id?: string): Promise<OrderBudgetEntity[]> {
     const client = await petroplay.v2();
     return client
-      .get(`/v2/orders/${order_id}/budgets`, { params: { ids: [budget_id], expand: ['os_type', 'products', 'services'] } })
+      .get(`/v2/orders/${order_id}/budgets`, {
+        params: { ids: [budget_id], expand: ['os_type', 'products', 'services', 'mechanic'] },
+      })
       .then(({ data }) => data)
       .catch((err) => {
         Logger.error('Error on find order budget:', err, 'PetroplayOrderService.findOrderBudget');

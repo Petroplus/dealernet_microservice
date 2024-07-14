@@ -153,6 +153,42 @@ export class DealernetCustomerService {
 
   }
 
+  async findUsers(connection: IntegrationDealernet, type?: 'PRD' | 'CNT'): Promise<DealernetUserResponse[]> {
+    const xmlBody = `
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
+          <soapenv:Header/>
+          <soapenv:Body>
+              <deal:WS_FastServiceApi.USUARIOS>
+                <deal:Usuario>${connection.user}</deal:Usuario>
+                <deal:Senha>${connection.key}</deal:Senha>
+                <deal:Sdt_fsusuariosin>
+                    <deal:PerfilAcesso_Tipo>${type ?? 'PRD'}</deal:PerfilAcesso_Tipo>
+                </deal:Sdt_fsusuariosin>
+              </deal:WS_FastServiceApi.USUARIOS>
+          </soapenv:Body>
+        </soapenv:Envelope>
+        `;
+    const url = `${connection.url}/aws_fastserviceapi.aspx`;
+    try {
+      const client = await dealernet();
+
+      console.log(xmlBody);
+
+      const response = await client.post(url, xmlBody).then(({ data }) =>
+        new XMLParser().parse(data)['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.USUARIOSResponse']['Sdt_fsusuariosout']['SDT_FSUsuariosOut']
+      )
+
+      const parsedData = isArray(response) ? response : [response];
+
+      return parsedData
+
+
+    } catch (error) {
+      Logger.error('Erro ao fazer a requisição:', error, 'DealernetCustomerService.findUser');
+      throw error;
+    }
+  }
+
   async findUser(connection: IntegrationDealernet, doc?: string, type?: 'PRD' | 'CNT'): Promise<DealernetUserResponse> {
     const xmlBody = `
         <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">

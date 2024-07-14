@@ -12,7 +12,7 @@ import { DealernetVehicleModule } from './vehicle/vehicle.module';
 @Module({
   imports: [
     DealernetScheduleModule.forRoot(),
-    DealernetCustomerModule,
+    DealernetCustomerModule.forRoot(),
     DealernetVehicleModule,
     DealernetOrderModule,
     DealernetProductModule,
