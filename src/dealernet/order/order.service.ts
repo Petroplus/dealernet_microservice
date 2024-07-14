@@ -245,6 +245,46 @@ export class DealernetOsService {
     }
   }
 
+  async requestPartsXmlSchema(connection: IntegrationDealernet, os_number: string | number): Promise<string> {
+    const os = await this.findByOsNumber(connection, os_number);
+    const body = {
+      Servicos:
+      {
+        Servico: os.Servicos.map((servico) => ({
+          Chave: servico.Chave,
+          Produtos: {
+            Produto: servico.Produtos.map((produto) => ({
+              Chave: produto.Chave,
+              Selecionado: true,
+            }))
+          }
+        }))
+      }
+    };
+
+    const xmlBody = `
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
+            <soapenv:Header/>
+            <soapenv:Body>
+              <deal:WS_FastServiceApi.ORDEMSERVICO>
+                    <deal:Usuario>${connection.user}</deal:Usuario>
+                    <deal:Senha>${connection.key}</deal:Senha>
+                  <deal:Sdt_fsordemservicoin>
+                    <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento>
+                    <deal:NumeroOS>${os_number}</deal:NumeroOS>
+                    <deal:Chave>${os.Chave}</deal:Chave>
+                    <deal:Acao>REQ</deal:Acao>
+                    ${parserJsonToXml(body)}
+                  </deal:Sdt_fsordemservicoin>
+              </deal:WS_FastServiceApi.ORDEMSERVICO>
+            </soapenv:Body>
+            </soapenv:Envelope>
+        `;
+
+
+    return xmlBody;
+  }
+
   async updateOs(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<DealernetOrderResponse> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const xmlBody = await this.updateOsXmlSchema(connection, dto);

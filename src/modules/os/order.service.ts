@@ -36,7 +36,7 @@ export class OsService {
     if (!order.integration_id) throw new HttpException(`Order '${order_id}' not sent to Dealernet`, 404);
 
     if (budget_id) {
-      const budget = await this.petroplay.order.findOrderBudget(order_id, budget_id);
+      const budget = await this.petroplay.order.findOrderBudgets(order_id, budget_id);
       const filter = {
         os_number: budget[0].os_number,
       };
@@ -64,7 +64,7 @@ export class OsService {
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
 
-    const budgets = await this.petroplay.order.findOrderBudget(order.id, budget_id);
+    const budgets = await this.petroplay.order.findOrderBudgets(order.id, budget_id);
 
     const schemas = [];
     for await (const budget of budgets) {
@@ -82,7 +82,7 @@ export class OsService {
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
-    const budgets = await this.petroplay.order.findOrderBudget(order.id, budget_id);
+    const budgets = await this.petroplay.order.findOrderBudgets(order.id, budget_id);
 
     Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
     const os = [];
@@ -192,12 +192,22 @@ export class OsService {
     return OS;
   }
 
+  async requestPartsSchema(order_id: string, budget_id: string): Promise<string> {
+    const order = await this.petroplay.order.findById(order_id);
+
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
+
+    const budget = await this.petroplay.order.findOrderBudgets(order.id, budget_id).then((budgets) => budgets?.first());
+
+    return this.dealernet.order.requestPartsXmlSchema(integration.dealernet, budget.os_number);
+  }
+
   async appointmentXmlSchema(order_id: string, budget_id: string): Promise<string> {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
 
-    const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
+    const budget = await this.petroplay.order.findOrderBudgets(order.id, budget_id).then((budgets) => budgets?.first());
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
     const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
 
@@ -210,7 +220,7 @@ export class OsService {
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
-    const budget = await this.petroplay.order.findOrderBudget(order.id, budget_id).then((budgets) => budgets?.first());
+    const budget = await this.petroplay.order.findOrderBudgets(order.id, budget_id).then((budgets) => budgets?.first());
     const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
     const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
     const os = await this.dealernet.order.updateOs(integration.dealernet, osDTO);

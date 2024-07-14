@@ -23,7 +23,7 @@ export class BudgetService {
     const order = await this.petroplay.order.findById(order_id);
     if (!order) throw new BadRequestException('Order not found');
 
-    const budget = await this.petroplay.order.findOrderBudget(order_id, budget_id).then((budgets) => budgets?.first());
+    const budget = await this.petroplay.order.findOrderBudgets(order_id, budget_id).then((budgets) => budgets?.first());
     if (!budget) throw new BadRequestException('Budget not found');
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
@@ -37,7 +37,7 @@ export class BudgetService {
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
 
-    const budgets = await this.petroplay.order.findOrderBudget(order.id, budget_id);
+    const budgets = await this.petroplay.order.findOrderBudgets(order.id, budget_id);
 
     const schemas = [];
     for await (const budget of budgets) {

@@ -1,5 +1,6 @@
 import { RequestContext } from 'nestjs-easy-context';
 import { Injectable } from '@nestjs/common';
+import { Response } from 'express';
 import { LoggedRequest } from 'src';
 
 import {
@@ -51,6 +52,11 @@ export class ContextService {
       Authorization: headers.authorization,
       'api-secret-key': headers['api-secret-key'],
     };
+  }
+
+  setWarning(message: string): void {
+    this.response().setHeader('Warning', message);
+    this.response().setHeader('X-Warning', message);
   }
 
   request(): LoggedRequest {
