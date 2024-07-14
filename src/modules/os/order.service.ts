@@ -220,6 +220,8 @@ export class OsService {
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
 
+    Logger.log(`Rota RequestParts: Montando solicitação de peças para a ordem ${order_id}`, 'OsService');
+
     const dto = await this.requestPartsDto(integration, order_id, budget_id);
 
     return this.dealernet.order.requestPartsXmlSchema(integration.dealernet, dto);
