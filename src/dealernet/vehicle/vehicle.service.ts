@@ -89,7 +89,13 @@ export class DealernetVehicleService {
       const vehicles = Array.isArray(response) ? response : [response];
       if (vehicles.filter((vehicle) => vehicle.Mensagem).length > 0) return [];
 
-      return vehicles
+      for await (const vehicle of vehicles) {
+        const years = await this.findYears(connection, { year_code: vehicle.VeiculoAno_Codigo }).then((year) => year?.first());
+        vehicle.VeiculoAnoFabricacao = years?.Ano_Fabricacao;
+        vehicle.VeiculoAnoModelo = years?.Ano_Modelo;
+      }
+
+      return vehicles;
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetVehicleService.findByPlate');
       throw error;

@@ -3,7 +3,9 @@ export interface DealernetVehicleResponse {
   VeiculoPlaca: string;
   VeiculoChassi: string;
   VeiculoAno_Codigo: number;
+  VeiculoAnoFabricacao: string;
   VeiculoModelo_Codigo: number;
+  VeiculoAnoModelo: string;
   VeiculoModelo_Descricao: string;
   VeiculoFamilia_Descricao: string;
   VeiculoMarca_Codigo: number;
