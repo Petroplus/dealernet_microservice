@@ -60,6 +60,7 @@ export class ScheduleService {
 
   async scheduleToOs(integration: IntegrationResponse, schedules: DealernetSchedule[]): Promise<CreateOrderDto[]> {
     const vehicles = await this.petroplay.integration.findVehicles(integration.client_id);
+    const os_types = await this.petroplay.client.findOsTypes(integration.client_id);
 
     const orders: CreateOrderDto[] = [];
     for await (const schedule of schedules) {
@@ -77,11 +78,14 @@ export class ScheduleService {
         .then((data) => data.first());
 
       const requests = schedule.Servicos?.map((service, index) => {
+        const os_type = os_types.find((x) => x.external_id == service.TipoOSSigla);
+
         const products = service.Produtos?.map((product) => ({
           product_id: product.ProdutoReferencia,
           service_id: service.TMOReferencia,
           quantity: product.Quantidade,
           price: product.ValorUnitario,
+          os_type_id: os_type?.id,
           integration_id: product.ProdutoReferencia,
           integration_data: product,
         }));
@@ -92,6 +96,7 @@ export class ScheduleService {
             name: service.Descricao,
             quantity: service.Tempo,
             price: service.ValorUnitario,
+            os_type_id: os_type?.id,
             integration_id: service.TMOReferencia,
             integration_data: service,
             products: products,
@@ -136,6 +141,7 @@ export class ScheduleService {
         mileage: Number(schedule.VeiculoKM) ?? 0,
         type: 'PACKAGE',
         with_checklist: true,
+        os_type_id: requests?.first()?.services?.first()?.os_type_id,
         inspection: schedule.Data.substring(0, 19),
         integration_id: `${schedule.Chave}`,
         integration_data: schedule,

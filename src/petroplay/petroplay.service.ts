@@ -2,6 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 
 import { petroplay } from 'src/commons/web-client';
 
+import { PetroplayClientService } from './client/client.service';
 import { PetroplayCustomerService } from './customer/customer.service';
 import { PetroplayIntegrationService } from './integration/integration.service';
 import { PetroplayOrderService } from './order/order.service';
@@ -11,6 +12,7 @@ import { UserResponse } from './responses/user.response';
 export class PetroplayService {
   constructor(
     public readonly integration: PetroplayIntegrationService,
+    public readonly client: PetroplayClientService,
     public readonly order: PetroplayOrderService,
     public readonly customer: PetroplayCustomerService,
   ) {}

@@ -64,6 +64,10 @@ export class CreateCustomerRequestProductDto {
 
   @ApiProperty()
   @IsOptional()
+  os_type_id: string;
+
+  @ApiProperty()
+  @IsOptional()
   integration_id: string;
 
   @ApiProperty()
@@ -91,6 +95,10 @@ export class CreateCustomerRequestServiceDto {
   @ApiProperty()
   @IsOptional()
   price: number;
+
+  @ApiProperty()
+  @IsOptional()
+  os_type_id: string;
 
   @ApiProperty()
   @IsOptional()

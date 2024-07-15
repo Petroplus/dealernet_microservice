@@ -16,11 +16,13 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
 import { ServiceModule } from './modules/service/service.module';
 import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { PetroplayModule } from './petroplay/petroplay.module';
+import { HttpClientModule } from './http-client/http-client.module';
 
 @Module({
   imports: [
     NestjsScheduleModule.forRoot(),
     ContextModule.forRoot(),
+    HttpClientModule.forRoot(),
     PetroplayModule.forRoot(),
     DealernetModule.forRoot(),
     ScheduleModule.forRoot(),
