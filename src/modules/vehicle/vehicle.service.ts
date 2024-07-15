@@ -34,4 +34,26 @@ export class VehicleService {
 
     return this.dealernet.vehicle.findByPlate(integration.dealernet, dto.Veiculo_Placa);
   }
+
+  async update(client_id: string, dto: CreateDealernetVehicleDTO): Promise<VeiculoApiResponse> {
+    const integration = await this.petroplay.integration.findByClientId(client_id);
+    if (!integration.dealernet) {
+      throw new BadRequestException('Integration not found');
+    }
+
+    let vehicle = await this.dealernet.vehicle.findByPlate(integration.dealernet, dto.Veiculo_Placa);
+
+    if (!vehicle) {
+      vehicle = await this.dealernet.vehicle.findByChassis(integration.dealernet, dto.Veiculo_Chassi);
+    }
+
+    if (!vehicle) {
+      await this.dealernet.vehicle.create(integration.dealernet, dto);
+    } else {
+      await this.dealernet.vehicle.update(integration.dealernet, dto);
+    }
+
+    return await this.dealernet.vehicle.findByPlate(integration.dealernet, dto.Veiculo_Placa);
+  }
+
 }
