@@ -50,10 +50,9 @@ export class VehicleService {
     if (!vehicle) {
       await this.dealernet.vehicle.create(integration.dealernet, dto);
     } else {
-      await this.dealernet.vehicle.update(integration.dealernet, dto);
+      await this.dealernet.vehicle.update(integration.dealernet, { ...dto, Veiculo_Codigo: vehicle?.Veiculo?.toString() });
     }
 
     return await this.dealernet.vehicle.findByPlate(integration.dealernet, dto.Veiculo_Placa);
   }
-
 }
