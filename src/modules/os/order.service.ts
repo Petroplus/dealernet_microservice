@@ -328,7 +328,7 @@ export class OsService {
         });
       }
 
-      if (service.Marcacoes.length > 0) {
+      if (Marcacoes.length > 0) {
         Servicos.push({
           Chave: service.Chave,
           TipoOSSigla: service.TipoOSSigla,
