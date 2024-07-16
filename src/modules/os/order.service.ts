@@ -369,12 +369,6 @@ export class OsService {
       }
     }
 
-    const TipoOS: UpdateDealernetTipoOSDto[] = os.TipoOS.map((type) => ({
-      TipoOSSigla: type.TipoOSSigla,
-      ConsultorDocumento: formatarDoc(type.ConsultorDocumento),
-      CondicaoPagamento: type.CondicaoPagamento,
-    }));
-
     const dto: UpdateDealernetOsDTO = {
       Chave: os.Chave,
       NumeroOS: os.NumeroOS,
@@ -396,10 +390,9 @@ export class OsService {
       BloquearProduto: os.BloquearProduto,
       CorPrisma_Codigo: os.CorPrisma_Codigo,
       NroPrisma: os.NroPrisma,
-      TipoOSSigla: order.os_type?.external_id ?? TipoOS?.first().TipoOSSigla,
+      TipoOSSigla: os.Servicos.first().TipoOSSigla,
       ExisteObjetoValor: os.ExisteObjetoValor,
       Servicos: Servicos,
-      TipoOS: TipoOS,
     };
     return dto;
   }
