@@ -70,6 +70,7 @@ export class OsService {
     const schemas = [];
     for await (const [index, budget] of budgets.entries()) {
       order.inspection = new Date(order.inspection).addMinutes(+index);
+      order.conclusion = new Date(order.conclusion).addMinutes(+index);
       const dto = await this.osDtoToDealernetOs(order, budget, integration.dealernet);
       const schema = await this.dealernet.order.createOsXmlSchema(integration.dealernet, dto);
       schemas.push(schema);
@@ -204,7 +205,7 @@ export class OsService {
       cliente_documento: order.customer_document,
       consultor_documento: formatarDoc(cod_consultor),
       data: new Date(order.inspection).toISOString(),
-      data_final: new Date().toISOString(),
+      data_final: new Date(order.conclusion).toISOString(),
       data_prometida: new Date(order.conclusion).toISOString(),
       nro_prisma: order.prisma,
       observacao: order.notes,
