@@ -302,67 +302,57 @@ export class OsService {
 
     const appointmentsToSend = appointments.filter((x) => x.end_date && x.was_sent_to_dms == false && x.status == 'DONE');
 
+    const users = await this.dealernet.customer.findUsers(connection, 'PRD');
+
     const Servicos: UpdateDealernetServiceDTO[] = [];
     for (const service of os.Servicos) {
-      let usuario_ind_responsavel: string;
-      let produtivo_documento: string;
+      const user = users.filter((x) => x.Usuario_Identificador == service.UsuarioIndResponsavel).first();
+      let usuario_ind_responsavel = user?.Usuario_Identificador;
+      let produtivo_documento = user?.Usuario_DocIdentificador;
+
+      const Marcacoes: UpdateDealernetMarcacaoDto[] = [];
       for await (const item of appointmentsToSend.filter((x) => x.integration_id == service.TMOReferencia)) {
         const user = await this.dealernet.customer.findUser(connection, item?.mechanic.cod_consultor);
         usuario_ind_responsavel = user.Usuario_Identificador;
         produtivo_documento = user.Usuario_DocIdentificador;
 
         const dateDiff = (new Date(item.end_date).getTime() - new Date(item.start_date).getTime()) / 1000; // seconds
-        service.Marcacoes.push({
+        const DataInicial = new Date(item.start_date).addSeconds(-10);
+        const DataFinal = new Date(item.end_date).addSeconds(-10).addMinutes(dateDiff <= 60 ? 1 : 0);
+        Marcacoes.push({
           UsuarioDocumentoProdutivo: user.Usuario_Identificador,
-          DataInicial: new Date(item.start_date).formatUTC('yyyy-MM-ddThh:mm:ss'),
-          DataFinal: new Date(item.end_date).addMinutes(dateDiff <= 60 ? 1 : 0).formatUTC('yyyy-MM-ddThh:mm:ss'),
+          DataInicial: DataInicial.formatUTC('yyyy-MM-ddThh:mm:ss'),
+          DataFinal: DataFinal.formatUTC('yyyy-MM-ddThh:mm:ss'),
           MotivoParada: item?.reason_stopped?.external_id,
+          Observacao: '',
         });
       }
 
-      const Produtos: UpdateDealernetProductDTO[] = service.Produtos.map((product) => ({
-        Chave: product.Chave,
-        TipoOSSigla: product.TipoOSSigla,
-        Produto: product.Produto,
-        ProdutoReferencia: product.ProdutoReferencia,
-        ValorUnitario: product.ValorUnitario,
-        Quantidade: product.Quantidade,
-        Desconto: product.Desconto,
-        DescontoPercentual: product.DescontoPercentual,
-        KitCodigo: product.KitCodigo,
-        CampanhaCodigo: product.CampanhaCodigo,
-      }));
-
-      const Marcacoes: UpdateDealernetMarcacaoDto[] = service.Marcacoes.map((mark) => ({
-        Chave: mark.Chave,
-        UsuarioDocumentoProdutivo: mark.UsuarioDocumentoProdutivo,
-        DataInicial: mark.DataInicial,
-        DataFinal: mark.DataFinal,
-        MotivoParada: mark.MotivoParada,
-        Observacao: mark.Observacao,
-      }));
-
-      Servicos.push({
-        Chave: service.Chave,
-        TipoOSSigla: service.TipoOSSigla,
-        TMOReferencia: service.TMOReferencia,
-        Tempo: service.Tempo,
-        ValorUnitario: service.ValorUnitario,
-        Quantidade: service.Quantidade,
-        Desconto: service.Desconto,
-        DescontoPercentual: service.DescontoPercentual,
-        Observacao: service.Observacao,
-        ProdutivoDocumento: formatarDoc(produtivo_documento),
-        UsuarioIndResponsavel: usuario_ind_responsavel,
-        Executar: service.Executar,
-        Cobrar: service.Cobrar,
-        DataPrevisao: service.DataPrevisao,
-        KitCodigo: service.KitCodigo,
-        KitPrecoFechado: service.KitPrecoFechado,
-        CampanhaCodigo: service.CampanhaCodigo,
-        Produtos: Produtos,
-        Marcacoes: Marcacoes,
-      });
+      if (service.Marcacoes.length > 0) {
+        Servicos.push({
+          Chave: service.Chave,
+          TipoOSSigla: service.TipoOSSigla,
+          TMOReferencia: service.TMOReferencia,
+          Tempo: service.Tempo,
+          ValorUnitario: service.ValorUnitario,
+          Quantidade: service.Quantidade,
+          Desconto: service.Desconto,
+          DescontoPercentual: service.DescontoPercentual,
+          Observacao: service.Observacao,
+          ProdutivoDocumento: formatarDoc(produtivo_documento),
+          UsuarioIndResponsavel: usuario_ind_responsavel,
+          Executar: service.Executar,
+          Cobrar: service.Cobrar,
+          DataPrevisao: service.DataPrevisao,
+          KitCodigo: service.KitCodigo,
+          KitPrecoFechado: service.KitPrecoFechado,
+          CampanhaCodigo: service.CampanhaCodigo,
+          Marcacoes: Marcacoes.map((mark) => ({
+            ...mark,
+            UsuarioDocumentoProdutivo: formatarDoc(mark.UsuarioDocumentoProdutivo),
+          })),
+        });
+      }
     }
 
     const TipoOS: UpdateDealernetTipoOSDto[] = os.TipoOS.map((type) => ({

@@ -15,7 +15,7 @@ export class UpdateDealernetProductDTO {
 }
 
 export class UpdateDealernetMarcacaoDto {
-  Chave: number;
+  Chave?: number;
   UsuarioDocumentoProdutivo: number | string;
   DataInicial: string;
   DataFinal?: string;

@@ -184,8 +184,8 @@ export class DealernetOsService {
       ...dto,
       Servicos: {
         Servico: dto.Servicos.map((servico) => {
-          const produtos = servico.Produtos.map((produto) => produto);
-          const Marcacoes = servico.Marcacoes.map((marcacao) => marcacao);
+          const produtos = servico.Produtos?.map((produto) => produto);
+          const Marcacoes = servico.Marcacoes?.map((marcacao) => marcacao);
           return {
             ...servico,
             Produtos: {
@@ -198,7 +198,7 @@ export class DealernetOsService {
         }),
       },
       TipoOS: {
-        TipoOSItem: dto.TipoOS.map((tipo) => tipo)
+        TipoOSItem: dto.TipoOS?.map((tipo) => tipo)
       }
     }
 
