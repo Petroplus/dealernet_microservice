@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CreateScheduleDto } from './dto/create-schedule';
+import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { ScheduleFilter } from './filters/schedule.filter';
 import { ScheduleService } from './schedule.service';
 
@@ -27,5 +28,11 @@ export class ScheduleController {
   @ApiOperation({ summary: 'Busca o schema dos agendamentos' })
   async schema(@Query() filter: ScheduleFilter): Promise<unknown> {
     return this.service.schema(filter);
+  }
+
+  @Put('/:client_id')
+  @ApiOperation({ summary: 'Atualizar um agendamento' })
+  async update(@Param('client_id') client_id: string, @Body() data: UpdateScheduleDto): Promise<unknown> {
+    return this.service.update(client_id, data);
   }
 }

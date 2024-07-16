@@ -10,6 +10,7 @@ import { CreateOrderDto } from 'src/petroplay/order/dto/create-order.dto';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
 import { CreateScheduleDto } from './dto/create-schedule';
+import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { ScheduleFilter } from './filters/schedule.filter';
 
 @Injectable()
@@ -206,6 +207,76 @@ export class ScheduleService {
     return this.dealernet.schedule.upsert(integration.dealernet, {
       ...dto,
       ConsultorDocumento: dto.ConsultorDocumento ?? this.context.currentUser().cod_consultor,
+    });
+  }
+
+  async update(client_id: string, dto: UpdateScheduleDto): Promise<DealernetSchedule> {
+    const integration = await this.petroplay.integration.findByClientId(client_id);
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
+    const old_schedule = await this.dealernet.schedule.find(integration.dealernet, {
+      schedule_id: dto.integration_id.toString(),
+    });
+    if (!old_schedule) throw new BadRequestException(`Schedule integration_id:${dto.integration_id} not found`);
+    const vehicles = await this.petroplay.integration.findVehicles(integration.client_id);
+
+    const vehicle = await this.dealernet.vehicle.findByPlate(integration.dealernet, dto.VeiculoPlaca);
+    if (!vehicle) {
+      const ppsVehicle = vehicles.find((x) => x.version_id == dto.version_id);
+      if (!ppsVehicle)
+        throw new BadRequestException('Vehicle not found', {
+          description: 'Dê para do veículo não encontrado entre em contato com o suporte',
+        });
+
+      const model = await this.dealernet.vehicle
+        .findModel(integration.dealernet, { model_id: ppsVehicle.veiculo_codigo })
+        .then((data) => data.first());
+
+      if (!model) throw new BadRequestException('Model not found', { description: 'Modelo do veículo não encontrado' });
+
+      const year = await this.dealernet.vehicle
+        .findYears(integration.dealernet, { year_model: dto.VeiculoAno })
+        .then((data) => data.first());
+
+      if (!year) throw new BadRequestException('Year not found', { description: 'Ano do veículo não encontrado' });
+
+      const color = await this.dealernet.vehicle
+        .findColors(integration.dealernet, { name: dto.VeiculoColor })
+        .then((data) => data.first());
+
+      if (!color) throw new BadRequestException('Color not found', { description: 'Cor do veículo não encontrada' });
+
+      await this.dealernet.vehicle.create(integration.dealernet, {
+        Cliente_Documento: dto.ClienteDocumento,
+        Veiculo_Chassi: dto.VeiculoChassi,
+        Veiculo_Placa: dto.VeiculoPlaca,
+        Veiculo_Km: dto.VeiculoKM,
+        Veiculo_Modelo: model?.ModeloVeiculo_Codigo,
+        Veiculo_CorExterna: color?.Codigo,
+        Veiculo_CorInterna: color?.Tipo,
+        Veiculo_AnoCodigo: year?.Ano_Codigo,
+      });
+    }
+
+    return this.dealernet.schedule.update(integration.dealernet, {
+      VeiculoChassi: dto?.VeiculoChassi ?? old_schedule[0]?.VeiculoChassi,
+      VeiculoPlaca: dto?.VeiculoPlaca ?? old_schedule[0]?.VeiculoPlaca,
+      VeiculoKM: dto.VeiculoKM ?? old_schedule[0]?.VeiculoKM.toString(),
+      VeiculoAno: dto.VeiculoAno ?? old_schedule[0]?.VeiculoAnoCodigo.toString() ?? vehicle.VeiculoAno_Codigo.toString(),
+      VeiculoColor: dto.VeiculoColor ?? vehicle.Veiculo_CorExterna.toString(),
+      ClienteNome: dto.ClienteNome ?? old_schedule[0]?.ClienteNome,
+      ClienteDocumento: dto.ClienteDocumento ?? old_schedule[0]?.ClienteDocumento.toString(),
+      Data: dto.Data ?? old_schedule[0]?.Data,
+      DataInicial: dto.DataInicial,
+      DataFinal: dto.DataFinal,
+      TipoOSSigla: dto.TipoOSSigla,
+      Observacao: dto.Observacao ?? old_schedule[0]?.Observacao,
+      Servicos: dto.Servicos,
+      ConsultorDocumento:
+        dto.ConsultorDocumento ?? this.context.currentUser()?.cod_consultor ?? old_schedule[0].ConsultorDocumento.toString(),
+      maker_id: dto.maker_id,
+      model_id: dto.model_id,
+      version_id: dto.version_id,
+      integration_id: dto.integration_id,
     });
   }
 }
