@@ -116,11 +116,11 @@ export class PetroplayOrderService {
       });
   }
 
-  async findOrderAppointments(order_id: string, budget_id: string): Promise<OrderAppointmentEntity[]> {
+  async findOrderAppointments(order_id: string, budget_id: string, ids?: string[]): Promise<OrderAppointmentEntity[]> {
     const client = await petroplay.v2();
     return await client
       .get(`/v2/orders/${order_id}/appointments`, {
-        params: { budget_ids: [budget_id], expand: ['reason_stopped', 'mechanic'] },
+        params: { budget_ids: [budget_id], expand: ['reason_stopped', 'mechanic'], ids: ids },
       })
       .then(({ data }) => data)
       .catch((err) => {

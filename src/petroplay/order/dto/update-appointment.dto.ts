@@ -47,6 +47,14 @@ export class UpdateAppointmentDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
+  is_error_sent_to_dms?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  error_sent_to_dms_details?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
   integration_id?: string;
 
   @ApiProperty({ required: false })

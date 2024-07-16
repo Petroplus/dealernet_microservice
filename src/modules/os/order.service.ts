@@ -10,7 +10,6 @@ import { RequestPartOrderDTO } from 'src/dealernet/order/dto/request-part-order.
 import {
   UpdateDealernetMarcacaoDto,
   UpdateDealernetOsDTO,
-  UpdateDealernetProductDTO,
   UpdateDealernetServiceDTO,
   UpdateDealernetTipoOSDto,
 } from 'src/dealernet/order/dto/update-order.dto';
@@ -270,20 +269,33 @@ export class OsService {
     return this.dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
   }
 
-  async appointment(order_id: string, budget_id: string): Promise<DealernetOrderResponse> {
+  async appointment(order_id: string, budget_id: string, appointment_id: string): Promise<DealernetOrderResponse> {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
     const budget = await this.petroplay.order.findOrderBudgets(order.id, budget_id).then((budgets) => budgets?.first());
-    const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id);
+    const appointments = await this.petroplay.order.findOrderAppointments(order.id, budget.id, [appointment_id]);
     const osDTO = await this.osDtoAppointments(order, budget, appointments, integration.dealernet);
-    const os = await this.dealernet.order.updateOs(integration.dealernet, osDTO);
+    const os = await this.dealernet.order
+      .updateOs(integration.dealernet, osDTO)
+      .then(async (response) => {
+        this.petroplay.order.updateOrderAppointment(order.id, appointment_id, {
+          was_sent_to_dms: true,
+        });
 
-    for await (const { id } of appointments) {
-      await this.petroplay.order.updateOrderAppointment(order.id, id, { was_sent_to_dms: true });
-    }
+        return response;
+      })
+      .catch((error) => {
+        this.petroplay.order.updateOrderAppointment(order.id, appointment_id, {
+          is_error_sent_to_dms: true,
+          error_sent_to_dms_details: error?.message ?? 'Erro ao enviar apontamento para o DMS',
+        });
+
+        Logger.error(`Erro ao atualizar apontamento da ordem ${order_id}`, error, 'OsService');
+        throw new BadRequestException('Erro ao atualizar apontamento da ordem');
+      });
 
     await this.petroplay.order.updateOrderBudget(order_id, budget_id, {
       integration_data: { ...budget.integration_data, os: os },

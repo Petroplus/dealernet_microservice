@@ -22,7 +22,6 @@ export class OrderFilter {
   @IsOptional()
   veiculoPlacaChassi?: string;
 
-
   @ApiProperty({ required: false })
   @IsOptional()
   os_number?: string;

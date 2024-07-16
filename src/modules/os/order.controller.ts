@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ParseOrderPipe } from 'src/commons/pipes/parse-order.pipe';
@@ -56,16 +56,6 @@ export class OsController {
     return this.service.requestPartsSchema(order_id, budget_id);
   }
 
-  @Put(':budget_id/appointments')
-  @ApiResponse({ status: 200 })
-  @ApiOperation({ summary: 'Atualiza os apontamentos da ordem de serviço baseado em informações extraídas da ordem informada' })
-  async appointment(
-    @Param('order_id', ParseOrderPipe) order_id: string,
-    @Param('budget_id', ParseUUIDPipe) budget_id: string,
-  ): Promise<DealernetOrderResponse> {
-    return this.service.appointment(order_id, budget_id);
-  }
-
   @Get(`:budget_id/appointments/schema`)
   @ApiResponse({ status: 200 })
   @ApiOperation({
@@ -77,5 +67,16 @@ export class OsController {
     @Param('budget_id', ParseUUIDPipe) budget_id: string,
   ): Promise<string> {
     return this.service.appointmentXmlSchema(order_id, budget_id);
+  }
+
+  @Post(':budget_id/appointments/:appointment_id')
+  @ApiResponse({ status: 200 })
+  @ApiOperation({ summary: 'Atualiza os apontamentos da ordem de serviço baseado em informações extraídas da ordem informada' })
+  async appointment(
+    @Param('order_id', ParseOrderPipe) order_id: string,
+    @Param('budget_id', ParseUUIDPipe) budget_id: string,
+    @Param('budget_id', ParseUUIDPipe) appointment_id: string,
+  ): Promise<DealernetOrderResponse> {
+    return this.service.appointment(order_id, budget_id, appointment_id);
   }
 }
