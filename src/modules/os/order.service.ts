@@ -68,7 +68,8 @@ export class OsService {
     const budgets = await this.petroplay.order.findOrderBudgets(order.id, budget_id);
 
     const schemas = [];
-    for await (const budget of budgets) {
+    for await (const [index, budget] of budgets.entries()) {
+      order.inspection = new Date(order.inspection).addMinutes(+index);
       const dto = await this.osDtoToDealernetOs(order, budget, integration.dealernet);
       const schema = await this.dealernet.order.createOsXmlSchema(integration.dealernet, dto);
       schemas.push(schema);
@@ -87,7 +88,8 @@ export class OsService {
 
     Logger.log(`Rota Create: Montando itens da ordem ${order_id}`, 'OsService');
     const os = [];
-    for await (const budget of budgets.filter((x) => !x.os_number)) {
+    for await (const [index, budget] of budgets.entries()) {
+      order.inspection = new Date(order.inspection).addMinutes(+index);
       const schema = await this.osDtoToDealernetOs(order, budget, integration.dealernet);
 
       const response = await this.dealernet.order.createOs(integration.dealernet, schema).then(async (response) => {
