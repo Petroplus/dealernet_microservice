@@ -22,8 +22,11 @@ export class DealernetProductService {
                     <deal:Senha>${connection.key}</deal:Senha>
                     <deal:Sdt_fsprodutoin>
                       <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento >
-                      <deal:ProdutoCodigo>${filter.product_id || '?'}</deal:ProdutoCodigo >
+                      <deal:ProdutoCodigo>?</deal:ProdutoCodigo >
                       <deal:ProdutoDescricao>${filter.name || '?'}</deal:ProdutoDescricao>
+                      	<deal:ProdutoReferencia>
+					                <deal:item>${filter.product_id || '?'}</deal:item>
+				                </deal:ProdutoReferencia>
                       <deal:VeiculoPlacaChassi>?</deal:VeiculoPlacaChassi>
                   </deal:Sdt_fsprodutoin>
               </deal:WS_FastServiceApi.PRODUTO>
@@ -33,6 +36,9 @@ export class DealernetProductService {
 
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     try {
+
+      console.log(xmlBody);
+
       const client = await dealernet();
 
       const response = await client.post(url, xmlBody).then(({ data }) => new XMLParser().parse(data));
