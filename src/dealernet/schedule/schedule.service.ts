@@ -4,6 +4,7 @@ import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
 import { dealernet } from 'src/commons/web-client';
+import { UpdateScheduleDto } from 'src/modules/schedule/dto/update-schedule.dto';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
 import { UpsertScheduleDto } from './dto/upsert-schedule';
@@ -156,4 +157,90 @@ export class DealernetScheduleService {
       throw error;
     }
   }
+
+  async update(connection: IntegrationDealernet, schedule: UpdateScheduleDto): Promise<DealernetSchedule> {
+    const url = `${connection.url}/aws_fastserviceapi.aspx`;
+
+
+    const services = () => {
+      const Servicos = schedule.Servicos ?? [];
+      if (Servicos.length == 0) return '';
+
+      const products = (Produtos = []) => {
+        if (Produtos?.length == 0) return '';
+
+        return Produtos.map((item) => `
+        <deal:Produto>
+          <deal:TipoOSSigla>${item.TipoOSSigla}</deal:TipoOSSigla>
+          <deal:ProdutoReferencia>${item.ProdutoReferencia}</deal:ProdutoReferencia>
+          <deal:ValorUnitario>${item.ValorUnitario}</deal:ValorUnitario>
+          <deal:Quantidade>${item.Quantidade}</deal:Quantidade>
+        </deal:Produto>
+      `).join('\n');
+      };
+
+      return Servicos.map((item) => `
+        <deal:Servico>
+          <deal:TipoOSSigla>${item.TipoOSSigla}</deal:TipoOSSigla>
+          <deal:TMOReferencia>${item.TMOReferencia}</deal:TMOReferencia>
+          <deal:Tempo>${item.Tempo}</deal:Tempo>
+          <deal:ValorUnitario>${item.ValorUnitario}</deal:ValorUnitario>
+          <deal:Quantidade>${item.Quantidade}</deal:Quantidade>
+          <deal:Produtos>
+            ${products(item.Produtos)}
+          </deal:Produtos>
+        </deal:Servico>
+      `).join('\n');
+    }
+
+
+    const xmlBody = `
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <deal:WS_FastServiceApi.AGENDAMENTO>
+                <deal:Usuario>${connection.user}</deal:Usuario>
+                <deal:Senha>${connection.key}</deal:Senha>
+                <deal:Sdt_fsagendamentoin>
+                    <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento>
+                    <deal:Chave>${schedule.integration_id}</deal:Chave>
+                    <deal:VeiculoPlacaChassi>${schedule?.VeiculoPlaca ?? schedule?.VeiculoChassi ?? '?'}</deal:VeiculoPlacaChassi>
+                    <deal:VeiculoKM>${schedule?.VeiculoKM ?? '?'}</deal:VeiculoKM>
+                    <deal:ClienteNome>${schedule?.ClienteNome ?? '?'}</deal:ClienteNome>
+                    <deal:ClienteDocumento>${schedule?.ClienteDocumento ?? '?'}</deal:ClienteDocumento>
+                    <deal:ConsultorDocumento>${schedule?.ConsultorDocumento ?? '?'}</deal:ConsultorDocumento>
+                    <deal:TipoOSSigla>${schedule?.TipoOSSigla ?? '?'}</deal:TipoOSSigla>
+                    <deal:Data>${schedule?.DataInicial ?? schedule?.Data ?? '?'}</deal:Data>
+                    <deal:DataFinal>${schedule?.DataFinal ?? '?'}</deal:DataFinal>
+                    <deal:Observacao>${schedule?.Observacao ?? '?'}</deal:Observacao>
+                    <deal:Servicos>
+                        ${services()}
+                    </deal:Servicos>
+                    <deal:Acao>ALT</deal:Acao>
+                </deal:Sdt_fsagendamentoin>
+                </deal:WS_FastServiceApi.AGENDAMENTO>
+            </soapenv:Body>
+            </soapenv:Envelope>
+        `;
+
+    console.log(xmlBody);
+
+    try {
+      const client = await dealernet();
+
+      const response = await client.post(url, xmlBody).then(({ data }) => new XMLParser().parse(data));
+      const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.AGENDAMENTOResponse']['Sdt_fsagendamentooutlista']['SDT_FSAgendamentoOut'];
+
+      if (parsedData.Chave == '0') {
+        throw new BadRequestException("Erro ao criar/alterar agendamento", { description: parsedData?.Mensagem });
+      }
+
+      return parsedData;
+    }
+    catch (error) {
+      Logger.error('Erro ao fazer a requisição:', error, 'DealerNetScheduleService.create');
+      throw error;
+    }
+  }
+
 }
