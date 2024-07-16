@@ -75,7 +75,7 @@ export class OsController {
   async appointment(
     @Param('order_id', ParseOrderPipe) order_id: string,
     @Param('budget_id', ParseUUIDPipe) budget_id: string,
-    @Param('budget_id', ParseUUIDPipe) appointment_id: string,
+    @Param('appointment_id', ParseUUIDPipe) appointment_id: string,
   ): Promise<DealernetOrderResponse> {
     return this.service.appointment(order_id, budget_id, appointment_id);
   }
