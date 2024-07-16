@@ -317,8 +317,8 @@ export class OsService {
         produtivo_documento = user.Usuario_DocIdentificador;
 
         const dateDiff = (new Date(item.end_date).getTime() - new Date(item.start_date).getTime()) / 1000; // seconds
-        const DataInicial = new Date(item.start_date).addSeconds(-10);
-        const DataFinal = new Date(item.end_date).addSeconds(-10).addMinutes(dateDiff <= 60 ? 1 : 0);
+        const DataInicial = new Date(item.start_date).addMinutes(-1);
+        const DataFinal = new Date(item.end_date).addMinutes(-1).addMinutes(dateDiff <= 60 ? 1 : 0);
         Marcacoes.push({
           UsuarioDocumentoProdutivo: user.Usuario_Identificador,
           DataInicial: DataInicial.formatUTC('yyyy-MM-ddThh:mm:ss'),
