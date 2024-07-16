@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { VeiculoApiResponse } from 'src/dealernet/response/veiculo-response';
@@ -27,5 +27,15 @@ export class VehicleController {
     @Body() dto: CreateDealernetVehicleDTO,
   ): Promise<VeiculoApiResponse> {
     return this.service.create(client_id, dto);
+  }
+
+  @Put()
+  @ApiResponse({ status: 200, type: VeiculoApiResponse })
+  @ApiOperation({ summary: 'Atualiza um veículo utilizando o body informado, caso não exista cria o veículo ' })
+  async update(
+    @Param('client_id', ParseUUIDPipe) client_id: string,
+    @Body() dto: CreateDealernetVehicleDTO,
+  ): Promise<VeiculoApiResponse> {
+    return this.service.update(client_id, dto);
   }
 }
