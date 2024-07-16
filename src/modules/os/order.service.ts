@@ -293,6 +293,7 @@ export class OsService {
           error_sent_to_dms_details: error?.message ?? 'Erro ao enviar apontamento para o DMS',
         });
 
+        this.context.setWarning('Erro ao adicionar apontamento na Ordem de Serviço');
         Logger.error(`Erro ao atualizar apontamento da ordem ${order_id}`, error, 'OsService');
         throw new BadRequestException('Erro ao atualizar apontamento da ordem');
       });
