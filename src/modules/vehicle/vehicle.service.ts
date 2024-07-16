@@ -40,17 +40,62 @@ export class VehicleService {
     if (!integration.dealernet) {
       throw new BadRequestException('Integration not found');
     }
-
     let vehicle = await this.dealernet.vehicle.findByPlate(integration.dealernet, dto.Veiculo_Placa);
 
     if (!vehicle) {
       vehicle = await this.dealernet.vehicle.findByChassis(integration.dealernet, dto.Veiculo_Chassi);
     }
 
+    const vehicles = await this.petroplay.integration.findVehicles(integration.client_id);
+
+    const ppsVehicle = vehicles.find((x) => x.version_id == Number(dto.Veiculo_Modelo));
+    if (!ppsVehicle)
+      throw new BadRequestException('Vehicle not found', {
+        description: 'Dê para do veículo não encontrado entre em contato com o suporte',
+      });
+
+    const model = await this.dealernet.vehicle
+      .findModel(integration.dealernet, { model_id: ppsVehicle.veiculo_codigo })
+      .then((data) => data.first());
+
+    if (!model) throw new BadRequestException('Model not found', { description: 'Modelo do veículo não encontrado' });
+
+    const year = await this.dealernet.vehicle
+      .findYears(integration.dealernet, { year_model: dto.Veiculo_AnoCodigo.toString() })
+      .then((data) => data.first());
+
+    if (!year) throw new BadRequestException('Year not found', { description: 'Ano do veículo não encontrado' });
+
+    const color = await this.dealernet.vehicle
+      .findColors(integration.dealernet, { name: dto.Veiculo_CorExterna })
+      .then((data) => data.first());
+
+    if (!color) throw new BadRequestException('Color not found', { description: 'Cor do veículo não encontrada' });
     if (!vehicle) {
-      await this.dealernet.vehicle.create(integration.dealernet, dto);
+      await this.dealernet.vehicle.create(integration.dealernet, {
+        ...dto,
+        Cliente_Documento: dto.Cliente_Documento,
+        Veiculo_Chassi: dto.Veiculo_Chassi,
+        Veiculo_Placa: dto.Veiculo_Placa,
+        Veiculo_Km: dto.Veiculo_Km,
+        Veiculo_Modelo: model?.ModeloVeiculo_Codigo,
+        Veiculo_CorExterna: color?.Codigo,
+        Veiculo_CorInterna: color?.Tipo,
+        Veiculo_AnoCodigo: year?.Ano_Codigo,
+      });
     } else {
-      await this.dealernet.vehicle.update(integration.dealernet, { ...dto, Veiculo_Codigo: vehicle?.Veiculo?.toString() });
+      await this.dealernet.vehicle.update(integration.dealernet, {
+        ...dto,
+        Veiculo_Codigo: vehicle?.Veiculo?.toString(),
+        Cliente_Documento: dto.Cliente_Documento,
+        Veiculo_Chassi: dto.Veiculo_Chassi,
+        Veiculo_Placa: dto.Veiculo_Placa,
+        Veiculo_Km: dto.Veiculo_Km,
+        Veiculo_Modelo: model?.ModeloVeiculo_Codigo,
+        Veiculo_CorExterna: color?.Codigo,
+        Veiculo_CorInterna: color?.Tipo,
+        Veiculo_AnoCodigo: year?.Ano_Codigo,
+      });
     }
 
     return await this.dealernet.vehicle.findByPlate(integration.dealernet, dto.Veiculo_Placa);

@@ -31,11 +31,12 @@ export class VehicleController {
 
   @Put()
   @ApiResponse({ status: 200, type: VeiculoApiResponse })
-  @ApiOperation({ summary: 'Atualiza um veículo utilizando o body informado, caso não exista cria o veículo ' })
+  @ApiOperation({ summary: 'Atualiza um veículo utilizando o body informado, caso não exista cria o veículo' })
   async update(
     @Param('client_id', ParseUUIDPipe) client_id: string,
     @Body() dto: CreateDealernetVehicleDTO,
   ): Promise<VeiculoApiResponse> {
+    console.log(dto, 'teste');
     return this.service.update(client_id, dto);
   }
 }
