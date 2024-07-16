@@ -219,4 +219,48 @@ export class DealernetVehicleService {
     }
   }
 
+  async update(connection: IntegrationDealernet, dto: CreateDealernetVehicleDTO): Promise<DealernetVehicleResponse>{
+    const url = `${connection.url}/aws_fastserviceapi.aspx`;
+
+    const xmlBody = `
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <deal:WS_FastServiceApi.VEICULO>
+                    <deal:Usuario>${connection.user}</deal:Usuario>
+                    <deal:Senha>${connection.key}</deal:Senha>
+                    <deal:Sdt_fsveiculoin>
+                        <deal:Veiculo_Codigo>${dto.Veiculo_Codigo ?? '?'}</deal:Veiculo_Codigo>
+                        <deal:Veiculo_Placa>${dto.Veiculo_Placa ?? '?'}</deal:Veiculo_Placa>
+                        <deal:Veiculo_Chassi>${dto.Veiculo_Chassi ?? '?'}</deal:Veiculo_Chassi>
+                        <deal:VeiculoAno_Codigo>${dto.Veiculo_AnoCodigo ?? '?'}</deal:VeiculoAno_Codigo>
+                        <deal:Veiculo_Modelo>${dto.Veiculo_Modelo ?? '?'}</deal:Veiculo_Modelo>
+                        <deal:Veiculo_CorExterna>${dto.Veiculo_CorExterna ?? '?'}</deal:Veiculo_CorExterna>
+                        <deal:Veiculo_CorInterna>${dto.Veiculo_CorInterna ?? '?'}</deal:Veiculo_CorInterna>
+                        <deal:Veiculo_Km>${dto.Veiculo_Km ?? '?'}</deal:Veiculo_Km>
+                        <deal:Veiculo_DataVenda>${dto.Veiculo_DataVenda ?? '?'}</deal:Veiculo_DataVenda>
+                        <deal:Veiculo_NumeroMotor>${dto.Veiculo_NumeroMotor ?? '?'}</deal:Veiculo_NumeroMotor>
+                        <deal:Cliente_Documento>${dto.Cliente_Documento ?? '?'}</deal:Cliente_Documento>
+                        <deal:Acao>ALT</deal:Acao>
+                    </deal:Sdt_fsveiculoin>
+                </deal:WS_FastServiceApi.VEICULO>
+            </soapenv:Body>
+        </soapenv:Envelope>
+        `;
+    try {
+      const client = await dealernet();
+      const response = await client.post(url, xmlBody).then(({ data }) => new XMLParser().parse(data));
+      const vehicle = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.VEICULOResponse']['Sdt_fsveiculoout']['SDT_FSVeiculoOut']
+
+      if (vehicle.Veiculo == "0" && !vehicle.Mensagem?.toString().includes('sucesso')) {
+        throw new BadRequestException('Erro ao alterar veículo', { description: vehicle.Mensagem });
+      }
+
+      return vehicle;
+    } catch (error) {
+      Logger.error('Erro ao fazer a requisição:', error, 'DealernetVehicleService.create');
+      throw error;
+    }
+  }
+
 }
