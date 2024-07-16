@@ -281,14 +281,14 @@ export class OsService {
     const os = await this.dealernet.order
       .updateOs(integration.dealernet, osDTO)
       .then(async (response) => {
-        this.petroplay.order.updateOrderAppointment(order.id, appointment_id, {
+        await this.petroplay.order.updateOrderAppointment(order.id, appointment_id, {
           was_sent_to_dms: true,
         });
 
         return response;
       })
-      .catch((error) => {
-        this.petroplay.order.updateOrderAppointment(order.id, appointment_id, {
+      .catch(async (error) => {
+        await this.petroplay.order.updateOrderAppointment(order.id, appointment_id, {
           is_error_sent_to_dms: true,
           error_sent_to_dms_details: error?.message ?? 'Erro ao enviar apontamento para o DMS',
         });

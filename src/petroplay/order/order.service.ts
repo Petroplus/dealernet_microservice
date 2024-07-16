@@ -134,13 +134,18 @@ export class PetroplayOrderService {
     appointment_id: string,
     updateDto: UpdateAppointmentDto,
   ): Promise<OrderAppointmentEntity> {
+    Logger.error(JSON.stringify(updateDto));
+
     const client = await petroplay.v2();
-    return await client
+    return client
       .put(`/v2/orders/${order_id}/appointments/${appointment_id}`, updateDto)
       .then(({ data }) => data)
       .catch((err) => {
         Logger.error('Error on update order appointment:', err, 'PetroplayOrderService.updateOrderAppointment');
-        throw new BadRequestException('Error on update order appointment');
+        throw new BadRequestException(err.response?.data ?? 'Error on update order appointment', {
+          cause: err.response,
+          description: 'Error on update order appointment',
+        });
       });
   }
 
