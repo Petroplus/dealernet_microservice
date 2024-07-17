@@ -188,6 +188,7 @@ export class DealernetOsService {
           const Marcacoes = servico.Marcacoes?.map((marcacao) => marcacao);
           return {
             ...servico,
+            SetorExecucao: servico?.SetorExecucao ?? 'OFICINA',
             Produtos: {
               Produto: produtos
             },
