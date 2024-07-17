@@ -1,10 +1,11 @@
-import { Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ParseOrderPipe } from 'src/commons/pipes/parse-order.pipe';
 import { ParseUUIDOptionalPipe } from 'src/commons/pipes/parse-uuid-optional.pipe';
 import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 
+import { AttachServiceToOrderDTO } from './dto/attach-service-to-order.dto';
 import { OsService } from './order.service';
 
 @ApiBearerAuth()
@@ -78,5 +79,31 @@ export class OsController {
     @Param('appointment_id', ParseUUIDPipe) appointment_id: string,
   ): Promise<DealernetOrderResponse> {
     return this.service.appointment(order_id, budget_id, appointment_id);
+  }
+
+  @Post(`:budget_id/attach-service/schema`)
+  @ApiResponse({ status: 200 })
+  @ApiOperation({
+    summary: 'Retorna um corpo XML para adicionar um serviço a uma ordem já existente',
+  })
+  async attachServiceXmlSchema(
+    @Param('order_id', ParseOrderPipe) order_id: string,
+    @Param('budget_id', ParseUUIDPipe) budget_id: string,
+    @Body() dto: AttachServiceToOrderDTO,
+  ): Promise<string> {
+    return this.service.attachServiceToOrderSchema(order_id, budget_id, dto);
+  }
+
+  @Post(`:budget_id/attach-service`)
+  @ApiResponse({ status: 200 })
+  @ApiOperation({
+    summary: 'Utiliza o corpo xml da rota :budget_id/attach-service/schema e adiciona um serviço em uma ordem já existente',
+  })
+  async attachServiceXml(
+    @Param('order_id', ParseOrderPipe) order_id: string,
+    @Param('budget_id', ParseUUIDPipe) budget_id: string,
+    @Body() dto: AttachServiceToOrderDTO,
+  ): Promise<DealernetOrderResponse> {
+    return this.service.attachServiceToOrder(order_id, budget_id, dto);
   }
 }
