@@ -25,6 +25,7 @@ export interface IntegrationDealernet {
   document?: string;
   mechanic_document?: string;
   consultant_document?: string;
+  execution_sector?: string;
 }
 
 export interface IntegrationDealernetVehicle {
