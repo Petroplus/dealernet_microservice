@@ -57,6 +57,9 @@ export class ServicoCreateDTO {
   @ApiProperty()
   cobra?: boolean;
 
+  @ApiProperty()
+  setor_execucao?: string;
+
   @ApiProperty({ type: ProdutoCreateDTO })
   produtos: ProdutoCreateDTO[];
 }
