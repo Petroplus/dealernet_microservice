@@ -114,6 +114,7 @@ export class DealernetOsService {
         <deal:Quantidade>${item.quantidade}</deal:Quantidade>
         <deal:ProdutivoDocumento>${item.produtivo_documento ?? '?'}</deal:ProdutivoDocumento>
         <deal:UsuarioIndResponsavel>${item.usuario_ind_responsavel ?? '?'}</deal:UsuarioIndResponsavel>
+        <deal:SetorExecucao>${item?.setor_execucao ?? 'OFICINA'}</deal:SetorExecucao>
          ${products}
         </deal:Servico>
     `;

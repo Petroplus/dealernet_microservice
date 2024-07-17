@@ -54,6 +54,9 @@ export class ServicoCreateDTO {
   @ApiProperty()
   usuario_ind_responsavel?: string | number;
 
+  @ApiProperty()
+  setor_execucao?: string;
+
   @ApiProperty({ type: ProdutoCreateDTO })
   produtos: ProdutoCreateDTO[];
 }
