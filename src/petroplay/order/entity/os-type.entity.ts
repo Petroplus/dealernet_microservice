@@ -27,7 +27,6 @@ export class ClientOsTypeEntity {
   status: ClientOsTypeStatus;
 
   constructor(partial?: Partial<ClientOsTypeEntity>) {
-
     Object.assign(this, partial);
   }
 }
