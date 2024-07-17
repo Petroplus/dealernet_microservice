@@ -481,6 +481,7 @@ export class OsService {
         ProdutivoDocumento: budget.is_request_products ? formatarDoc(Produtivo.Usuario_DocIdentificador) : null,
         UsuarioIndResponsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         Cobrar: service?.is_charged_for ?? true,
+        SetorExecucao: connection?.execution_sector,
       });
     }
 
