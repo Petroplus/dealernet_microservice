@@ -152,6 +152,7 @@ export class OsService {
         produtivo_documento: budget.is_request_products ? formatarDoc(Produtivo.Usuario_DocIdentificador) : null,
         usuario_ind_responsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         cobra: service?.is_charged_for ?? true,
+        setor_execucao: connection.execution_sector,
         produtos: [],
       });
     }
@@ -364,6 +365,7 @@ export class OsService {
           KitCodigo: service.KitCodigo,
           KitPrecoFechado: service.KitPrecoFechado,
           CampanhaCodigo: service.CampanhaCodigo,
+          SetorExecucao: connection.execution_sector,
           Marcacoes: Marcacoes.map((mark) => ({
             ...mark,
             UsuarioDocumentoProdutivo: formatarDoc(mark.UsuarioDocumentoProdutivo),
