@@ -82,8 +82,9 @@ export class ScheduleService {
         const os_type = os_types.find((x) => x.external_id == service.TipoOSSigla);
 
         const products = service.Produtos?.map((product) => ({
-          product_id: product.ProdutoReferencia,
           service_id: service.TMOReferencia,
+          product_id: product.ProdutoReferencia,
+          name: product.Descricao,
           quantity: product.Quantidade,
           price: product.ValorUnitario,
           os_type_id: os_type?.id,
