@@ -20,6 +20,8 @@ import { OrderAppointmentEntity } from 'src/petroplay/order/entity/order-appoint
 import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entity';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
+import { AttachServiceToOrderDTO } from './dto/attach-service-to-order.dto';
+
 @Injectable()
 export class OsService {
   constructor(
@@ -150,6 +152,7 @@ export class OsService {
         produtivo_documento: budget.is_request_products ? formatarDoc(Produtivo.Usuario_DocIdentificador) : null,
         usuario_ind_responsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         cobra: service?.is_charged_for ?? true,
+        setor_execucao: connection.execution_sector,
         produtos: [],
       });
     }
@@ -362,6 +365,7 @@ export class OsService {
           KitCodigo: service.KitCodigo,
           KitPrecoFechado: service.KitPrecoFechado,
           CampanhaCodigo: service.CampanhaCodigo,
+          SetorExecucao: connection.execution_sector,
           Marcacoes: Marcacoes.map((mark) => ({
             ...mark,
             UsuarioDocumentoProdutivo: formatarDoc(mark.UsuarioDocumentoProdutivo),
@@ -398,6 +402,116 @@ export class OsService {
     return dto;
   }
 
+  async attachServiceToOrderSchema(order_id: string, budget_id: string, attachDTO: AttachServiceToOrderDTO): Promise<string> {
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
+
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
+
+    const budget = await this.petroplay.order.findOrderBudgets(order.id, budget_id).then((budgets) => budgets?.first());
+    const osDTO = await this.osAttachServicesToOrder(order, budget, attachDTO, integration.dealernet);
+
+    return this.dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
+  }
+  async attachServiceToOrder(
+    order_id: string,
+    budget_id: string,
+    attachDTO: AttachServiceToOrderDTO,
+  ): Promise<DealernetOrderResponse> {
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
+
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
+
+    const budget = await this.petroplay.order.findOrderBudgets(order.id, budget_id).then((budgets) => budgets?.first());
+    const osDTO = await this.osAttachServicesToOrder(order, budget, attachDTO, integration.dealernet);
+
+    const os = await this.dealernet.order
+      .updateOs(integration.dealernet, osDTO)
+      .then((response) => {
+        return response;
+      })
+      .catch((error) => {
+        this.context.setWarning('Erro ao adicionar serviço a Ordem de Serviço');
+        Logger.error(
+          `Erro ao adiconar serviço ${attachDTO.service_id} de tipo: ${attachDTO.os_type_id} da ordem ${order_id}`,
+          error,
+          'OsService',
+        );
+        throw new BadRequestException('Erro ao adiconar serviço a ordem');
+      });
+
+    return os;
+  }
+
+  async osAttachServicesToOrder(
+    order: PetroplayOrderEntity,
+    budget: OrderBudgetEntity,
+    attachDTO: AttachServiceToOrderDTO,
+    connection: IntegrationDealernet,
+  ): Promise<UpdateDealernetOsDTO> {
+    const os = await this.dealernet.findOsByNumber(connection, budget.os_number);
+    if (!os) throw new NotFoundException(`OS not found`);
+
+    const users = await this.dealernet.customer.findUsers(connection, 'PRD');
+    const filterd_services = budget.services?.filter(
+      (service) => service.service_id === attachDTO.service_id && attachDTO.os_type_id,
+    );
+
+    const os_types: TipoOSItemCreateDTO[] = [];
+    const Servicos: UpdateDealernetServiceDTO[] = [];
+
+    for (const service of filterd_services) {
+      const os_type = service?.os_type ?? budget?.os_type ?? order?.os_type;
+      if (!os_types?.find((x) => x.tipo_os_sigla == os_type.external_id)) {
+        os_types.push({
+          tipo_os_sigla: os_type.external_id,
+          consultor_documento: formatarDoc(order.consultant?.cod_consultor),
+        });
+      }
+      const document = service.mechanic?.cod_consultant ?? budget.mechanic?.cod_consultor ?? connection?.mechanic_document;
+
+      const Produtivo = users.find((x) => x.Usuario_DocIdentificador == formatarDoc(document));
+      Servicos.push({
+        TipoOSSigla: os_type.external_id,
+        TMOReferencia: service.integration_id,
+        Tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
+        ValorUnitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
+        Quantidade: Number(service.quantity) > 0 ? Math.ceil(service.quantity) : 1,
+        ProdutivoDocumento: budget.is_request_products ? formatarDoc(Produtivo.Usuario_DocIdentificador) : null,
+        UsuarioIndResponsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
+        Cobrar: service?.is_charged_for ?? true,
+        SetorExecucao: connection?.execution_sector,
+      });
+    }
+
+    const dto: UpdateDealernetOsDTO = {
+      Chave: os.Chave,
+      NumeroOS: os.NumeroOS,
+      VeiculoPlacaChassi: os.VeiculoPlaca,
+      VeiculoKM: os.VeiculoKM,
+      ClienteCodigo: os.ClienteCodigo,
+      ClienteDocumento: formatarDoc(os.ClienteDocumento),
+      ConsultorDocumento: formatarDoc(os.TipoOS.first().ConsultorDocumento),
+      Data: os.Data,
+      DataFinal: os.DataPrometida,
+      Status: os.TipoOS.first().StatusAndamento,
+      Observacao: os.Observacao,
+      DataPrometida: os.DataPrometida,
+      PercentualCombustivel: os.PercentualCombustivel,
+      PercentualBateria: os.PercentualBateria,
+      ExigeLavagem: os.ExigeLavagem,
+      ClienteAguardando: os.ClienteAguardando,
+      InspecionadoElevador: os.InspecionadoElevador,
+      BloquearProduto: os.BloquearProduto,
+      CorPrisma_Codigo: os.CorPrisma_Codigo,
+      NroPrisma: os.NroPrisma,
+      TipoOSSigla: os.Servicos.first().TipoOSSigla,
+      ExisteObjetoValor: os.ExisteObjetoValor,
+      Servicos: Servicos,
+    };
+    return dto;
+  }
   async formatDate(date?: Date, compare_date?: Date): Promise<string> {
     if (!date) {
       return '?';
