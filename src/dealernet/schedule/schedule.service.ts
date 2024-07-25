@@ -131,7 +131,10 @@ export class DealernetScheduleService {
         new XMLParser().parse(data)['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.AGENDAMENTOResponse']['Sdt_fsagendamentooutlista']['SDT_FSAgendamentoOut']);
       const agendamentos = Array.isArray(response) ? response : [response];
 
-      if (agendamentos.filter((agendamento) => agendamento?.Mensagem).length > 0) return [];
+      if (agendamentos.filter((agendamento) => agendamento?.Mensagem).length > 0) {
+        Logger.error('Erro ao fazer a requisição:', agendamentos.first().Mensagem, 'DealerNetScheduleService.find');
+        return [];
+      }
 
       return agendamentos.map((x) => {
         const services = (isArray(x?.Servicos?.Servico) ? x.Servicos?.Servico : x.Servicos?.Servico && [x.Servicos?.Servico]);
