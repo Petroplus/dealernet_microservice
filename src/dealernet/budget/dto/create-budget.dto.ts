@@ -49,6 +49,9 @@ class ServicoCreateDTO {
   @ApiProperty()
   quantidade: number;
 
+  @ApiProperty()
+  cobra: boolean;
+
   @ApiProperty({ type: ProdutoCreateDTO })
   produtos: ProdutoCreateDTO[];
 }

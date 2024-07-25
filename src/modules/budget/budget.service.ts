@@ -136,7 +136,6 @@ export class BudgetService {
           quantidade: product.quantity,
           valor_unitario: product.price,
           tipo_os_sigla: os_type.external_id,
-          cobrar: product?.is_charged_for ?? true,
         });
 
         const service = services.find((x) => x.tmo_referencia == product.service_id && x.tipo_os_sigla == os_type.external_id);

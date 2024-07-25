@@ -97,6 +97,7 @@ export class DealernetOsService {
         <deal:ProdutoReferencia>${product.produto_referencia}</deal:ProdutoReferencia>
         <deal:ValorUnitario>${product.valor_unitario}</deal:ValorUnitario>
         <deal:Quantidade>${product.quantidade}</deal:Quantidade>
+
       </deal:Produto>
         `;
                   })
@@ -112,6 +113,7 @@ export class DealernetOsService {
         <deal:Tempo>${item.tempo}</deal:Tempo>
         <deal:ValorUnitario>${item.valor_unitario}</deal:ValorUnitario>
         <deal:Quantidade>${item.quantidade}</deal:Quantidade>
+        <deal:Cobrar>${item.cobra}</deal:Cobrar>
         <deal:ProdutivoDocumento>${item.produtivo_documento ?? '?'}</deal:ProdutivoDocumento>
         <deal:UsuarioIndResponsavel>${item.usuario_ind_responsavel ?? '?'}</deal:UsuarioIndResponsavel>
         <deal:SetorExecucao>${item?.setor_execucao ?? 'OFC'}</deal:SetorExecucao>

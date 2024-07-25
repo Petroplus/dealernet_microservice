@@ -55,7 +55,7 @@ export class ServicoCreateDTO {
   usuario_ind_responsavel?: string | number;
 
   @ApiProperty()
-  cobra?: boolean;
+  cobra: boolean;
 
   @ApiProperty()
   setor_execucao?: string;

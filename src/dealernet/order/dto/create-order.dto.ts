@@ -49,6 +49,9 @@ export class ServicoCreateDTO {
   quantidade: number;
 
   @ApiProperty()
+  cobra: boolean;
+
+  @ApiProperty()
   produtivo_documento?: string | number;
 
   @ApiProperty()

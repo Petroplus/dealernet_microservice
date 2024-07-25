@@ -182,7 +182,6 @@ export class OsService {
           quantidade: product.quantity,
           valor_unitario: product.price,
           tipo_os_sigla: os_type.external_id,
-          cobrar: product?.is_charged_for ?? true,
         });
 
         const service = services.find((x) => x.tmo_referencia == product.service_id && x.tipo_os_sigla == os_type.external_id);
@@ -512,6 +511,7 @@ export class OsService {
     };
     return dto;
   }
+
   async formatDate(date?: Date, compare_date?: Date): Promise<string> {
     if (!date) {
       return '?';

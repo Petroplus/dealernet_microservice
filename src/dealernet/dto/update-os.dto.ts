@@ -34,9 +34,6 @@ export class ProdutoUpdateDto {
   quantidade: number;
 
   @ApiProperty()
-  cobrar?: boolean;
-
-  @ApiProperty()
   desconto?: number;
 
   @ApiProperty()
