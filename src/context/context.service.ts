@@ -47,7 +47,7 @@ export class ContextService {
   }
 
   getHeaders(): Record<string, string> {
-    const headers = RequestContext.currentContext.req.headers;
+    const headers = RequestContext.currentContext?.req.headers ?? {};
     return {
       Authorization: headers.authorization,
       'api-secret-key': headers['api-secret-key'],

@@ -6,6 +6,7 @@ import { ContextModule } from './context/context.module';
 import { DealernetModule } from './dealernet/dealernet.module';
 import { AllExceptionsFilter } from './exceptions/all-exceptions.filter';
 import { AuthGuard } from './guards/auth.guard';
+import { HttpClientModule } from './http-client/http-client.module';
 import { InjectRequestInterceptor } from './interceptors/inject-request.interceptor';
 import { InjectTransformInterceptor } from './interceptors/inject-transform.interceptor';
 import { BudgetModule } from './modules/budget/budget.module';
@@ -16,7 +17,6 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
 import { ServiceModule } from './modules/service/service.module';
 import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { PetroplayModule } from './petroplay/petroplay.module';
-import { HttpClientModule } from './http-client/http-client.module';
 
 @Module({
   imports: [

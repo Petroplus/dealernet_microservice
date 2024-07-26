@@ -49,7 +49,13 @@ export class ScheduleService {
 
     const orders: CreateOrderDto[] = [];
     for await (const integration of integrations) {
-      const schedules = await this.dealernet.schedule.find(integration.dealernet, filter);
+      const schedules = await this.dealernet.schedule.find(integration.dealernet, filter).catch((err) => {
+        Logger.error('Error on find schedules', err, 'ScheduleService.schema');
+        return [];
+      });
+
+      if (!schedules.length) continue;
+
       Logger.warn(`Found ${schedules.length} schedules to ${integration.client_id}`);
       await this.scheduleToOs(integration, schedules).then((data) => orders.push(...data));
       Logger.warn(`Schema mounted with success to ${integration.client_id}`);
