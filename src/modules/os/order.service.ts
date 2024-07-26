@@ -169,7 +169,7 @@ export class OsService {
       const produtos = await this.dealernet.findProductByReference(connection, product.integration_id);
       const produto = produtos?.orderBy((x) => x.QuantidadeDisponivel, 'desc').first();
 
-      if (!produto) {
+      if (!produto || produto.ProdutoCodigo == 0) {
         Logger.warn(`Produto ${product.integration_id}  ${product.name} não encontrado`, 'OsService');
         await this.petroplay.order.updateOrderBudgetProduct(budget.order_id, budget.id, product.product_id, {
           is_error: true,
