@@ -76,12 +76,15 @@ export class ScheduleService {
       const phone = customer.Telefone?.orderBy((x) => x.PessoaTelefone_Codigo, 'desc').first();
 
       const veiculo = await this.dealernet.vehicle.findByPlate(integration.dealernet, schedule.VeiculoPlaca);
+      if (!veiculo) {
+        Logger.warn(`Vehicle not found on Dealernet ${schedule.VeiculoPlaca}`, 'ScheduleService.scheduleToOs');
+      }
       const vehicle = vehicles.find(
-        (x) => x.veiculo_codigo == veiculo.VeiculoModelo_Codigo && x.veiculo_descricao == veiculo.VeiculoModelo_Descricao,
+        (x) => x.veiculo_codigo == veiculo?.VeiculoModelo_Codigo && x.veiculo_descricao == veiculo?.VeiculoModelo_Descricao,
       );
 
       const year = await this.dealernet.vehicle
-        .findYears(integration.dealernet, { year_code: veiculo.VeiculoAno_Codigo })
+        .findYears(integration.dealernet, { year_code: veiculo?.VeiculoAno_Codigo })
         .then((data) => data.first());
 
       const requests = schedule.Servicos?.map((service, index) => {
@@ -143,7 +146,7 @@ export class ScheduleService {
         vehicle_version_id: vehicle?.version_id,
         vehicle_year: year?.Ano_Modelo?.toString().trim(),
         vehicle_fuel: vehicle?.fuel,
-        vehicle_color: veiculo.Veiculo_CorExternaDescricao,
+        vehicle_color: veiculo?.Veiculo_CorExternaDescricao,
         vehicle_chassis_number: schedule.VeiculoChassi ?? 'Não Informado',
         license_plate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
         mileage: Number(schedule.VeiculoKM) ?? 0,
