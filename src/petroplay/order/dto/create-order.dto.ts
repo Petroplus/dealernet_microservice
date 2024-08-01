@@ -265,6 +265,10 @@ export class CreateOrderDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
+  vehicle_schedule_mileage?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
   @MaxLength(7)
   license_plate?: string;
 
