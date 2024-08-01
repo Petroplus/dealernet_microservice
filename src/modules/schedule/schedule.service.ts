@@ -101,6 +101,7 @@ export class ScheduleService {
           integration_data: product,
         }));
 
+        delete service.Produtos;
         const services = [
           {
             service_id: service.TMOReferencia,
@@ -119,6 +120,8 @@ export class ScheduleService {
           description: service.Descricao,
           notes: service.Observacao,
           is_scheduled: true,
+          integration_id: service.Chave,
+          integration_data: service,
           services: services,
         };
       });
