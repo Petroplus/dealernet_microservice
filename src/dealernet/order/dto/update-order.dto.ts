@@ -51,7 +51,7 @@ export class UpdateDealernetServiceDTO {
 export class UpdateDealernetTipoOSDto {
   TipoOSSigla: string;
   ConsultorDocumento: number | string;
-  CondicaoPagamento: number | string;
+  CondicaoPagamento?: number | string;
 }
 
 export class UpdateDealernetOsDTO {

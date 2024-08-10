@@ -462,14 +462,14 @@ export class OsService {
     if (!os) throw new NotFoundException(`OS not found`);
 
     const users = await this.dealernet.customer.findUsers(connection, 'PRD');
-    const filterd_services = budget.services?.filter(
+    const filters_services = budget.services?.filter(
       (service) => service.service_id === attachDTO.service_id && attachDTO.os_type_id,
     );
 
     const os_types: TipoOSItemCreateDTO[] = [];
     const Servicos: UpdateDealernetServiceDTO[] = [];
 
-    for (const service of filterd_services) {
+    for (const service of filters_services) {
       const os_type = service?.os_type ?? budget?.os_type ?? order?.os_type;
       if (!os_types?.find((x) => x.tipo_os_sigla == os_type.external_id)) {
         os_types.push({
@@ -517,6 +517,10 @@ export class OsService {
       TipoOSSigla: os.Servicos.first().TipoOSSigla,
       ExisteObjetoValor: os.ExisteObjetoValor,
       Servicos: Servicos,
+      TipoOS: os_types.map((x) => ({
+        TipoOSSigla: x.tipo_os_sigla,
+        ConsultorDocumento: formatarDoc(os.TipoOS.first().ConsultorDocumento),
+      })),
     };
     return dto;
   }
