@@ -433,11 +433,13 @@ export class OsService {
       .catch((error) => {
         this.context.setWarning('Erro ao adicionar serviço a Ordem de Serviço');
         Logger.error(
-          `Erro ao adiconar serviço ${attachDTO.service_id} de tipo: ${attachDTO.os_type_id} da ordem ${order_id}`,
+          `Erro ao adicionar serviço ${attachDTO.service_id} de tipo: ${attachDTO.os_type_id} da ordem ${order_id}`,
           error,
           'OsService',
         );
-        throw new BadRequestException('Erro ao adiconar serviço a ordem');
+        throw new BadRequestException('Erro ao adicionar serviço a ordem', {
+          description: error?.message ?? 'Não foi possível adicionar o serviço a ordem',
+        });
       });
 
     return os;
