@@ -227,7 +227,8 @@ export class DealernetOsService {
   }
 
   async createOs(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<DealernetOrderResponse> {
-    Logger.log(`Criando OS Dealernet`, 'DealernetOsService.createOs');
+    Logger.log(`Criando OS Dealernet: ${JSON.stringify(dto)}`, 'DealernetOsService.createOs');
+
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const xmlBody = await this.createOsXmlSchema(connection, dto);
 
