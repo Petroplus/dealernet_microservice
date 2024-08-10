@@ -11,6 +11,7 @@ import {
   UpdateDealernetMarcacaoDto,
   UpdateDealernetOsDTO,
   UpdateDealernetServiceDTO,
+  UpdateDealernetTipoOSDto,
 } from 'src/dealernet/order/dto/update-order.dto';
 import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 import { IntegrationDealernet, IntegrationResponse } from 'src/petroplay/integration/entities/integration.entity';
@@ -466,15 +467,15 @@ export class OsService {
       (service) => service.service_id === attachDTO.service_id && attachDTO.os_type_id,
     );
 
-    const os_types: TipoOSItemCreateDTO[] = [];
+    const TipoOS: UpdateDealernetTipoOSDto[] = [];
     const Servicos: UpdateDealernetServiceDTO[] = [];
 
     for (const service of filters_services) {
       const os_type = service?.os_type ?? budget?.os_type ?? order?.os_type;
-      if (!os_types?.find((x) => x.tipo_os_sigla == os_type.external_id)) {
-        os_types.push({
-          tipo_os_sigla: os_type.external_id,
-          consultor_documento: formatarDoc(order.consultant?.cod_consultor),
+      if (!TipoOS?.find((x) => x.TipoOSSigla == os_type.external_id)) {
+        TipoOS.push({
+          TipoOSSigla: os_type.external_id,
+          ConsultorDocumento: formatarDoc(order.consultant?.cod_consultor),
         });
       }
       const document = service.mechanic?.cod_consultant ?? budget.mechanic?.cod_consultor ?? connection?.mechanic_document;
@@ -517,10 +518,7 @@ export class OsService {
       TipoOSSigla: os.Servicos.first().TipoOSSigla,
       ExisteObjetoValor: os.ExisteObjetoValor,
       Servicos: Servicos,
-      TipoOS: os_types.map((x) => ({
-        TipoOSSigla: x.tipo_os_sigla,
-        ConsultorDocumento: formatarDoc(os.TipoOS.first().ConsultorDocumento),
-      })),
+      TipoOS: TipoOS,
     };
     return dto;
   }
