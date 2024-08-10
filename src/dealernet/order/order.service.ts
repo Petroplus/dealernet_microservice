@@ -238,7 +238,12 @@ export class DealernetOsService {
       const order: DealernetOrder = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista']['SDT_FSOrdemServicoOut'];
 
       if (order.Mensagem && order.Chave === 0) {
-        throw new BadRequestException(order.Mensagem);
+        Logger.error(JSON.stringify(order), 'DealernetOrderService.createOs');
+
+        throw new BadRequestException(order.Mensagem, {
+          cause: order,
+          description: order.Mensagem
+        });
       }
 
       return this.findByOsNumber(connection, order.NumeroOS);
