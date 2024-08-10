@@ -412,6 +412,7 @@ export class OsService {
 
     return this.dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
   }
+
   async attachServiceToOrder(
     order_id: string,
     budget_id: string,
