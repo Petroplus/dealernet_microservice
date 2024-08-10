@@ -142,7 +142,7 @@ export class OsService {
 
       const Produtivo = users.find((x) => x.Usuario_DocIdentificador == formatarDoc(document));
 
-      if (!Produtivo || !Produtivo.Usuario_Identificador) {
+      if (budget.is_request_products && (!Produtivo || !Produtivo.Usuario_Identificador)) {
         Logger.warn(`Mecânico ${document} não encontrado`, 'OsService');
         throw new BadRequestException(`Mecânico ${document} não encontrado`, {
           description: `Mecânico com documento ${document} não encontrado`,
