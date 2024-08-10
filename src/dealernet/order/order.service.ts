@@ -232,6 +232,8 @@ export class DealernetOsService {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
     const xmlBody = await this.createOsXmlSchema(connection, dto);
 
+    Logger.log(`XML: ${xmlBody}`, 'DealernetOsService.createOs');
+
     try {
       const client = await dealernet();
 
