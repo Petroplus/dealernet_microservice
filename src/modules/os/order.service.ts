@@ -11,7 +11,6 @@ import {
   UpdateDealernetMarcacaoDto,
   UpdateDealernetOsDTO,
   UpdateDealernetServiceDTO,
-  UpdateDealernetTipoOSDto,
 } from 'src/dealernet/order/dto/update-order.dto';
 import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 import { IntegrationDealernet, IntegrationResponse } from 'src/petroplay/integration/entities/integration.entity';
