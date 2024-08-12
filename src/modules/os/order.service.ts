@@ -11,6 +11,7 @@ import {
   UpdateDealernetMarcacaoDto,
   UpdateDealernetOsDTO,
   UpdateDealernetServiceDTO,
+  UpdateDealernetServiceProductDTO,
   UpdateDealernetTipoOSDto,
 } from 'src/dealernet/order/dto/update-order.dto';
 import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
@@ -467,6 +468,10 @@ export class OsService {
       (service) => service.service_id === attachDTO.service_id && attachDTO.os_type_id,
     );
 
+    const filter_products = budget.products?.filter(
+      (product) => product.service_id === attachDTO.service_id && attachDTO.os_type_id,
+    );
+
     const TipoOS: UpdateDealernetTipoOSDto[] = [];
     const Servicos: UpdateDealernetServiceDTO[] = [];
 
@@ -478,9 +483,38 @@ export class OsService {
           ConsultorDocumento: formatarDoc(order.consultant?.cod_consultor),
         });
       }
-      const document = service.mechanic?.cod_consultant ?? budget.mechanic?.cod_consultor ?? connection?.mechanic_document;
 
-      const Produtivo = users.find((x) => x.Usuario_DocIdentificador == formatarDoc(document));
+      const Documento = service.mechanic?.cod_consultant ?? budget.mechanic?.cod_consultor ?? connection?.mechanic_document;
+      const Produtivo = users.find((x) => x.Usuario_DocIdentificador == formatarDoc(Documento));
+
+      const Produtos: UpdateDealernetServiceProductDTO[] = [];
+
+      for await (const product of filter_products) {
+        const produtos = await this.dealernet.findProductByReference(connection, product.integration_id);
+        const produto = produtos?.orderBy((x) => x.QuantidadeDisponivel, 'desc').first();
+
+        if (!produto || produto.ProdutoCodigo == 0) {
+          Logger.warn(`Produto ${product.integration_id}  ${product.name} não encontrado`, 'OsService');
+          await this.petroplay.order.updateOrderBudgetProduct(budget.order_id, budget.id, product.product_id, {
+            is_error: true,
+            error_details: 'Produto não encontrado',
+          });
+        } else if (produto.QuantidadeDisponivel >= 0) {
+          Produtos.push({
+            TipoOSSigla: os_type.external_id,
+            ProdutoReferencia: produto.ProdutoReferencia,
+            Quantidade: product.quantity,
+            ValorUnitario: product.price,
+          });
+        } else {
+          Logger.warn(`Produto ${product.integration_id}  ${product.name} sem quantidade disponível`, 'OsService');
+          await this.petroplay.order.updateOrderBudgetProduct(budget.order_id, budget.id, product.product_id, {
+            is_error: true,
+            error_details: 'Produto sem quantidade disponível',
+          });
+        }
+      }
+
       Servicos.push({
         TipoOSSigla: os_type.external_id,
         TMOReferencia: service.integration_id,
@@ -491,6 +525,7 @@ export class OsService {
         UsuarioIndResponsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         Cobrar: service?.is_charged_for ?? true,
         SetorExecucao: connection?.execution_sector,
+        Produtos: [],
       });
     }
 

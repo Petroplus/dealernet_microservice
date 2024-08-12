@@ -23,6 +23,14 @@ export class UpdateDealernetMarcacaoDto {
   Observacao?: string;
 }
 
+export class UpdateDealernetServiceProductDTO {
+  Chave?: number;
+  TipoOSSigla: string;
+  ProdutoReferencia: number | string;
+  ValorUnitario: number;
+  Quantidade: number;
+}
+
 export class UpdateDealernetServiceDTO {
   Chave?: number;
   TipoOSSigla: string;
@@ -44,7 +52,7 @@ export class UpdateDealernetServiceDTO {
   Selecionado?: boolean;
   StatusExecucao?: string;
   SetorExecucao?: string;
-  Produtos?: any[];
+  Produtos?: UpdateDealernetServiceProductDTO[];
   Marcacoes?: any[];
 }
 
