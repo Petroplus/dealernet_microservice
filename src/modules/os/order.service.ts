@@ -525,7 +525,7 @@ export class OsService {
         UsuarioIndResponsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         Cobrar: service?.is_charged_for ?? true,
         SetorExecucao: connection?.execution_sector,
-        Produtos: [],
+        Produtos: Produtos,
       });
     }
 
