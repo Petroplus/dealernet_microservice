@@ -6,7 +6,7 @@ import { ContextService } from 'src/context/context.service';
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { DealernetSchedule } from 'src/dealernet/schedule/response/schedule-response';
 import { IntegrationResponse } from 'src/petroplay/integration/entities/integration.entity';
-import { CreateOrderDto } from 'src/petroplay/order/dto/create-order.dto';
+import { CreateOrderDto, OrderType } from 'src/petroplay/order/dto/create-order.dto';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
 import { CreateScheduleDto } from './dto/create-schedule';
@@ -69,6 +69,8 @@ export class ScheduleService {
     const vehicles = await this.petroplay.integration.findVehicles(integration.client_id);
     const os_types = await this.petroplay.client.findOsTypes(integration.client_id);
 
+    const integration_ids = schedules.map((schedule) => schedule.Chave.toString());
+    const pps_orders = await this.petroplay.order.find({ integration_ids });
     const orders: CreateOrderDto[] = [];
     for await (const schedule of schedules) {
       const customer = await this.dealernet.customer.findById(integration.dealernet, schedule.ClienteCodigo);
@@ -136,7 +138,11 @@ export class ScheduleService {
         state: address?.PessoaEndereco_Estado?.toString().trim(),
         postal_code: address?.PessoaEndereco_CEP?.toString()?.toString().trim(),
       };
-
+      let type: OrderType = 'PACKAGE';
+      const order = pps_orders?.find((pps_order) => pps_order?.integration_id === schedule?.Chave.toString());
+      if (order) {
+        type = order.type;
+      }
       const dto: CreateOrderDto = {
         client_id: integration.client_id,
         customer_name: schedule.ClienteNome,
@@ -154,7 +160,7 @@ export class ScheduleService {
         vehicle_schedule_mileage: Number(schedule?.VeiculoKM ?? '0'),
         license_plate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
         mileage: Number(schedule?.VeiculoKM ?? '0'),
-        type: 'PACKAGE',
+        type: type,
         with_checklist: true,
         os_type_id: requests?.first()?.services?.first()?.os_type_id,
         inspection: schedule.Data.substring(0, 19),

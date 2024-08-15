@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { OrderType, OrderTypeEnum } from '../dto/create-order.dto';
+
 import { MakerEntity } from './maker.entity';
 import { ModelEntity } from './model.entity';
+import { OrderBudgetEntity } from './order-budget.entity';
 import { OrderItemEntity } from './order-items.entity';
 import { VersionEntity } from './version.entity';
 import { WebhookEntity } from './webhook.entity';
-import { OrderBudgetEntity } from './order-budget.entity';
 
 export class PetroplayOrderEntity {
   @ApiProperty()
@@ -304,6 +306,9 @@ export class PetroplayOrderEntity {
 
   @ApiProperty()
   consultant?: any;
+
+  @ApiProperty({ enum: OrderTypeEnum })
+  type: OrderType;
 
   @ApiProperty({ readOnly: true })
   users: any[];
