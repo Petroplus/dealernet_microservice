@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
 import { petroplay } from 'src/commons/web-client';
+import { OrderFilter } from 'src/modules/os/filters/order.filters';
 
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -12,6 +13,7 @@ import { OrderBudgetProductEntity } from './entity/order-budget-product.entity';
 import { OrderItemEntity } from './entity/order-items.entity';
 import { OrderStatus } from './enum/order-status.enum';
 import { OrderRelations } from './filters/expand-orders';
+import { PpsOrderFilter } from './filters/pps-order-filter';
 
 @Injectable()
 export class PetroplayOrderService {
@@ -157,6 +159,17 @@ export class PetroplayOrderService {
       .catch((err) => {
         Logger.error('Error on find order customer requests:', err, 'PetroplayOrderService.findOrderCustomerRequests');
         throw new BadRequestException('Error on find order customer requests');
+      });
+  }
+
+  async find(filter?: PpsOrderFilter): Promise<PetroplayOrderEntity[]> {
+    const client = await petroplay.v2();
+    return await client
+      .get(`/v2/orders`, { params: filter })
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on find order:', err, 'PetroplayOrderService.find');
+        throw new BadRequestException('Error on find order');
       });
   }
 }
