@@ -89,44 +89,52 @@ export class ScheduleService {
         .findYears(integration.dealernet, { year_code: veiculo?.VeiculoAno_Codigo })
         .then((data) => data.first());
 
-      const requests = schedule.Servicos?.map((service, index) => {
-        const os_type = os_types.find((x) => x.external_id == service.TipoOSSigla);
+      const requests = [];
 
-        const products = service.Produtos?.map((product) => ({
-          service_id: service.TMOReferencia,
-          product_id: product.ProdutoReferencia,
-          name: product.Descricao,
-          quantity: product.Quantidade,
-          price: product.ValorUnitario,
-          os_type_id: os_type?.id,
-          integration_id: product.ProdutoReferencia,
-          integration_data: product,
-        }));
+      // Verifica se está habilitado a importação de solicitações de clientes
+      if (integration.config.import_customer_request_of_dms_enable) {
+        schedule.Servicos?.forEach((service, index) => {
+          const os_type = os_types.find((x) => x.external_id == service.TipoOSSigla);
 
-        delete service.Produtos;
-        const services = [
-          {
+          const products = service.Produtos?.map((product) => ({
             service_id: service.TMOReferencia,
-            name: service.Descricao,
-            quantity: service.Tempo,
-            price: service.ValorUnitario,
+            product_id: product.ProdutoReferencia,
+            name: product.Descricao,
+            quantity: product.Quantidade,
+            price: product.ValorUnitario,
             os_type_id: os_type?.id,
-            integration_id: service.TMOReferencia,
-            integration_data: service,
-            products: products,
-          },
-        ];
+            integration_id: product.ProdutoReferencia,
+            integration_data: product,
+          }));
 
-        return {
-          sequence: index + 1,
-          description: service.Descricao,
-          notes: service.Observacao,
-          is_scheduled: true,
-          integration_id: service.Chave,
-          integration_data: service,
-          services: services,
-        };
-      });
+          delete service.Produtos;
+          const services = [];
+
+          // Verifica se está habilitado a importação de serviços das solicitações de clientes
+          if (integration.config.import_customer_request_services_of_dms_enable) {
+            services.push({
+              service_id: service.TMOReferencia,
+              name: service.Descricao,
+              quantity: service.Tempo,
+              price: service.ValorUnitario,
+              os_type_id: os_type?.id,
+              integration_id: service.TMOReferencia,
+              integration_data: service,
+              products: products,
+            });
+          }
+
+          requests.push({
+            sequence: index + 1,
+            description: service.Descricao,
+            notes: service.Observacao,
+            is_scheduled: true,
+            integration_id: service.Chave,
+            integration_data: service,
+            services: services,
+          });
+        });
+      }
 
       const addressDto = {
         address_name: 'Principal',
