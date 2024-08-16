@@ -63,7 +63,7 @@ export class CreateCustomerDTO {
   Pessoa_DocIdentificador: string;
 
   @ApiProperty({ type: Number, description: 'RG ou Inscrição Estadual da pessoa' })
-  @IsNotEmpty()
+  @IsOptional()
   Pessoa_RG_InscricaoEstadual: number;
 
   @ApiProperty({ type: String, description: 'Órgão emissor do documento' })
