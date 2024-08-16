@@ -93,12 +93,24 @@ export class DealernetBudgetService {
 
             return `
         <deal:Servico>
-        <deal:TipoOSSigla>${item.tipo_os_sigla}</deal:TipoOSSigla>
-        <deal:TMOReferencia>${item.tmo_referencia}</deal:TMOReferencia>
-        <deal:Tempo>${item.tempo}</deal:Tempo>
-        <deal:ValorUnitario>${item.valor_unitario}</deal:ValorUnitario>
-        <deal:Quantidade>${item.quantidade}</deal:Quantidade>
-        <deal:Cobra>${item.cobra}</deal:Cobra>
+        		<deal:Chave>?</deal:Chave>
+						<deal:TipoOSSigla>${item.tipo_os_sigla}</deal:TipoOSSigla>
+						<deal:TMOReferencia>${item.tmo_referencia}</deal:TMOReferencia>
+						<deal:Tempo>${item.tempo}</deal:Tempo>
+						<deal:ValorUnitario>${item.valor_unitario}</deal:ValorUnitario>
+						<deal:Quantidade>${item.quantidade}</deal:Quantidade>
+						<deal:Desconto>?</deal:Desconto>
+						<deal:DescontoPercentual>?</deal:DescontoPercentual>
+						<deal:Observacao>?</deal:Observacao>
+						<deal:ProdutivoDocumento>?</deal:ProdutivoDocumento>
+						<deal:UsuarioIndResponsavel>?</deal:UsuarioIndResponsavel>
+						<deal:Executar>?</deal:Executar>
+						<deal:Cobrar>${item.cobra}</deal:Cobrar>
+						<deal:DataPrevisao>?</deal:DataPrevisao>
+						<deal:KitCodigo>?</deal:KitCodigo>
+						<deal:KitPrecoFechado>?</deal:KitPrecoFechado>
+						<deal:CampanhaCodigo>?</deal:CampanhaCodigo>
+						<deal:StatusExecucao>?</deal:StatusExecucao>
          ${products}
         </deal:Servico>
     `;
@@ -149,6 +161,13 @@ export class DealernetBudgetService {
       const parsedData = parser.parse(xmlData);
       const budget: DealernetBudgetResponse =
         parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORCAMENTOResponse']['Sdt_fsorcamentoout'];
+
+      if (!budget) {
+        throw new BadRequestException('Erro ao criar orçamento', {
+          cause: parsedData,
+          description: 'Erro ao criar orçamento. Entre em contato com o suporte.'
+        });
+      }
 
       if (budget.Mensagem && budget.Chave === 0) {
         throw new BadRequestException(budget.Mensagem);

@@ -19,8 +19,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let httpStatus = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
     let responseBody = {
+      method: ctx.getRequest().method,
       statusCode: httpStatus,
       description: 'Ocorreu um erro inesperado',
+      cause: (exception as any)?.cause,
       timestamp: new Date().toISOString(),
       path: this.httpAdapter.getRequestUrl(ctx.getRequest()),
     };
@@ -30,10 +32,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (isString(ex.response)) {
         responseBody['error'] = ex.response;
       } else {
+        responseBody = { ...responseBody, ...ex.response };
+        responseBody.description = ex?.description || ex?.response?.error || responseBody.description;
         httpStatus = ex.response?.statusCode || ex.response?.status || httpStatus;
-
-        responseBody = ex.response;
-        responseBody.description = responseBody.description || ex.response.error;
         responseBody.path = this.httpAdapter.getRequestUrl(ctx.getRequest());
       }
     }
