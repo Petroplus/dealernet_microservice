@@ -147,7 +147,7 @@ export class ScheduleService {
         postal_code: address?.PessoaEndereco_CEP?.toString()?.toString().trim(),
       };
 
-      const order = pps_orders?.find((pps_order) => pps_order?.integration_id === schedule?.Chave.toString());
+      const order = pps_orders?.find((pps_order) => pps_order?.integration_id == schedule?.Chave.toString());
       if (order) {
         orders.push({
           ...(order as any),
