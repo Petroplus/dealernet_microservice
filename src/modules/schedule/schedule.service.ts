@@ -146,43 +146,47 @@ export class ScheduleService {
         state: address?.PessoaEndereco_Estado?.toString().trim(),
         postal_code: address?.PessoaEndereco_CEP?.toString()?.toString().trim(),
       };
-      let type: OrderType = 'PACKAGE';
+
       const order = pps_orders?.find((pps_order) => pps_order?.integration_id === schedule?.Chave.toString());
       if (order) {
-        type = order.type;
-      }
-      const dto: CreateOrderDto = {
-        client_id: integration.client_id,
-        customer_name: schedule.ClienteNome,
-        customer_document: schedule.ClienteDocumento.toString().trim(),
-        phone_number: phone?.PessoaTelefone_Fone?.toString().trim(),
-        email: customer.Pessoa_Email?.toString().trim(),
-        address: addressDto,
-        vehicle_maker_id: vehicle?.maker_id,
-        vehicle_model_id: vehicle?.model_id,
-        vehicle_version_id: vehicle?.version_id,
-        vehicle_year: year?.Ano_Modelo?.toString().trim(),
-        vehicle_fuel: vehicle?.fuel,
-        vehicle_color: veiculo?.Veiculo_CorExternaDescricao,
-        vehicle_chassis_number: schedule.VeiculoChassi ?? 'Não Informado',
-        vehicle_schedule_mileage: Number(schedule?.VeiculoKM ?? '0'),
-        license_plate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
-        mileage: Number(schedule?.VeiculoKM ?? '0'),
-        type: type,
-        with_checklist: true,
-        os_type_id: requests?.first()?.services?.first()?.os_type_id,
-        inspection: schedule.Data.substring(0, 19),
-        integration_id: `${schedule.Chave}`,
-        integration_data: schedule,
-        customer_requests: requests,
-        notes: schedule.Observacao,
-        additional_information: `Dealernet
+        orders.push({
+          ...(order as any),
+          inspection: schedule.Data.substring(0, 19),
+          integration_data: schedule,
+        });
+      } else {
+        const dto: CreateOrderDto = {
+          client_id: integration.client_id,
+          customer_name: schedule.ClienteNome,
+          customer_document: schedule.ClienteDocumento.toString().trim(),
+          phone_number: phone?.PessoaTelefone_Fone?.toString().trim(),
+          email: customer.Pessoa_Email?.toString().trim(),
+          address: addressDto,
+          vehicle_maker_id: vehicle?.maker_id,
+          vehicle_model_id: vehicle?.model_id,
+          vehicle_version_id: vehicle?.version_id,
+          vehicle_year: year?.Ano_Modelo?.toString().trim(),
+          vehicle_fuel: vehicle?.fuel,
+          vehicle_color: veiculo?.Veiculo_CorExternaDescricao,
+          vehicle_chassis_number: schedule.VeiculoChassi ?? 'Não Informado',
+          vehicle_schedule_mileage: Number(schedule?.VeiculoKM ?? '0'),
+          license_plate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
+          mileage: Number(schedule?.VeiculoKM ?? '0'),
+          type: 'PACKAGE',
+          with_checklist: true,
+          os_type_id: requests?.first()?.services?.first()?.os_type_id,
+          inspection: schedule.Data.substring(0, 19),
+          integration_id: `${schedule.Chave}`,
+          integration_data: schedule,
+          customer_requests: requests,
+          notes: schedule.Observacao,
+          additional_information: `Dealernet
         Nome do consultor: ${schedule.ConsultorNome ?? ''}
         Modelo do veículo: ${schedule.VeiculoModelo ?? ''}
         `,
-      };
-
-      orders.push(dto);
+        };
+        orders.push(dto);
+      }
     }
 
     return orders;
