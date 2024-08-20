@@ -153,6 +153,7 @@ export class ScheduleService {
           ...(order as any),
           inspection: schedule.Data.substring(0, 19),
           integration_data: schedule,
+          customer_requests: requests,
         });
       } else {
         const dto: CreateOrderDto = {
