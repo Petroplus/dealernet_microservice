@@ -133,6 +133,11 @@ export class OsService {
     const services: ServicoCreateDTO[] = [];
     for await (const service of budget.services.filter((x) => x.is_approved)) {
       const os_type = service?.os_type ?? budget?.os_type ?? order?.os_type;
+      if (!os_type)
+        throw new BadRequestException('OS type not found', {
+          description: `Não foi definido o tipo de OS para o serviço ${service.service_id} | ${service.name}`,
+        });
+
       if (!os_types?.find((x) => x.tipo_os_sigla == os_type.external_id)) {
         os_types.push({
           tipo_os_sigla: os_type.external_id,
@@ -477,6 +482,11 @@ export class OsService {
 
     for (const service of filters_services) {
       const os_type = service?.os_type ?? budget?.os_type ?? order?.os_type;
+      if (!os_type)
+        throw new BadRequestException('OS type not found', {
+          description: `Não foi definido o tipo de OS para o serviço ${service.service_id} | ${service.name}`,
+        });
+
       if (!TipoOS?.find((x) => x.TipoOSSigla == os_type.external_id)) {
         TipoOS.push({
           TipoOSSigla: os_type.external_id,
