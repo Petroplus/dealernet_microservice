@@ -152,6 +152,7 @@ export class ScheduleService {
         orders.push({
           ...(order as any),
           inspection: schedule.Data.substring(0, 19),
+          schedule_date: new Date(schedule.Data),
           integration_data: schedule,
           customer_requests: requests,
         });
@@ -177,6 +178,7 @@ export class ScheduleService {
           with_checklist: true,
           os_type_id: requests?.first()?.services?.first()?.os_type_id,
           inspection: schedule.Data.substring(0, 19),
+          schedule_date: new Date(schedule.Data),
           integration_id: `${schedule.Chave}`,
           integration_data: schedule,
           customer_requests: requests,
