@@ -126,7 +126,7 @@ export class ScheduleService {
 
           requests.push({
             sequence: index + 1,
-            description: service.Observacao,
+            description: String.isEmpty(service.Observacao) ? service.Descricao : service.Observacao,
             notes: service.Descricao,
             is_scheduled: true,
             integration_id: service.Chave,
