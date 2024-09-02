@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { isEmail } from 'class-validator';
 import { Task } from 'system-x64';
 
 import { ContextService } from 'src/context/context.service';
@@ -81,6 +82,7 @@ export class ScheduleService {
       if (!veiculo) {
         Logger.warn(`Vehicle not found on Dealernet ${schedule.VeiculoPlaca}`, 'ScheduleService.scheduleToOs');
       }
+
       const vehicle = vehicles.find(
         (x) => x.veiculo_codigo == veiculo?.VeiculoModelo_Codigo && x.veiculo_descricao == veiculo?.VeiculoModelo_Descricao,
       );
@@ -162,7 +164,7 @@ export class ScheduleService {
           customer_name: schedule.ClienteNome,
           customer_document: schedule.ClienteDocumento.toString().trim(),
           phone_number: phone?.PessoaTelefone_Fone?.toString().trim(),
-          email: customer.Pessoa_Email?.toString().trim(),
+          email: isEmail(customer.Pessoa_Email) ? customer.Pessoa_Email?.toString().trim() : 'contato@petroplay.com.br',
           address: addressDto,
           vehicle_maker_id: vehicle?.maker_id,
           vehicle_model_id: vehicle?.model_id,
