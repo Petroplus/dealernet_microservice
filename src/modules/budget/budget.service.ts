@@ -76,7 +76,7 @@ export class BudgetService {
     budget: OrderBudgetEntity,
     connection: IntegrationDealernet,
   ): Promise<CreateOsDTO> {
-    const tipo_os_sigla = order?.os_type?.external_id;
+    //const tipo_os_sigla = order?.os_type?.external_id;
     const os_types: TipoOSItemCreateDTO[] = [];
 
     const services: ServicoCreateDTO[] = [];
@@ -95,7 +95,8 @@ export class BudgetService {
       }
 
       services.push({
-        tipo_os_sigla,
+        service_id: service.service_id,
+        tipo_os_sigla: os_type.external_id,
         tmo_referencia: service.integration_id,
         tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
         valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
@@ -143,7 +144,7 @@ export class BudgetService {
           tipo_os_sigla: os_type.external_id,
         });
 
-        const service = services.find((x) => x.tmo_referencia == product.service_id && x.tipo_os_sigla == os_type.external_id);
+        const service = services.find((x) => x.service_id == product.service_id && x.tipo_os_sigla == os_type.external_id);
         if (service) {
           service.produtos.push(dto);
         } else {
@@ -171,7 +172,7 @@ export class BudgetService {
       nro_prisma: order.prisma,
       observacao: order.notes,
       prisma_codigo: order.prisma,
-      tipo_os_sigla: tipo_os_sigla,
+      tipo_os_sigla: order?.os_type?.external_id ?? os_types?.first()?.tipo_os_sigla,
       servicos: services,
       tipo_os_types: os_types,
     };

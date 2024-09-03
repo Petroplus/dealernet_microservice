@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 
 export class ProdutoCreateDTO {
   @ApiProperty()
@@ -33,6 +34,9 @@ export class ProdutoCreateDTO {
 }
 
 export class ServicoCreateDTO {
+  @Exclude()
+  service_id?: string;
+
   @ApiProperty()
   tipo_os_sigla: string;
 

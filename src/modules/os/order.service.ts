@@ -158,6 +158,7 @@ export class OsService {
 
       services.push({
         tipo_os_sigla: os_type.external_id,
+        service_id: service.service_id,
         tmo_referencia: service.integration_id,
         tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
         valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
@@ -197,7 +198,7 @@ export class OsService {
           tipo_os_sigla: os_type.external_id,
         });
 
-        const service = services.find((x) => x.tmo_referencia == product.service_id && x.tipo_os_sigla == os_type.external_id);
+        const service = services.find((x) => x.service_id == product.service_id && x.tipo_os_sigla == os_type.external_id);
         if (service) {
           service.produtos.push(dto);
         } else {
@@ -224,7 +225,7 @@ export class OsService {
       nro_prisma: order.prisma,
       observacao: order.notes,
       prisma_codigo: order.prisma,
-      tipo_os_sigla: services?.first()?.tipo_os_sigla ?? order.os_type?.external_id,
+      tipo_os_sigla: order?.os_type?.external_id ?? services?.first()?.tipo_os_sigla ?? order.os_type?.external_id,
       servicos: services,
       tipo_os_types: os_types,
     };
