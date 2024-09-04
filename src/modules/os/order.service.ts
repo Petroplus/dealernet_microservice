@@ -189,7 +189,7 @@ export class OsService {
           is_error: true,
           error_details: 'Produto não encontrado',
         });
-      } else if (produto.QuantidadeDisponivel >= 0) {
+      } else {
         const dto = new ProdutoUpdateDto({
           produto: produto.ProdutoCodigo?.toString(),
           produto_referencia: produto.ProdutoReferencia,
@@ -204,12 +204,6 @@ export class OsService {
         } else {
           services[0].produtos.push(dto);
         }
-      } else {
-        Logger.warn(`Produto ${product.integration_id}  ${product.name} sem quantidade disponível`, 'OsService');
-        await this.petroplay.order.updateOrderBudgetProduct(budget.order_id, budget.id, product.product_id, {
-          is_error: true,
-          error_details: 'Produto sem quantidade disponível',
-        });
       }
     }
 
