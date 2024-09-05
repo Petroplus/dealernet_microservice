@@ -100,21 +100,10 @@ export class BudgetService {
         tmo_referencia: service.integration_id,
         tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
         valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
-        quantidade: Number(service.quantity) > 0 ? Math.ceil(service.quantity) : 1,
+        quantidade: 1,
         cobra: service?.is_charged_for ?? true,
         produtos: [],
       });
-
-      // if (!aux_os_type) {
-      //   aux_os_type = budget?.os_type?.external_id;
-      // }
-      // let already_used_os_type_products = false;
-      // for await (const product of budget.products) {
-      //   if (!aux_os_type) {
-      //     aux_os_type = product?.os_type?.external_id;
-      //   }
-      //   if (!os_types?.some((type) => type === product.os_type.external_id)) {
-      //     os_types.push(product.os_type.external_id);
     }
 
     for await (const product of budget.products.filter((x) => x.is_approved)) {
