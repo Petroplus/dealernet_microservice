@@ -253,7 +253,10 @@ export class DealernetOsService {
       return this.findByOsNumber(connection, order.NumeroOS);
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetOrderService.createOs');
-      throw error;
+      throw new BadRequestException('Erro ao criar a OS', {
+        cause: error,
+        description: 'Ocorreu um erro ao abrir a Ordem de Serviço. Entre em contato com o suporte.'
+      });
     }
   }
 
