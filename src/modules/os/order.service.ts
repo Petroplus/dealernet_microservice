@@ -167,6 +167,7 @@ export class OsService {
         usuario_ind_responsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         cobra: service?.is_charged_for ?? true,
         setor_execucao: connection.execution_sector,
+        observacao: service.notes,
         produtos: [],
       });
     }
@@ -530,6 +531,7 @@ export class OsService {
         UsuarioIndResponsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         Cobrar: service?.is_charged_for ?? true,
         SetorExecucao: connection?.execution_sector,
+        Observacao: service.notes,
         Produtos: Produtos,
       });
     }
@@ -561,38 +563,5 @@ export class OsService {
       TipoOS: TipoOS,
     };
     return dto;
-  }
-
-  async formatDate(date?: Date, compare_date?: Date): Promise<string> {
-    if (!date) {
-      return '?';
-    }
-
-    date = new Date(date);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    let hours = date.getHours();
-    let minutes = date.getMinutes();
-
-    if (compare_date) {
-      compare_date = new Date(compare_date);
-      minutes = compare_date.getMinutes() + 1;
-    }
-
-    if (minutes >= 60) {
-      minutes -= 60;
-      hours += 1;
-    }
-
-    if (hours >= 24) {
-      hours -= 24;
-      date.setDate(date.getDate() + 1);
-    }
-
-    const formattedHours = String(hours).padStart(2, '0');
-    const formattedMinutes = String(minutes).padStart(2, '0');
-
-    return `${year}-${month}-${day}T${formattedHours}:${formattedMinutes}`;
   }
 }

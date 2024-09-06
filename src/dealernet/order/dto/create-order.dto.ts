@@ -60,6 +60,9 @@ export class ServicoCreateDTO {
   @ApiProperty()
   setor_execucao?: string;
 
+  @ApiProperty()
+  observacao: string;
+
   @ApiProperty({ type: ProdutoCreateDTO })
   produtos: ProdutoCreateDTO[];
 }

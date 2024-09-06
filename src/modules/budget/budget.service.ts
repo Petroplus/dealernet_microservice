@@ -102,6 +102,7 @@ export class BudgetService {
         valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
         quantidade: 1,
         cobra: service?.is_charged_for ?? true,
+        observacao: service.notes,
         produtos: [],
       });
     }
