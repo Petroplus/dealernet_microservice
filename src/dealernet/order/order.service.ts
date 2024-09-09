@@ -238,7 +238,7 @@ export class DealernetOsService {
     try {
       const client = await dealernet();
 
-      const response = await client.post(url, xmlBody, { timeout: 6000 * 2 }).then((response) => new XMLParser().parse(response.data));
+      const response = await client.post(url, xmlBody, { timeout: 60000 * 2 }).then((response) => new XMLParser().parse(response.data));
       const order: DealernetOrder = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista']['SDT_FSOrdemServicoOut'];
 
       if (order.Mensagem && order.Chave === 0) {
