@@ -288,6 +288,11 @@ export class CreateOrderDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
+  @IsDateString()
+  schedule_date?: Date;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
   customer_requests?: any;
 
   @ApiProperty({ required: false })

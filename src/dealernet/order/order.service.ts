@@ -117,6 +117,7 @@ export class DealernetOsService {
         <deal:ProdutivoDocumento>${item.produtivo_documento ?? '?'}</deal:ProdutivoDocumento>
         <deal:UsuarioIndResponsavel>${item.usuario_ind_responsavel ?? '?'}</deal:UsuarioIndResponsavel>
         <deal:SetorExecucao>${item?.setor_execucao ?? 'OFC'}</deal:SetorExecucao>
+        <deal:Observacao>${item?.observacao ?? ''}</deal:Observacao>
          ${products}
         </deal:Servico>
     `;
@@ -237,7 +238,7 @@ export class DealernetOsService {
     try {
       const client = await dealernet();
 
-      const response = await client.post(url, xmlBody).then((response) => new XMLParser().parse(response.data));
+      const response = await client.post(url, xmlBody, { timeout: 60000 * 2 }).then((response) => new XMLParser().parse(response.data));
       const order: DealernetOrder = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista']['SDT_FSOrdemServicoOut'];
 
       if (order.Mensagem && order.Chave === 0) {
@@ -252,7 +253,10 @@ export class DealernetOsService {
       return this.findByOsNumber(connection, order.NumeroOS);
     } catch (error) {
       Logger.error('Erro ao fazer a requisição:', error, 'DealernetOrderService.createOs');
-      throw error;
+      throw new BadRequestException('Erro ao criar a OS', {
+        cause: error,
+        description: 'Ocorreu um erro ao abrir a Ordem de Serviço. Entre em contato com o suporte.'
+      });
     }
   }
 

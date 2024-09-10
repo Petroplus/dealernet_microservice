@@ -4,6 +4,7 @@ export interface IntegrationResponse {
   use_mapsis: boolean;
   dealernet: IntegrationDealernet;
   mapsis: IntegrationMapSisEntity;
+  config: IntegrationConfig;
 }
 
 export interface IntegrationMapSisEntity {
@@ -37,4 +38,18 @@ export interface IntegrationDealernetVehicle {
   version_id: number;
   year: number;
   fuel: string;
+}
+
+export interface IntegrationConfig {
+  scheduling_enabled: boolean;
+  os_enabled: boolean;
+  pre_os_enabled: boolean;
+  complementary_budget_enabled: boolean;
+  add_remove_products_enabled: boolean;
+  dms_packages_enabled: boolean;
+  round_product_quantity: boolean;
+  import_customer_request_of_dms_enable: boolean;
+  import_customer_request_services_of_dms_enable: boolean;
+  edit_price_of_service_enable: boolean;
+  edit_price_of_product_enable: boolean;
 }
