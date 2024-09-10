@@ -6,10 +6,12 @@ import { OrderFilter } from 'src/modules/os/filters/order.filters';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpsertOrderDto } from './dto/upsert-order.dto';
+import { UpsertOrderBudgetServiceDto } from './dto/upsert-order-budget-service.dto';
 import { PetroplayOrderEntity } from './entity/order.entity';
 import { OrderAppointmentEntity } from './entity/order-appointment.entity';
 import { OrderBudgetEntity } from './entity/order-budget.entity';
 import { OrderBudgetProductEntity } from './entity/order-budget-product.entity';
+import { OrderBudgetServiceEntity } from './entity/order-budget-service.entity';
 import { OrderItemEntity } from './entity/order-items.entity';
 import { OrderStatus } from './enum/order-status.enum';
 import { OrderRelations } from './filters/expand-orders';
@@ -170,6 +172,32 @@ export class PetroplayOrderService {
       .catch((err) => {
         Logger.error('Error on find order:', err, 'PetroplayOrderService.find');
         throw new BadRequestException('Error on find order');
+      });
+  }
+
+  async findOrderBudgetService(order_id: string, budget_id: string, service_id: string): Promise<OrderBudgetServiceEntity> {
+    const client = await petroplay.v2();
+    return client
+      .get(`/v2/orders/${order_id}/budgets/${budget_id}/services/${service_id}`)
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on find order budget service:', err, 'PetroplayOrderService.findOrderBudgetService');
+        throw new BadRequestException('Error on find order budget service');
+      });
+  }
+
+  async upsertOrderBudgetService(
+    order_id: string,
+    budget_id: string,
+    dtos: UpsertOrderBudgetServiceDto[],
+  ): Promise<OrderBudgetServiceEntity> {
+    const client = await petroplay.v2();
+    return client
+      .put(`/v2/orders/${order_id}/budgets/${budget_id}/services`, dtos)
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on upsert order budget services:', err, 'PetroplayOrderService.upsertOrderBudgetService');
+        throw new BadRequestException('Error on upsert order budget service');
       });
   }
 }

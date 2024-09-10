@@ -52,6 +52,7 @@ export class UpdateDealernetServiceDTO {
   Selecionado?: boolean;
   StatusExecucao?: string;
   SetorExecucao?: string;
+  StatusAutorizacao?: string;
   Produtos?: UpdateDealernetServiceProductDTO[];
   Marcacoes?: any[];
 }
