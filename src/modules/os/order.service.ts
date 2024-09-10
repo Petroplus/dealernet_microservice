@@ -45,7 +45,10 @@ export class OsService {
       };
       return this.dealernet.order.find(integration.dealernet, filter);
     } else {
-      const budget_numbers = order.budgets.filter((x) => x.os_number).map((budget) => budget.os_number);
+      const budget_numbers = order.budgets
+        .filter((x) => x.os_number)
+        .groupBy((x) => x.os_number)
+        .select((x) => x.key);
 
       const result = [];
       await Promise.all(
