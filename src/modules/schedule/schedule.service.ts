@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { isEmail } from 'class-validator';
 import { Task } from 'system-x64';
 
 import { ContextService } from 'src/context/context.service';
@@ -81,6 +82,7 @@ export class ScheduleService {
       if (!veiculo) {
         Logger.warn(`Vehicle not found on Dealernet ${schedule.VeiculoPlaca}`, 'ScheduleService.scheduleToOs');
       }
+
       const vehicle = vehicles.find(
         (x) => x.veiculo_codigo == veiculo?.VeiculoModelo_Codigo && x.veiculo_descricao == veiculo?.VeiculoModelo_Descricao,
       );
@@ -89,44 +91,52 @@ export class ScheduleService {
         .findYears(integration.dealernet, { year_code: veiculo?.VeiculoAno_Codigo })
         .then((data) => data.first());
 
-      const requests = schedule.Servicos?.map((service, index) => {
-        const os_type = os_types.find((x) => x.external_id == service.TipoOSSigla);
+      const requests = [];
 
-        const products = service.Produtos?.map((product) => ({
-          service_id: service.TMOReferencia,
-          product_id: product.ProdutoReferencia,
-          name: product.Descricao,
-          quantity: product.Quantidade,
-          price: product.ValorUnitario,
-          os_type_id: os_type?.id,
-          integration_id: product.ProdutoReferencia,
-          integration_data: product,
-        }));
+      // Verifica se está habilitado a importação de solicitações de clientes
+      if (integration.config.import_customer_request_of_dms_enable) {
+        schedule.Servicos?.forEach((service, index) => {
+          const os_type = os_types.find((x) => x.external_id == service.TipoOSSigla);
 
-        delete service.Produtos;
-        const services = [
-          {
+          const products = service.Produtos?.map((product) => ({
             service_id: service.TMOReferencia,
-            name: service.Descricao,
-            quantity: service.Tempo,
-            price: service.ValorUnitario,
+            product_id: product.ProdutoReferencia,
+            name: product.Descricao,
+            quantity: product.Quantidade,
+            price: product.ValorUnitario,
             os_type_id: os_type?.id,
-            integration_id: service.TMOReferencia,
-            integration_data: service,
-            products: products,
-          },
-        ];
+            integration_id: product.ProdutoReferencia,
+            integration_data: product,
+          }));
 
-        return {
-          sequence: index + 1,
-          description: service.Descricao,
-          notes: service.Observacao,
-          is_scheduled: true,
-          integration_id: service.Chave,
-          integration_data: service,
-          services: services,
-        };
-      });
+          delete service.Produtos;
+          const services = [];
+
+          // Verifica se está habilitado a importação de serviços das solicitações de clientes
+          if (integration.config.import_customer_request_services_of_dms_enable) {
+            services.push({
+              service_id: service.TMOReferencia,
+              name: service.Descricao,
+              quantity: service.Tempo,
+              price: service.ValorUnitario,
+              os_type_id: os_type?.id,
+              integration_id: service.TMOReferencia,
+              integration_data: service,
+              products: products,
+            });
+          }
+
+          requests.push({
+            sequence: index + 1,
+            description: String.isEmpty(service.Observacao) ? service.Descricao : service.Observacao,
+            notes: service.Descricao,
+            is_scheduled: true,
+            integration_id: service.Chave,
+            integration_data: service,
+            services: services,
+          });
+        });
+      }
 
       const addressDto = {
         address_name: 'Principal',
@@ -138,43 +148,50 @@ export class ScheduleService {
         state: address?.PessoaEndereco_Estado?.toString().trim(),
         postal_code: address?.PessoaEndereco_CEP?.toString()?.toString().trim(),
       };
-      let type: OrderType = 'PACKAGE';
-      const order = pps_orders?.find((pps_order) => pps_order?.integration_id === schedule?.Chave.toString());
+
+      const order = pps_orders?.find((pps_order) => pps_order?.integration_id == schedule?.Chave.toString());
       if (order) {
-        type = order.type;
-      }
-      const dto: CreateOrderDto = {
-        client_id: integration.client_id,
-        customer_name: schedule.ClienteNome,
-        customer_document: schedule.ClienteDocumento.toString().trim(),
-        phone_number: phone?.PessoaTelefone_Fone?.toString().trim(),
-        email: customer.Pessoa_Email?.toString().trim(),
-        address: addressDto,
-        vehicle_maker_id: vehicle?.maker_id,
-        vehicle_model_id: vehicle?.model_id,
-        vehicle_version_id: vehicle?.version_id,
-        vehicle_year: year?.Ano_Modelo?.toString().trim(),
-        vehicle_fuel: vehicle?.fuel,
-        vehicle_color: veiculo?.Veiculo_CorExternaDescricao,
-        vehicle_chassis_number: schedule.VeiculoChassi ?? 'Não Informado',
-        vehicle_schedule_mileage: Number(schedule?.VeiculoKM ?? '0'),
-        license_plate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
-        mileage: Number(schedule?.VeiculoKM ?? '0'),
-        type: type,
-        with_checklist: true,
-        os_type_id: requests?.first()?.services?.first()?.os_type_id,
-        inspection: schedule.Data.substring(0, 19),
-        integration_id: `${schedule.Chave}`,
-        integration_data: schedule,
-        customer_requests: requests,
-        notes: schedule.Observacao,
-        additional_information: `Dealernet
+        orders.push({
+          ...(order as any),
+          inspection: schedule.Data.substring(0, 19),
+          schedule_date: new Date(schedule.Data),
+          integration_data: schedule,
+          customer_requests: requests,
+        });
+      } else {
+        const dto: CreateOrderDto = {
+          client_id: integration.client_id,
+          customer_name: schedule.ClienteNome,
+          customer_document: schedule.ClienteDocumento.toString().trim(),
+          phone_number: phone?.PessoaTelefone_Fone?.toString().trim(),
+          email: isEmail(customer.Pessoa_Email) ? customer.Pessoa_Email?.toString().trim() : 'contato@petroplay.com.br',
+          address: addressDto,
+          vehicle_maker_id: vehicle?.maker_id,
+          vehicle_model_id: vehicle?.model_id,
+          vehicle_version_id: vehicle?.version_id,
+          vehicle_year: year?.Ano_Modelo?.toString().trim(),
+          vehicle_fuel: vehicle?.fuel,
+          vehicle_color: veiculo?.Veiculo_CorExternaDescricao,
+          vehicle_chassis_number: schedule.VeiculoChassi ?? 'Não Informado',
+          vehicle_schedule_mileage: Number(schedule?.VeiculoKM ?? '0'),
+          license_plate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
+          mileage: Number(schedule?.VeiculoKM ?? '0'),
+          type: 'PACKAGE',
+          with_checklist: true,
+          os_type_id: requests?.first()?.services?.first()?.os_type_id,
+          inspection: schedule.Data.substring(0, 19),
+          schedule_date: new Date(schedule.Data),
+          integration_id: `${schedule.Chave}`,
+          integration_data: schedule,
+          customer_requests: requests,
+          notes: schedule.Observacao,
+          additional_information: `Dealernet
         Nome do consultor: ${schedule.ConsultorNome ?? ''}
         Modelo do veículo: ${schedule.VeiculoModelo ?? ''}
         `,
-      };
-
-      orders.push(dto);
+        };
+        orders.push(dto);
+      }
     }
 
     return orders;

@@ -7,8 +7,9 @@ import { NextFunction } from 'express';
 import { AppModule } from 'src/app.module';
 import { ValidationExceptionFactory } from 'src/exceptions/validations.exception';
 
-import 'system-x64';
 import 'src/configs';
+import 'src/extends';
+import 'system-x64';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

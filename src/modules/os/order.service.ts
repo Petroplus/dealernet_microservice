@@ -45,7 +45,10 @@ export class OsService {
       };
       return this.dealernet.order.find(integration.dealernet, filter);
     } else {
-      const budget_numbers = order.budgets.map((budget) => budget.os_number);
+      const budget_numbers = order.budgets
+        .filter((x) => x.os_number)
+        .groupBy((x) => x.os_number)
+        .select((x) => x.key);
 
       const result = [];
       await Promise.all(
@@ -133,6 +136,11 @@ export class OsService {
     const services: ServicoCreateDTO[] = [];
     for await (const service of budget.services.filter((x) => x.is_approved)) {
       const os_type = service?.os_type ?? budget?.os_type ?? order?.os_type;
+      if (!os_type)
+        throw new BadRequestException('OS type not found', {
+          description: `Não foi definido o tipo de OS para o serviço ${service.service_id} | ${service.name}`,
+        });
+
       if (!os_types?.find((x) => x.tipo_os_sigla == os_type.external_id)) {
         os_types.push({
           tipo_os_sigla: os_type.external_id,
@@ -153,14 +161,16 @@ export class OsService {
 
       services.push({
         tipo_os_sigla: os_type.external_id,
+        service_id: service.service_id,
         tmo_referencia: service.integration_id,
         tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
         valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
-        quantidade: Number(service.quantity) > 0 ? Math.ceil(service.quantity) : 1,
+        quantidade: 1,
         produtivo_documento: budget.is_request_products ? formatarDoc(Produtivo.Usuario_DocIdentificador) : null,
         usuario_ind_responsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         cobra: service?.is_charged_for ?? true,
         setor_execucao: connection.execution_sector,
+        observacao: service.notes,
         produtos: [],
       });
     }
@@ -183,7 +193,7 @@ export class OsService {
           is_error: true,
           error_details: 'Produto não encontrado',
         });
-      } else if (produto.QuantidadeDisponivel >= 0) {
+      } else {
         const dto = new ProdutoUpdateDto({
           produto: produto.ProdutoCodigo?.toString(),
           produto_referencia: produto.ProdutoReferencia,
@@ -192,18 +202,12 @@ export class OsService {
           tipo_os_sigla: os_type.external_id,
         });
 
-        const service = services.find((x) => x.tmo_referencia == product.service_id && x.tipo_os_sigla == os_type.external_id);
+        const service = services.find((x) => x.service_id == product.service_id && x.tipo_os_sigla == os_type.external_id);
         if (service) {
           service.produtos.push(dto);
         } else {
           services[0].produtos.push(dto);
         }
-      } else {
-        Logger.warn(`Produto ${product.integration_id}  ${product.name} sem quantidade disponível`, 'OsService');
-        await this.petroplay.order.updateOrderBudgetProduct(budget.order_id, budget.id, product.product_id, {
-          is_error: true,
-          error_details: 'Produto sem quantidade disponível',
-        });
       }
     }
 
@@ -219,7 +223,7 @@ export class OsService {
       nro_prisma: order.prisma,
       observacao: order.notes,
       prisma_codigo: order.prisma,
-      tipo_os_sigla: services?.first()?.tipo_os_sigla ?? order.os_type?.external_id,
+      tipo_os_sigla: order?.os_type?.external_id ?? services?.first()?.tipo_os_sigla ?? order.os_type?.external_id,
       servicos: services,
       tipo_os_types: os_types,
     };
@@ -349,7 +353,7 @@ export class OsService {
           DataInicial: DataInicial.formatUTC('yyyy-MM-ddThh:mm:ss'),
           DataFinal: DataFinal.formatUTC('yyyy-MM-ddThh:mm:ss'),
           MotivoParada: item?.reason_stopped?.external_id,
-          Observacao: '',
+          Observacao: item?.reason_stopped?.name,
         });
       }
 
@@ -477,6 +481,11 @@ export class OsService {
 
     for (const service of filters_services) {
       const os_type = service?.os_type ?? budget?.os_type ?? order?.os_type;
+      if (!os_type)
+        throw new BadRequestException('OS type not found', {
+          description: `Não foi definido o tipo de OS para o serviço ${service.service_id} | ${service.name}`,
+        });
+
       if (!TipoOS?.find((x) => x.TipoOSSigla == os_type.external_id)) {
         TipoOS.push({
           TipoOSSigla: os_type.external_id,
@@ -520,11 +529,12 @@ export class OsService {
         TMOReferencia: service.integration_id,
         Tempo: Number(service.quantity) > 0 ? Number(service.quantity) : 0.01,
         ValorUnitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
-        Quantidade: Number(service.quantity) > 0 ? Math.ceil(service.quantity) : 1,
+        Quantidade: 1,
         ProdutivoDocumento: budget.is_request_products ? formatarDoc(Produtivo.Usuario_DocIdentificador) : null,
         UsuarioIndResponsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         Cobrar: service?.is_charged_for ?? true,
         SetorExecucao: connection?.execution_sector,
+        Observacao: service.notes,
         Produtos: Produtos,
       });
     }
@@ -556,38 +566,5 @@ export class OsService {
       TipoOS: TipoOS,
     };
     return dto;
-  }
-
-  async formatDate(date?: Date, compare_date?: Date): Promise<string> {
-    if (!date) {
-      return '?';
-    }
-
-    date = new Date(date);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    let hours = date.getHours();
-    let minutes = date.getMinutes();
-
-    if (compare_date) {
-      compare_date = new Date(compare_date);
-      minutes = compare_date.getMinutes() + 1;
-    }
-
-    if (minutes >= 60) {
-      minutes -= 60;
-      hours += 1;
-    }
-
-    if (hours >= 24) {
-      hours -= 24;
-      date.setDate(date.getDate() + 1);
-    }
-
-    const formattedHours = String(hours).padStart(2, '0');
-    const formattedMinutes = String(minutes).padStart(2, '0');
-
-    return `${year}-${month}-${day}T${formattedHours}:${formattedMinutes}`;
   }
 }
