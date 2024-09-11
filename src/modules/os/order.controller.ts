@@ -81,7 +81,7 @@ export class OsController {
     return this.service.appointment(order_id, budget_id, appointment_id);
   }
 
-  @Get(`:budget_id/attach-service/schema`)
+  @Post(`:budget_id/attach-service/schema`)
   @ApiResponse({ status: 200 })
   @ApiOperation({
     summary: 'Retorna um corpo XML para adicionar um serviço a uma ordem já existente',
