@@ -155,6 +155,7 @@ export class ScheduleService {
           ...(order as any),
           inspection: schedule.Data.substring(0, 19),
           schedule_date: new Date(schedule.Data),
+          vehicle_schedule_mileage: Number(schedule?.VeiculoKM ?? '0'),
           integration_data: schedule,
           customer_requests: requests,
         });
