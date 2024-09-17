@@ -103,6 +103,9 @@ export class OrderBudgetServiceEntity {
   @ApiProperty()
   is_pre_delivery_adjusted: boolean;
 
+  @ApiProperty()
+  is_run_of_externally: boolean;
+
   @ApiProperty({ type: () => ClientOsTypeEntity })
   os_type: ClientOsTypeEntity;
 
