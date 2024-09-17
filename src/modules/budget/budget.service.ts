@@ -211,18 +211,8 @@ export class BudgetService {
           servico.TMOReferencia === service_pps?.integration_id && servico.TipoOSSigla === service_pps?.os_type?.external_id,
       );
       aux_servicos.push({
-        TipoOSSigla: dealernet_order_service?.TipoOSSigla,
-        TMOReferencia: dealernet_order_service?.TMOReferencia,
-        Tempo: dealernet_order_service?.Tempo,
-        ValorUnitario: dealernet_order_service?.ValorUnitario,
-        Quantidade: dealernet_order_service?.Quantidade,
-        ProdutivoDocumento: dealernet_order_service?.ProdutivoDocumento?.toString(),
-        UsuarioIndResponsavel: dealernet_order_service?.UsuarioIndResponsavel,
-        Cobrar: dealernet_order_service?.Cobrar,
-        StatusAutorizacao: 'Cancelado',
-        Observacao: dealernet_order_service?.Observacao,
         Chave: dealernet_order_service?.Chave,
-        Executar: dealernet_order_service?.Executar,
+        Selecionado: true,
       });
     }
     const osDTO: UpdateDealernetOsDTO = {
@@ -246,8 +236,8 @@ export class BudgetService {
       BloquearProduto: dealernet_order.BloquearProduto,
       CorPrisma_Codigo: dealernet_order.CorPrisma_Codigo,
       NroPrisma: dealernet_order.NroPrisma,
-      TipoOSSigla: dealernet_order.Servicos.first().TipoOSSigla,
       ExisteObjetoValor: dealernet_order.ExisteObjetoValor,
+      TipoOSSigla: dealernet_order.Servicos.first().TipoOSSigla,
       Servicos: aux_servicos,
       // TipoOS: TipoOS,
     };
@@ -262,7 +252,7 @@ export class BudgetService {
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
     const cancelServicesDto = await this.cancelServicesDto(order_id, budget_id, dto);
-    return this.dealernet.order.updateOsXmlSchema(integration.dealernet, cancelServicesDto);
+    return this.dealernet.order.cancelServiceXmlSchema(integration.dealernet, cancelServicesDto);
   }
 
   async cancelServices(order_id: string, budget_id: string, dto: CancelServiceDTO[]): Promise<DealernetOrderResponse> {
@@ -273,7 +263,18 @@ export class BudgetService {
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
     const cancel_dto = await this.cancelServicesDto(order_id, budget_id, dto);
-    const result = await this.dealernet.order.updateOs(integration.dealernet, cancel_dto);
+    const result = await this.dealernet.order
+      .cancelService(integration.dealernet, cancel_dto)
+      .then((response) => {
+        return response;
+      })
+      .catch((error) => {
+        this.context.setWarning('Erro ao adicionar serviço a Ordem de Serviço');
+        Logger.error(`Erro ao cancelar serviços da ordem ${order_id}`, error, 'OsService');
+        throw new BadRequestException('Erro ao cancelar serviço a ordem', {
+          description: error?.message ?? 'Não foi possível cancelar o serviço a ordem',
+        });
+      });
 
     const to_upsert: UpsertOrderBudgetServiceDto[] = [];
     for (const item of dto) {

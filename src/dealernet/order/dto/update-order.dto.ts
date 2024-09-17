@@ -33,18 +33,18 @@ export class UpdateDealernetServiceProductDTO {
 
 export class UpdateDealernetServiceDTO {
   Chave?: number;
-  TipoOSSigla: string;
-  TMOReferencia: string;
-  Tempo: number;
-  ValorUnitario: number;
-  Quantidade: number;
+  TipoOSSigla?: string;
+  TMOReferencia?: string;
+  Tempo?: number;
+  ValorUnitario?: number;
+  Quantidade?: number;
   Desconto?: number;
   DescontoPercentual?: number;
   Observacao?: string;
-  ProdutivoDocumento: string;
-  UsuarioIndResponsavel: string;
+  ProdutivoDocumento?: string;
+  UsuarioIndResponsavel?: string;
   Executar?: boolean;
-  Cobrar: boolean;
+  Cobrar?: boolean;
   DataPrevisao?: string;
   KitCodigo?: number;
   KitPrecoFechado?: boolean;

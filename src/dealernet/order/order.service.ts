@@ -226,7 +226,39 @@ export class DealernetOsService {
 
     return xmlBody;
   }
+  async cancelServiceXmlSchema(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<string> {
+    Logger.log(`Criando Schema OS Dealernet`, 'OS');
 
+    const body = {
+      ...dto,
+      Servicos: {
+        Servico: dto.Servicos.map((servico) => {
+          return {
+            ...servico,
+          }
+        }),
+      },
+    }
+
+    const xmlBody = `
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:deal="DealerNet">
+            <soapenv:Header/>
+            <soapenv:Body>
+              <deal:WS_FastServiceApi.ORDEMSERVICO>
+                    <deal:Usuario>${connection?.user}</deal:Usuario>
+                    <deal:Senha>${connection?.key}</deal:Senha>
+                  <deal:Sdt_fsordemservicoin>
+                  <deal:EmpresaDocumento>${connection?.document}</deal:EmpresaDocumento>
+                  <deal:Acao>CSP</deal:Acao>
+                    ${parserJsonToXml(body)}
+                </deal:Sdt_fsordemservicoin>
+            </deal:WS_FastServiceApi.ORDEMSERVICO>
+       </soapenv:Body>
+    </soapenv:Envelope>
+        `;
+
+    return xmlBody;
+  }
   async createOs(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<DealernetOrderResponse> {
     Logger.log(`Criando OS Dealernet: ${JSON.stringify(dto)}`, 'DealernetOsService.createOs');
 
@@ -326,6 +358,34 @@ export class DealernetOsService {
     try {
 
       console.log(xmlBody);
+      const client = await dealernet();
+
+      const response = await client.post(url, xmlBody);
+      const xmlData = response.data;
+      const parser = new XMLParser();
+      const parsedData = parser.parse(xmlData);
+      const order: DealernetOrder =
+        parsedData['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista'][
+        'SDT_FSOrdemServicoOut'
+        ];
+
+      if (order.Mensagem && order.Chave === 0) {
+        throw new BadRequestException(order.Mensagem);
+      }
+
+      return this.findByOsNumber(connection, order.NumeroOS);
+    } catch (error) {
+      Logger.error('Erro ao fazer a requisição:', error, 'DealernetOrderService.createOs');
+      throw error;
+    }
+  }
+
+  async cancelService(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<DealernetOrderResponse> {
+    const url = `${connection.url}/aws_fastserviceapi.aspx`;
+    const xmlBody = await this.cancelServiceXmlSchema(connection, dto);
+    try {
+
+
       const client = await dealernet();
 
       const response = await client.post(url, xmlBody);
