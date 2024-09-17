@@ -353,7 +353,7 @@ export class OsService {
           DataInicial: DataInicial.formatUTC('yyyy-MM-ddThh:mm:ss'),
           DataFinal: DataFinal.formatUTC('yyyy-MM-ddThh:mm:ss'),
           MotivoParada: item?.reason_stopped?.external_id,
-          Observacao: item?.reason_stopped?.name,
+          //Observacao: item?.reason_stopped?.name,
         });
       }
 
