@@ -1,15 +1,23 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
+import { formatarDoc } from 'src/commons';
 import { ContextService } from 'src/context/context.service';
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { ProdutoUpdateDto } from 'src/dealernet/dto/update-os.dto';
 import { TipoOSItemCreateDTO } from 'src/dealernet/order/dto/create-order.dto';
+import { UpdateDealernetOsDTO, UpdateDealernetServiceDTO } from 'src/dealernet/order/dto/update-order.dto';
 import { DealernetBudgetResponse } from 'src/dealernet/response/budget-response';
+import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
+import { UpsertOrderBudgetServiceDto } from 'src/petroplay/order/dto/upsert-order-budget-service.dto';
 import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entity';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
+
+import { ServiceFilter } from '../service/filters/service.filter';
+
+import { CancelServiceDTO } from './dto/cancel-service.dto';
 
 @Injectable()
 export class BudgetService {
@@ -184,5 +192,104 @@ export class BudgetService {
 
       return result;
     }
+  }
+  async cancelServicesDto(order_id: string, budget_id: string, dto: CancelServiceDTO[]): Promise<UpdateDealernetOsDTO> {
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
+    if (!order) throw new NotFoundException(`Order '${order_id}' not found`);
+
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
+
+    const dealernet_order = await this.dealernet.order.findByOsNumber(integration.dealernet, order?.os_number);
+    if (!dealernet_order) throw new NotFoundException(`OS not found`);
+    const aux_servicos: UpdateDealernetServiceDTO[] = [];
+
+    for (const item of dto) {
+      const service_pps = await this.petroplay.order.findOrderBudgetService(order_id, budget_id, item.budget_service_id);
+      const dealernet_order_service = dealernet_order.Servicos.find(
+        (servico) =>
+          servico.TMOReferencia === service_pps?.integration_id && servico.TipoOSSigla === service_pps?.os_type?.external_id,
+      );
+      aux_servicos.push({
+        TipoOSSigla: dealernet_order_service?.TipoOSSigla,
+        TMOReferencia: dealernet_order_service?.TMOReferencia,
+        Tempo: dealernet_order_service?.Tempo,
+        ValorUnitario: dealernet_order_service?.ValorUnitario,
+        Quantidade: dealernet_order_service?.Quantidade,
+        ProdutivoDocumento: dealernet_order_service?.ProdutivoDocumento?.toString(),
+        UsuarioIndResponsavel: dealernet_order_service?.UsuarioIndResponsavel,
+        Cobrar: dealernet_order_service?.Cobrar,
+        StatusAutorizacao: 'Cancelado',
+        Observacao: dealernet_order_service?.Observacao,
+        Chave: dealernet_order_service?.Chave,
+        Executar: dealernet_order_service?.Executar,
+      });
+    }
+    const osDTO: UpdateDealernetOsDTO = {
+      Chave: dealernet_order.Chave,
+      NumeroOS: dealernet_order.NumeroOS,
+      VeiculoPlacaChassi: dealernet_order.VeiculoPlaca,
+      VeiculoKM: dealernet_order.VeiculoKM,
+      ClienteCodigo: dealernet_order.ClienteCodigo,
+      ClienteDocumento: formatarDoc(dealernet_order.ClienteDocumento),
+      ConsultorDocumento: formatarDoc(dealernet_order.TipoOS.first().ConsultorDocumento),
+      Data: dealernet_order.Data,
+      DataFinal: dealernet_order.DataPrometida,
+      Status: dealernet_order.TipoOS.first().StatusAndamento,
+      Observacao: dealernet_order.Observacao,
+      DataPrometida: dealernet_order.DataPrometida,
+      PercentualCombustivel: dealernet_order.PercentualCombustivel,
+      PercentualBateria: dealernet_order.PercentualBateria,
+      ExigeLavagem: dealernet_order.ExigeLavagem,
+      ClienteAguardando: dealernet_order.ClienteAguardando,
+      InspecionadoElevador: dealernet_order.InspecionadoElevador,
+      BloquearProduto: dealernet_order.BloquearProduto,
+      CorPrisma_Codigo: dealernet_order.CorPrisma_Codigo,
+      NroPrisma: dealernet_order.NroPrisma,
+      TipoOSSigla: dealernet_order.Servicos.first().TipoOSSigla,
+      ExisteObjetoValor: dealernet_order.ExisteObjetoValor,
+      Servicos: aux_servicos,
+      // TipoOS: TipoOS,
+    };
+    return osDTO;
+  }
+
+  async cancelServicesSchema(order_id: string, budget_id: string, dto: CancelServiceDTO[]): Promise<string> {
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
+    if (!order) throw new NotFoundException(`Order '${order_id}' not found`);
+
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
+
+    const cancelServicesDto = await this.cancelServicesDto(order_id, budget_id, dto);
+    return this.dealernet.order.updateOsXmlSchema(integration.dealernet, cancelServicesDto);
+  }
+
+  async cancelServices(order_id: string, budget_id: string, dto: CancelServiceDTO[]): Promise<DealernetOrderResponse> {
+    const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
+    if (!order) throw new NotFoundException(`Order '${order_id}' not found`);
+
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
+
+    const cancel_dto = await this.cancelServicesDto(order_id, budget_id, dto);
+    const result = await this.dealernet.order.updateOs(integration.dealernet, cancel_dto);
+
+    const to_upsert: UpsertOrderBudgetServiceDto[] = [];
+    for (const item of dto) {
+      const service_pps = await this.petroplay.order.findOrderBudgetService(order_id, budget_id, item.budget_service_id);
+      to_upsert.push({
+        service_id: item.budget_service_id,
+        is_canceled: true,
+        reason_for_cancel: item.reason_for_cancel,
+        os_type_id: service_pps?.os_type_id,
+        name: service_pps?.name,
+        quantity: service_pps?.quantity,
+        price: service_pps?.price,
+      });
+    }
+    await this.petroplay.order.upsertOrderBudgetService(order_id, budget_id, to_upsert);
+
+    return result;
   }
 }
