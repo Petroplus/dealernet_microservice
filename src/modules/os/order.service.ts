@@ -213,7 +213,7 @@ export class OsService {
 
     const cod_consultor = order.consultant?.cod_consultor ?? this.context.currentUser()?.cod_consultor;
     const OS: CreateOsDTO = {
-      veiculo_placa_chassi: order.vehicle_chassis_number,
+      veiculo_placa_chassi: order.license_plate ?? order.vehicle_chassis_number,
       veiculo_Km: Number(order.mileage) || 0,
       cliente_documento: order.customer_document,
       consultor_documento: formatarDoc(cod_consultor),
