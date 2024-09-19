@@ -93,6 +93,21 @@ export class PetroplayOrderService {
       });
   }
 
+  async findOrderBudgetById(order_id: string, budget_id: string): Promise<OrderBudgetEntity> {
+    const client = await petroplay.v2();
+    return client
+      .get(`/v2/orders/${order_id}/budgets/${budget_id}`, {
+        params: {
+          expand: ['os_type', 'products', 'services', 'mechanic'],
+        },
+      })
+      .then(({ data }) => data)
+      .catch((err) => {
+        Logger.error('Error on find order budget:', err, 'PetroplayOrderService.findOrderBudget');
+        throw new BadRequestException('Error on find order budget');
+      });
+  }
+
   async updateOrderBudget(order_id: string, budget_id: string, dto: Partial<OrderBudgetEntity>): Promise<OrderBudgetEntity> {
     const client = await petroplay.v2();
     return client

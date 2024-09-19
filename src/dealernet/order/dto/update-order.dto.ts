@@ -42,7 +42,7 @@ export class UpdateDealernetServiceDTO {
   Desconto?: number;
   DescontoPercentual?: number;
   Observacao?: string;
-  ProdutivoDocumento?: string;
+  ProdutivoDocumento?: string | number;
   UsuarioIndResponsavel?: string;
   Executar?: boolean;
   Cobrar?: boolean;

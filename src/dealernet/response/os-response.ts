@@ -144,6 +144,9 @@ export class Servico {
   CampanhaCodigo: number;
 
   @ApiProperty()
+  StatusExecucao: string;
+
+  @ApiProperty()
   Produtos: Produto[];
 
   @ApiProperty({ type: Marcacao })

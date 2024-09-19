@@ -13,8 +13,8 @@ export function parserJsonToXml(data: Object) {
       const newObj: any = {};
       for (const key of Object.keys(obj)) {
         let value = obj[key];
-        if (value === null || value === '') {
-          value = '?'; // Substitui por '?' se for null ou vazio
+        if (value === null) {
+          value = ''; // Se o valor for nulo, substitui por uma string vazia
         }
         newObj[`${prefix}${key}`] = addPrefix(value, prefix); // Chama recursivamente para objetos aninhados
       }
