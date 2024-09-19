@@ -590,7 +590,6 @@ export class OsService {
       ProdutivoDocumento: service.ProdutivoDocumento,
       UsuarioIndResponsavel: service.UsuarioIndResponsavel,
       Cobrar: service.Cobrar,
-      SetorExecucao: '',
       Executar: service.Executar,
       Observacao: service.Observacao,
     })).slice(0, 1);
