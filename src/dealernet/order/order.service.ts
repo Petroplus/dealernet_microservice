@@ -116,7 +116,7 @@ export class DealernetOsService {
         <deal:Cobrar>${item.cobra}</deal:Cobrar>
         <deal:ProdutivoDocumento>${item.produtivo_documento ?? '?'}</deal:ProdutivoDocumento>
         <deal:UsuarioIndResponsavel>${item.usuario_ind_responsavel ?? '?'}</deal:UsuarioIndResponsavel>
-        <deal:SetorExecucao>${item?.setor_execucao ?? 'OFC'}</deal:SetorExecucao>
+        <deal:SetorExecucao>${item?.setor_execucao ?? '?'}</deal:SetorExecucao>
         <deal:Observacao>${item?.observacao ?? ''}</deal:Observacao>
          ${products}
         </deal:Servico>
@@ -187,14 +187,14 @@ export class DealernetOsService {
     const body = {
       ...dto,
       Servicos: {
-        Servico: dto.Servicos.map((servico) => {
-          const produtos = servico.Produtos?.map((produto) => produto);
+        Servico: dto.Servicos?.map((servico) => {
+          const Produtos = servico.Produtos?.map((produto) => produto);
           const Marcacoes = servico.Marcacoes?.map((marcacao) => marcacao);
+
           return {
             ...servico,
-            SetorExecucao: servico?.SetorExecucao ?? 'OFC',
             Produtos: {
-              Produto: produtos
+              Produto: Produtos
             },
             Marcacoes: {
               Marcacao: Marcacoes

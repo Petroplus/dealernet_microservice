@@ -22,6 +22,7 @@ import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entit
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
 import { AttachServiceToOrderDTO } from './dto/attach-service-to-order.dto';
+import { UpdateOsDto } from './dto/update-os.dtp';
 
 @Injectable()
 export class OsService {
@@ -353,7 +354,6 @@ export class OsService {
           DataInicial: DataInicial.formatUTC('yyyy-MM-ddThh:mm:ss'),
           DataFinal: DataFinal.formatUTC('yyyy-MM-ddThh:mm:ss'),
           MotivoParada: item?.reason_stopped?.external_id,
-          //Observacao: item?.reason_stopped?.name,
         });
       }
 
@@ -567,5 +567,80 @@ export class OsService {
       TipoOS: TipoOS,
     };
     return dto;
+  }
+
+  async updateOsDto(
+    connection: IntegrationDealernet,
+    order: PetroplayOrderEntity,
+    budget_id: string,
+    dto: UpdateOsDto,
+  ): Promise<UpdateDealernetOsDTO> {
+    const budget = await this.petroplay.order.findOrderBudgetById(order.id, budget_id);
+    if (!budget) throw new BadRequestException('Budget not found');
+
+    const os = await this.dealernet.findOsByNumber(connection, budget.os_number);
+    if (!os) throw new NotFoundException(`OS not found`);
+
+    const Servicos: UpdateDealernetServiceDTO[] = os.Servicos.map((service) => ({
+      TipoOSSigla: service.TipoOSSigla,
+      TMOReferencia: service.TMOReferencia,
+      Tempo: service.Tempo,
+      ValorUnitario: service.ValorUnitario,
+      Quantidade: service.Quantidade,
+      ProdutivoDocumento: service.ProdutivoDocumento,
+      UsuarioIndResponsavel: service.UsuarioIndResponsavel,
+      Cobrar: service.Cobrar,
+      SetorExecucao: '',
+      Executar: service.Executar,
+      Observacao: service.Observacao,
+    })).slice(0, 1);
+
+    return {
+      Chave: os.Chave,
+      NumeroOS: os.NumeroOS,
+      VeiculoPlacaChassi: os.VeiculoPlaca,
+      VeiculoKM: os.VeiculoKM,
+      ClienteCodigo: os.ClienteCodigo,
+      ClienteDocumento: formatarDoc(os.ClienteDocumento),
+      ConsultorDocumento: formatarDoc(os.TipoOS.first().ConsultorDocumento),
+      Data: os.Data,
+      Status: os.TipoOS.first().StatusAndamento,
+      Observacao: os.Observacao,
+      PercentualCombustivel: os.PercentualCombustivel,
+      PercentualBateria: os.PercentualBateria,
+      ExigeLavagem: os.ExigeLavagem,
+      ClienteAguardando: os.ClienteAguardando,
+      InspecionadoElevador: os.InspecionadoElevador,
+      BloquearProduto: os.BloquearProduto,
+      CorPrisma_Codigo: os.CorPrisma_Codigo,
+      NroPrisma: os.NroPrisma,
+      TipoOSSigla: os.Servicos.first().TipoOSSigla,
+      ExisteObjetoValor: os.ExisteObjetoValor,
+      Servicos: Servicos,
+      ...dto,
+      DataPrometida: dto.DataPrometida?.toISOString() ?? os.DataPrometida,
+      DataFinal: dto.DataFinal?.toISOString() ?? undefined,
+    } satisfies UpdateDealernetOsDTO;
+  }
+
+  async updateOsXmlSchema(order_id: string, budget_id: string, dto: UpdateOsDto): Promise<string> {
+    const order = await this.petroplay.order.findById(order_id);
+
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
+
+    const schema = await this.updateOsDto(integration.dealernet, order, budget_id, dto);
+
+    return this.dealernet.order.updateOsXmlSchema(integration.dealernet, schema);
+  }
+
+  async updateOs(order_id: string, budget_id: string, dto: UpdateOsDto): Promise<void> {
+    const order = await this.petroplay.order.findById(order_id);
+
+    const integration = await this.petroplay.integration.findByClientId(order.client_id);
+    if (!integration.dealernet) throw new BadRequestException('Integration not found');
+
+    const schema = await this.updateOsDto(integration.dealernet, order, budget_id, dto);
+    await this.dealernet.order.updateOs(integration.dealernet, schema);
   }
 }

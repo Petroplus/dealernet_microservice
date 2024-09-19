@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ParseOrderPipe } from 'src/commons/pipes/parse-order.pipe';
@@ -6,6 +6,7 @@ import { ParseUUIDOptionalPipe } from 'src/commons/pipes/parse-uuid-optional.pip
 import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 
 import { AttachServiceToOrderDTO } from './dto/attach-service-to-order.dto';
+import { UpdateOsDto } from './dto/update-os.dtp';
 import { OsService } from './order.service';
 
 @ApiBearerAuth()
@@ -27,7 +28,7 @@ export class OsController {
 
   @Post()
   @ApiResponse({ status: 200, type: DealernetOrderResponse, isArray: true })
-  @ApiOperation({ summary: 'Utiliza o body da rota para inserir uma nova ordem' })
+  @ApiOperation({ summary: 'Utiliza o body da rota para inserir uma nova ordem de serviço' })
   @ApiQuery({ name: 'budget_id', required: false })
   async create(
     @Param('order_id', ParseOrderPipe) order_id: string,
@@ -36,9 +37,33 @@ export class OsController {
     return this.service.createOs(order_id, budget_id);
   }
 
+  @Put('/:budget_id/')
+  @ApiResponse({ status: 200, type: DealernetOrderResponse, isArray: true })
+  @ApiOperation({ summary: 'Utiliza o body da rota para atualizar uma ordem de serviço' })
+  @ApiQuery({ name: 'budget_id', required: false })
+  async update(
+    @Param('order_id', ParseOrderPipe) order_id: string,
+    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
+    @Body() dto: UpdateOsDto,
+  ): Promise<void> {
+    return this.service.updateOs(order_id, budget_id, dto);
+  }
+
+  @Put('/:budget_id/schema')
+  @ApiResponse({ status: 200, type: DealernetOrderResponse, isArray: true })
+  @ApiOperation({ summary: 'Utiliza o body da rota para atualizar uma ordem de serviço' })
+  @ApiQuery({ name: 'budget_id', required: false })
+  async updateSchema(
+    @Param('order_id', ParseOrderPipe) order_id: string,
+    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
+    @Body() dto: UpdateOsDto,
+  ): Promise<string> {
+    return this.service.updateOsXmlSchema(order_id, budget_id, dto);
+  }
+
   @Get('/schema')
   @ApiResponse({ status: 200 })
-  @ApiOperation({ summary: 'Retorna um corpo XML baseado em informações extraídas da ordem informada' })
+  @ApiOperation({ summary: 'Retorna um corpo XML baseado em informações extraídas da ordem de serviço informada' })
   @ApiQuery({ name: 'budget_id', required: false })
   async findSchema(
     @Param('order_id', ParseOrderPipe) order_id: string,
@@ -49,7 +74,7 @@ export class OsController {
 
   @Get(`:budget_id/request-parts/schema`)
   @ApiResponse({ status: 200 })
-  @ApiOperation({ summary: 'Retorna um corpo XML baseado em informações extraídas da ordem informada' })
+  @ApiOperation({ summary: 'Retorna um corpo XML baseado em informações extraídas da ordem de serviço informada' })
   async requestPartsSchema(
     @Param('order_id', ParseOrderPipe) order_id: string,
     @Param('budget_id', ParseUUIDPipe) budget_id: string,
