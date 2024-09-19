@@ -25,7 +25,6 @@ import { AttachServiceToOrderDTO } from './dto/attach-service-to-order.dto';
 import { EditDealernetServiceDTO } from './dto/edit-dealernet-service.dto';
 import { UpdateOsDto } from './dto/update-os.dtp';
 
-
 @Injectable()
 export class OsService {
   constructor(
@@ -644,7 +643,7 @@ export class OsService {
     const schema = await this.updateOsDto(integration.dealernet, order, budget_id, dto);
     await this.dealernet.order.updateOs(integration.dealernet, schema);
   }
-async editServicesDto(order_id: string, budget_id: string, dto: EditDealernetServiceDTO[]): Promise<UpdateDealernetOsDTO> {
+  async editServicesDto(order_id: string, budget_id: string, dto: EditDealernetServiceDTO[]): Promise<UpdateDealernetOsDTO> {
     const order = await this.petroplay.order.findById(order_id, ['consultant', 'os_type', 'budgets']);
     if (!order) throw new NotFoundException(`Order '${order_id}' not found`);
 
