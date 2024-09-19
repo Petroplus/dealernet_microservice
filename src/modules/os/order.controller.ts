@@ -1,11 +1,12 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ParseOrderPipe } from 'src/commons/pipes/parse-order.pipe';
 import { ParseUUIDOptionalPipe } from 'src/commons/pipes/parse-uuid-optional.pipe';
 import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 
 import { AttachServiceToOrderDTO } from './dto/attach-service-to-order.dto';
+import { EditDealernetServiceDTO } from './dto/edit-dealernet-service.dto';
 import { OsService } from './order.service';
 
 @ApiBearerAuth()
@@ -105,5 +106,33 @@ export class OsController {
     @Body() dto: AttachServiceToOrderDTO,
   ): Promise<DealernetOrderResponse> {
     return this.service.attachServiceToOrder(order_id, budget_id, dto);
+  }
+
+  @Put(`:budget_id/service/schema`)
+  @ApiResponse({ status: 200 })
+  @ApiOperation({
+    summary: 'Retorna um corpo XML para alterar um serviço já atrelado a uma ordem',
+  })
+  @ApiBody({ type: EditDealernetServiceDTO, isArray: true })
+  async editServiceShema(
+    @Param('order_id', ParseOrderPipe) order_id: string,
+    @Param('budget_id', ParseUUIDPipe) budget_id: string,
+    @Body() dto: EditDealernetServiceDTO[],
+  ): Promise<string> {
+    return this.service.editServicesSchema(order_id, budget_id, dto);
+  }
+
+  @Put(`:budget_id/service`)
+  @ApiResponse({ status: 200 })
+  @ApiOperation({
+    summary: 'Retorna um corpo XML para alterar um serviço já atrelado a uma ordem',
+  })
+  @ApiBody({ type: EditDealernetServiceDTO, isArray: true })
+  async editService(
+    @Param('order_id', ParseOrderPipe) order_id: string,
+    @Param('budget_id', ParseUUIDPipe) budget_id: string,
+    @Body() dto: EditDealernetServiceDTO[],
+  ): Promise<DealernetOrderResponse> {
+    return this.service.editServices(order_id, budget_id, dto);
   }
 }

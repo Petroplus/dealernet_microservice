@@ -29,6 +29,7 @@ export class UpdateDealernetServiceProductDTO {
   ProdutoReferencia: number | string;
   ValorUnitario: number;
   Quantidade: number;
+  StatusExecucao?: string;
 }
 
 export class UpdateDealernetServiceDTO {

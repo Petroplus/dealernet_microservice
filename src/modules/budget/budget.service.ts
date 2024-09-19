@@ -15,6 +15,8 @@ import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entity';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
+import { EditDealernetServiceDTO } from '../os/dto/edit-dealernet-service.dto';
+import { OsService } from '../os/order.service';
 import { ServiceFilter } from '../service/filters/service.filter';
 
 import { CancelServiceDTO } from './dto/cancel-service.dto';
@@ -25,6 +27,7 @@ export class BudgetService {
     private readonly context: ContextService,
     private readonly petroplay: PetroplayService,
     private readonly dealernet: DealernetService,
+    private readonly osService: OsService,
   ) {}
 
   async find(order_id: string, budget_id: string): Promise<DealernetBudgetResponse> {
@@ -261,6 +264,11 @@ export class BudgetService {
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
+    const edit_dto: EditDealernetServiceDTO[] = [];
+    for (const item of dto) {
+      edit_dto.push({ service_id: item.budget_service_id, status: 'Pendente' });
+    }
+    await this.osService.editServices(order_id, budget_id, edit_dto);
 
     const cancel_dto = await this.cancelServicesDto(order_id, budget_id, dto);
     const result = await this.dealernet.order
@@ -269,7 +277,7 @@ export class BudgetService {
         return response;
       })
       .catch((error) => {
-        this.context.setWarning('Erro ao adicionar serviço a Ordem de Serviço');
+        this.context.setWarning('Erro ao cancelar serviço a Ordem de Serviço');
         Logger.error(`Erro ao cancelar serviços da ordem ${order_id}`, error, 'OsService');
         throw new BadRequestException('Erro ao cancelar serviço a ordem', {
           description: error?.message ?? 'Não foi possível cancelar o serviço a ordem',
