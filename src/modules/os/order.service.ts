@@ -582,6 +582,7 @@ export class OsService {
     if (!os) throw new NotFoundException(`OS not found`);
 
     const Servicos: UpdateDealernetServiceDTO[] = os.Servicos.map((service) => ({
+      Chave: service.Chave,
       TipoOSSigla: service.TipoOSSigla,
       TMOReferencia: service.TMOReferencia,
       Tempo: service.Tempo,
@@ -592,7 +593,7 @@ export class OsService {
       Cobrar: service.Cobrar,
       Executar: service.Executar,
       Observacao: service.Observacao,
-    })).slice(0, 1);
+    }));
 
     return {
       Chave: os.Chave,
