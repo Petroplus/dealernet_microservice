@@ -223,13 +223,20 @@ export class DealernetOsService {
     return xmlBody;
   }
 
-  async cancelServiceXmlSchema(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<string> {
+  async cancelXmlSchema(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<string> {
     const body = {
       ...dto,
       Servicos: {
         Servico: dto.Servicos.map((servico) => {
+          const Produtos = servico.Produtos?.map((produto) => ({
+            ...produto,
+            Selecionado: produto.Selecionado ?? true
+          }))
+
           return {
             ...servico,
+            Selecionado: servico.Selecionado ?? true,
+            Produtos: servico.Produtos ? { Produto: Produtos } : undefined
           }
         }),
       },
@@ -375,9 +382,9 @@ export class DealernetOsService {
     }
   }
 
-  async cancelService(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<DealernetOrderResponse> {
+  async cancelServiceOrProduct(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<DealernetOrderResponse> {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
-    const xmlBody = await this.cancelServiceXmlSchema(connection, dto);
+    const xmlBody = await this.cancelXmlSchema(connection, dto);
     try {
 
       const client = await dealernet();

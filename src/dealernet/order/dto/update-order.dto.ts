@@ -25,11 +25,11 @@ export class UpdateDealernetMarcacaoDto {
 
 export class UpdateDealernetServiceProductDTO {
   Chave?: number;
-  TipoOSSigla: string;
+  TipoOSSigla?: string;
   Produto?: number | string;
-  ProdutoReferencia: number | string;
-  ValorUnitario: number;
-  Quantidade: number;
+  ProdutoReferencia?: number | string;
+  ValorUnitario?: number;
+  Quantidade?: number;
   Desconto?: number;
   DescontoPercentual?: number;
   KitCodigo?: number;

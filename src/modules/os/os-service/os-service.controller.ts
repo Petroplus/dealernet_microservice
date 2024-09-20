@@ -8,8 +8,8 @@ import { UpdateOsServiceDto } from './dto/update-os-service.dto';
 import { OsServiceService } from './os-service.service';
 
 @ApiBearerAuth()
-@ApiTags('OS - Service')
-@Controller('os/:order_id/budget/:budget_id/service')
+@ApiTags('OS - Services')
+@Controller('os/:order_id/:budget_id/services')
 export class OsServiceController {
   constructor(private readonly service: OsServiceService) {}
 
@@ -45,7 +45,7 @@ export class OsServiceController {
     @Param('budget_id', ParseUUIDPipe) budget_id: string,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<unknown> {
-    return this.service.cancelService(order_id, budget_id, id);
+    return this.service.cancel(order_id, budget_id, id);
   }
 
   @Put('/:id/cancel/schema')

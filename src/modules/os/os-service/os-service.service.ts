@@ -147,7 +147,7 @@ export class OsServiceService {
     } satisfies UpdateDealernetOsDTO;
   }
 
-  async cancelService(order_id: string, budget_id: string, id: string): Promise<DealernetOrderResponse> {
+  async cancel(order_id: string, budget_id: string, id: string): Promise<DealernetOrderResponse> {
     const order = await this.petroplay.order.findById(order_id);
 
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
@@ -165,7 +165,7 @@ export class OsServiceService {
     const schema = await this.cancelSchema(integration.dealernet, order, budget_id, id);
 
     Logger.warn('Cancelando serviço', 'OsServiceService.cancelService');
-    return this.dealernet.order.cancelService(integration.dealernet, schema);
+    return this.dealernet.order.cancelServiceOrProduct(integration.dealernet, schema);
   }
 
   async cancelXmlSchema(order_id: string, budget_id: string, id: string): Promise<string> {
@@ -176,7 +176,7 @@ export class OsServiceService {
 
     const schema = await this.cancelSchema(integration.dealernet, order, budget_id, id);
 
-    return this.dealernet.order.cancelServiceXmlSchema(integration.dealernet, schema);
+    return this.dealernet.order.cancelXmlSchema(integration.dealernet, schema);
   }
 
   async cancelSchema(

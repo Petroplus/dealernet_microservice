@@ -5,9 +5,9 @@ import { OsService } from './order.service';
 import { OsServiceModule } from './os-service/os-service.module';
 
 @Module({
+  imports: [OsServiceModule.forRoot()],
   controllers: [OsController],
   providers: [OsService],
-  imports: [OsServiceModule],
 })
 export class OsModule {
   static forRoot() {
