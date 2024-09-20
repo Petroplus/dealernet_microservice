@@ -8,7 +8,6 @@ import { dealernet } from 'src/commons/web-client';
 import { OrderFilter } from 'src/modules/os/filters/order.filters';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
-import { DealernetCustomerService } from '../customer/customer.service';
 import { DealernetOrder, DealernetOrderResponse } from '../response/os-response';
 
 import { CreateDealernetOsDTO } from './dto/create-order.dto';
@@ -78,7 +77,6 @@ export class DealernetOsService {
   }
 
   async createOsXmlSchema(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<string> {
-    Logger.log(`Criando Schema OS Dealernet`, 'DealernetOsService.createOsXmlSchema');
     const services =
       dto.servicos.length > 0
         ? `
@@ -182,8 +180,6 @@ export class DealernetOsService {
   }
 
   async updateOsXmlSchema(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<string> {
-    Logger.log(`Criando Schema OS Dealernet`, 'OS');
-
     const body = {
       ...dto,
       Servicos: {
@@ -226,9 +222,8 @@ export class DealernetOsService {
 
     return xmlBody;
   }
-  async cancelServiceXmlSchema(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<string> {
-    Logger.log(`Criando Schema OS Dealernet`, 'OS');
 
+  async cancelServiceXmlSchema(connection: IntegrationDealernet, dto: UpdateDealernetOsDTO): Promise<string> {
     const body = {
       ...dto,
       Servicos: {
@@ -238,6 +233,7 @@ export class DealernetOsService {
           }
         }),
       },
+      TipoOS: undefined
     }
 
     const xmlBody = `
@@ -259,6 +255,7 @@ export class DealernetOsService {
 
     return xmlBody;
   }
+
   async createOs(connection: IntegrationDealernet, dto: CreateDealernetOsDTO): Promise<DealernetOrderResponse> {
     Logger.log(`Criando OS Dealernet: ${JSON.stringify(dto)}`, 'DealernetOsService.createOs');
 
@@ -334,7 +331,6 @@ export class DealernetOsService {
     const xmlBody = await this.requestPartsXmlSchema(connection, dto);
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
-    console.log(xmlBody);
     try {
       const client = await dealernet();
 
@@ -357,7 +353,6 @@ export class DealernetOsService {
     const xmlBody = await this.updateOsXmlSchema(connection, dto);
     try {
 
-      console.log(xmlBody);
       const client = await dealernet();
 
       const response = await client.post(url, xmlBody);
@@ -385,7 +380,6 @@ export class DealernetOsService {
     const xmlBody = await this.cancelServiceXmlSchema(connection, dto);
     try {
 
-
       const client = await dealernet();
 
       const response = await client.post(url, xmlBody);
@@ -398,7 +392,7 @@ export class DealernetOsService {
         ];
 
       if (order.Mensagem && order.Chave === 0) {
-        throw new BadRequestException(order.Mensagem);
+        throw new BadRequestException(order.Mensagem, { description: order.Mensagem });
       }
 
       return this.findByOsNumber(connection, order.NumeroOS);

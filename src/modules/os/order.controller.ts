@@ -132,32 +132,4 @@ export class OsController {
   ): Promise<DealernetOrderResponse> {
     return this.service.attachServiceToOrder(order_id, budget_id, dto);
   }
-
-  @Put(`:budget_id/service/schema`)
-  @ApiResponse({ status: 200 })
-  @ApiOperation({
-    summary: 'Retorna um corpo XML para alterar um serviço já atrelado a uma ordem',
-  })
-  @ApiBody({ type: EditDealernetServiceDTO, isArray: true })
-  async editServiceShema(
-    @Param('order_id', ParseOrderPipe) order_id: string,
-    @Param('budget_id', ParseUUIDPipe) budget_id: string,
-    @Body() dto: EditDealernetServiceDTO[],
-  ): Promise<string> {
-    return this.service.editServicesSchema(order_id, budget_id, dto);
-  }
-
-  @Put(`:budget_id/service`)
-  @ApiResponse({ status: 200 })
-  @ApiOperation({
-    summary: 'Retorna um corpo XML para alterar um serviço já atrelado a uma ordem',
-  })
-  @ApiBody({ type: EditDealernetServiceDTO, isArray: true })
-  async editService(
-    @Param('order_id', ParseOrderPipe) order_id: string,
-    @Param('budget_id', ParseUUIDPipe) budget_id: string,
-    @Body() dto: EditDealernetServiceDTO[],
-  ): Promise<DealernetOrderResponse> {
-    return this.service.editServices(order_id, budget_id, dto);
-  }
 }

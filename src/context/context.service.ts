@@ -13,7 +13,7 @@ import {
 @Injectable()
 export class ContextService {
   currentUser(): UserResponse {
-    return RequestContext.currentContext.req['user'];
+    return RequestContext.currentContext.req['user'] ?? {};
   }
 
   getClients(): UserClientResponse[] {

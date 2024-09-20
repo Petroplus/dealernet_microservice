@@ -14,6 +14,9 @@ export type OrderItemSourceGroup = keyof typeof OrderItemSourceGroupEnum;
 
 export class OrderBudgetServiceEntity {
   @ApiProperty()
+  id: string;
+
+  @ApiProperty()
   order_id: string;
 
   @ApiProperty()

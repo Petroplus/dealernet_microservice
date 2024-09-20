@@ -44,28 +44,4 @@ export class BudgetController {
   ): Promise<string> {
     return this.service.createSchema(order_id);
   }
-
-  @Post('/budget/:budget_id')
-  @ApiResponse({ status: 200, type: DealernetOrderResponse })
-  @ApiOperation({ summary: 'Roata para cancelar serviços de um orçamento' })
-  @ApiBody({ type: CancelServiceDTO, isArray: true })
-  async cancelServices(
-    @Param('order_id', ParseUUIDPipe) order_id: string,
-    @Param('budget_id', ParseUUIDPipe) budget_id: string,
-    @Body() dto: CancelServiceDTO[],
-  ): Promise<DealernetOrderResponse> {
-    return this.service.cancelServices(order_id, budget_id, dto);
-  }
-
-  @Post('/budget/:budget_id/schema')
-  @ApiResponse({ status: 200, type: DealernetBudgetResponse })
-  @ApiOperation({ summary: 'Retorna um corpo XML utilizado para cancelar serviços de um orçamento' })
-  @ApiBody({ type: CancelServiceDTO, isArray: true })
-  async cancelServicesSchema(
-    @Param('order_id', ParseUUIDPipe) order_id: string,
-    @Param('budget_id', ParseUUIDPipe) budget_id: string,
-    @Body() dto: CancelServiceDTO[],
-  ): Promise<string> {
-    return this.service.cancelServicesSchema(order_id, budget_id, dto);
-  }
 }

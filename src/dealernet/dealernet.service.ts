@@ -447,8 +447,6 @@ export class DealernetService {
     `;
     try {
 
-      console.log(xmlBody.toString());
-
       const client = await dealernet()
       const response = await client.post(url, xmlBody).then(({ data }) => new XMLParser().parse(data));
       const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista']['SDT_FSOrdemServicoOut'];
