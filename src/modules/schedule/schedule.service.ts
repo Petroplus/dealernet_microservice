@@ -150,11 +150,13 @@ export class ScheduleService {
       };
 
       const order = pps_orders?.find((pps_order) => pps_order?.integration_id == schedule?.Chave.toString());
+      const inspection = schedule.Data.substring(0, 19);
+      const schedule_date = new Date(schedule.Data).addHours(3);
       if (order) {
         orders.push({
           ...(order as any),
-          inspection: schedule.Data.substring(0, 19),
-          schedule_date: new Date(schedule.Data),
+          inspection: inspection,
+          schedule_date: schedule_date,
           vehicle_schedule_mileage: Number(schedule?.VeiculoKM ?? '0'),
           integration_data: schedule,
           customer_requests: requests,
@@ -180,8 +182,8 @@ export class ScheduleService {
           type: 'PACKAGE',
           with_checklist: true,
           os_type_id: requests?.first()?.services?.first()?.os_type_id,
-          inspection: schedule.Data.substring(0, 19),
-          schedule_date: new Date(schedule.Data),
+          inspection: inspection,
+          schedule_date: schedule_date,
           integration_id: `${schedule.Chave}`,
           integration_data: schedule,
           customer_requests: requests,
