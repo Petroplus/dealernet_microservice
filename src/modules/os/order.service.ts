@@ -22,6 +22,7 @@ import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entit
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
 import { AttachServiceToOrderDTO } from './dto/attach-service-to-order.dto';
+import { EditDealernetServiceDTO } from './dto/edit-dealernet-service.dto';
 import { UpdateOsDto } from './dto/update-os.dtp';
 
 @Injectable()

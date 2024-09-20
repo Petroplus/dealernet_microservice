@@ -4,6 +4,9 @@ import { ClientOsTypeEntity } from './os-type.entity';
 
 export class OrderBudgetProductEntity {
   @ApiProperty()
+  id: string;
+
+  @ApiProperty()
   order_id: string;
 
   @ApiProperty()

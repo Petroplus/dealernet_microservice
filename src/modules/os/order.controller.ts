@@ -1,11 +1,12 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ParseOrderPipe } from 'src/commons/pipes/parse-order.pipe';
 import { ParseUUIDOptionalPipe } from 'src/commons/pipes/parse-uuid-optional.pipe';
 import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 
 import { AttachServiceToOrderDTO } from './dto/attach-service-to-order.dto';
+import { EditDealernetServiceDTO } from './dto/edit-dealernet-service.dto';
 import { UpdateOsDto } from './dto/update-os.dtp';
 import { OsService } from './order.service';
 
