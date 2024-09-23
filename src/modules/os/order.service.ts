@@ -377,7 +377,7 @@ export class OsService {
           KitCodigo: service.KitCodigo,
           KitPrecoFechado: service.KitPrecoFechado,
           CampanhaCodigo: service.CampanhaCodigo,
-          SetorExecucao: connection.execution_sector,
+          SetorExecucao: connection.execution_sector ?? undefined,
           Marcacoes: Marcacoes.map((mark) => ({
             ...mark,
             UsuarioDocumentoProdutivo: formatarDoc(mark.UsuarioDocumentoProdutivo),
@@ -534,7 +534,7 @@ export class OsService {
         ProdutivoDocumento: budget.is_request_products ? formatarDoc(Produtivo.Usuario_DocIdentificador) : null,
         UsuarioIndResponsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         Cobrar: service?.is_charged_for ?? true,
-        SetorExecucao: connection?.execution_sector,
+        SetorExecucao: connection?.execution_sector ?? undefined,
         Executar: service?.is_run_of_externally ? false : true,
         Observacao: service.notes,
         Produtos: Produtos,
