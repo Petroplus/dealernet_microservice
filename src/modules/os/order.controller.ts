@@ -38,13 +38,24 @@ export class OsController {
     return this.service.createOs(order_id, budget_id);
   }
 
+  @Get('/schema')
+  @ApiResponse({ status: 200 })
+  @ApiOperation({ summary: 'Retorna um corpo XML baseado em informações extraídas da ordem de serviço informada' })
+  @ApiQuery({ name: 'budget_id', required: false })
+  async findSchema(
+    @Param('order_id', ParseOrderPipe) order_id: string,
+    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
+  ): Promise<string> {
+    return this.service.createSchema(order_id, budget_id);
+  }
+
   @Put('/:budget_id/')
   @ApiResponse({ status: 200, type: DealernetOrderResponse, isArray: true })
   @ApiOperation({ summary: 'Utiliza o body da rota para atualizar uma ordem de serviço' })
   @ApiQuery({ name: 'budget_id', required: false })
   async update(
     @Param('order_id', ParseOrderPipe) order_id: string,
-    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
+    @Param('budget_id', ParseUUIDOptionalPipe) budget_id: string,
     @Body() dto: UpdateOsDto,
   ): Promise<void> {
     return this.service.updateOs(order_id, budget_id, dto);
@@ -56,21 +67,10 @@ export class OsController {
   @ApiQuery({ name: 'budget_id', required: false })
   async updateSchema(
     @Param('order_id', ParseOrderPipe) order_id: string,
-    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
+    @Param('budget_id', ParseUUIDOptionalPipe) budget_id: string,
     @Body() dto: UpdateOsDto,
   ): Promise<string> {
     return this.service.updateOsXmlSchema(order_id, budget_id, dto);
-  }
-
-  @Get('/schema')
-  @ApiResponse({ status: 200 })
-  @ApiOperation({ summary: 'Retorna um corpo XML baseado em informações extraídas da ordem de serviço informada' })
-  @ApiQuery({ name: 'budget_id', required: false })
-  async findSchema(
-    @Param('order_id', ParseOrderPipe) order_id: string,
-    @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
-  ): Promise<string> {
-    return this.service.createSchema(order_id, budget_id);
   }
 
   @Get(`:budget_id/request-parts/schema`)
