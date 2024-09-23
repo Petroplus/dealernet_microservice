@@ -160,6 +160,7 @@ export class ScheduleService {
           vehicle_schedule_mileage: Number(schedule?.VeiculoKM ?? '0'),
           integration_data: schedule,
           customer_requests: requests,
+          status: undefined,
         });
       } else {
         const dto: CreateOrderDto = {

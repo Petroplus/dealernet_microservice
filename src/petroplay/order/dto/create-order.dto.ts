@@ -461,7 +461,7 @@ export class CreateOrderDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  address: any;
+  address?: any;
 
   @ApiProperty({ required: false })
   @IsOptional()
