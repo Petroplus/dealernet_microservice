@@ -41,6 +41,9 @@ export class PetroplayOrderEntity {
   vehicle_chassis_number: string;
 
   @ApiProperty()
+  vehicle_schedule_mileage: number;
+
+  @ApiProperty()
   license_plate: string;
 
   @ApiProperty()
@@ -309,6 +312,12 @@ export class PetroplayOrderEntity {
 
   @ApiProperty({ enum: OrderTypeEnum })
   type: OrderType;
+
+  @ApiProperty()
+  with_checklist: boolean;
+
+  @ApiProperty()
+  os_type_id: string;
 
   @ApiProperty({ readOnly: true })
   users: any[];

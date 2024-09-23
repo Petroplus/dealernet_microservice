@@ -153,15 +153,35 @@ export class ScheduleService {
       const inspection = schedule.Data.substring(0, 19);
       const schedule_date = new Date(schedule.Data).addHours(3);
       if (order) {
-        orders.push({
-          ...(order as any),
+        const dto: CreateOrderDto = {
+          client_id: order.client_id,
+          customer_name: order.customer_name,
+          customer_document: order.customer_document,
+          phone_number: order.phone_number,
+          email: order.email,
+          vehicle_maker_id: order?.vehicle_maker_id,
+          vehicle_model_id: order?.vehicle_model_id,
+          vehicle_version_id: order?.vehicle_version_id,
+          vehicle_year: order?.vehicle_year,
+          vehicle_fuel: order?.vehicle_fuel,
+          vehicle_color: order?.vehicle_color,
+          vehicle_chassis_number: order?.vehicle_chassis_number,
+          vehicle_schedule_mileage: Number(schedule?.VeiculoKM ?? '0'),
+          license_plate: order?.license_plate,
+          mileage: order?.mileage,
+          type: order.type,
+          with_checklist: order.with_checklist,
+          os_type_id: order.os_type_id,
           inspection: inspection,
           schedule_date: schedule_date,
-          vehicle_schedule_mileage: Number(schedule?.VeiculoKM ?? '0'),
+          integration_id: order.integration_id,
           integration_data: schedule,
           customer_requests: requests,
-          status: undefined,
-        });
+          notes: order.notes,
+          additional_information: order.additional_information,
+        };
+
+        orders.push(dto);
       } else {
         const dto: CreateOrderDto = {
           client_id: integration.client_id,
