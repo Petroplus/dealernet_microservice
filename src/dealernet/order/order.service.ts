@@ -112,10 +112,10 @@ export class DealernetOsService {
         <deal:ValorUnitario>${item.valor_unitario}</deal:ValorUnitario>
         <deal:Quantidade>${item.quantidade}</deal:Quantidade>
         <deal:Cobrar>${item.cobra}</deal:Cobrar>
-        <deal:ProdutivoDocumento>${item.produtivo_documento ?? '?'}</deal:ProdutivoDocumento>
-        <deal:UsuarioIndResponsavel>${item.usuario_ind_responsavel ?? '?'}</deal:UsuarioIndResponsavel>
-        <deal:SetorExecucao>${item?.setor_execucao ?? '?'}</deal:SetorExecucao>
         <deal:Observacao>${item?.observacao ?? ''}</deal:Observacao>
+        ${item?.produtivo_documento ? `<deal:ProdutivoDocumento>${item.produtivo_documento}</deal:ProdutivoDocumento>` : ''}
+        ${item?.usuario_ind_responsavel ? `<deal:UsuarioIndResponsavel>${item.usuario_ind_responsavel}</deal:UsuarioIndResponsavel>` : ''}
+        ${item?.setor_execucao ? `<deal:SetorExecucao>${item.setor_execucao}</deal:SetorExecucao>` : ''}
          ${products}
         </deal:Servico>
     `;
