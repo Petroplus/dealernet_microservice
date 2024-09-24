@@ -19,7 +19,6 @@ import { UpdateOsServiceDto } from './dto/update-os-service.dto';
 @Injectable()
 export class OsServiceService {
   constructor(
-    private readonly context: ContextService,
     private readonly petroplay: PetroplayService,
     private readonly dealernet: DealernetService,
   ) {}
@@ -118,8 +117,6 @@ export class OsServiceService {
       ConsultorDocumento: formatarDoc(os.TipoOS.first().ConsultorDocumento),
     }));
 
-    const user = this.context.currentUser();
-
     return {
       Chave: os.Chave,
       NumeroOS: os.NumeroOS,
@@ -127,7 +124,7 @@ export class OsServiceService {
       VeiculoKM: os.VeiculoKM,
       ClienteCodigo: os.ClienteCodigo,
       ClienteDocumento: formatarDoc(os.ClienteDocumento),
-      ConsultorDocumento: formatarDoc(user?.cod_consultor ?? os.TipoOS.first().ConsultorDocumento),
+      ConsultorDocumento: formatarDoc(os.TipoOS.first().ConsultorDocumento),
       Data: os.Data,
       Status: os.TipoOS.first().StatusAndamento,
       DataPrometida: os.DataPrometida,
