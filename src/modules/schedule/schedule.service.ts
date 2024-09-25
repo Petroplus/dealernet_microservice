@@ -201,6 +201,7 @@ export class ScheduleService {
           license_plate: schedule.VeiculoPlaca.toString()?.trim().replace('-', '').substring(0, 7) ?? 'BR00000',
           mileage: Number(schedule?.VeiculoKM ?? '0'),
           type: 'PACKAGE',
+          is_scheduled: true,
           with_checklist: true,
           os_type_id: requests?.first()?.services?.first()?.os_type_id,
           inspection: inspection,

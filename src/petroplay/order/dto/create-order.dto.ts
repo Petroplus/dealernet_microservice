@@ -467,6 +467,10 @@ export class CreateOrderDto {
   @IsOptional()
   notes?: string;
 
+  @ApiProperty({ required: false })
+  @IsOptional()
+  is_scheduled?: boolean;
+
   @ApiProperty({ required: false, type: UpsertOrderCustomerRequestDto, isArray: true })
   @IsOptional()
   customer_request?: UpsertOrderCustomerRequestDto[];
