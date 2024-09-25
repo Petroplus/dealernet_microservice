@@ -113,7 +113,7 @@ export class OrderBudgetServiceEntity {
   os_type: ClientOsTypeEntity;
 
   @ApiProperty()
-  mechanic: { cod_consultant: string };
+  mechanic: { cod_consultor: string };
 
   constructor(partial: Partial<OrderBudgetServiceEntity>) {
     Object.assign(this, partial);

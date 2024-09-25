@@ -22,7 +22,7 @@ const api = (config?: CreateAxiosDefaults<any>, version?: string) => {
     ...config?.headers,
   };
 
-  const api = axios.create({ timeout: 60000, ...config, headers });
+  const api = axios.create({ timeout: 60000 * 2, ...config, headers });
 
   api.interceptors.request.use((request) => {
     if (request.headers['Authorization']) {

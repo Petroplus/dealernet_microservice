@@ -44,7 +44,7 @@ export class DealernetOsService {
     const url = `${connection.url}/aws_fastserviceapi.aspx`;
 
     try {
-      const client = await dealernet();
+      const client = await dealernet({ retries: 3 });
 
       const response = await client.post(url, xmlBody).then((response) => new XMLParser().parse(response.data));
       const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista']['SDT_FSOrdemServicoOut'];
@@ -52,8 +52,6 @@ export class DealernetOsService {
       const orders = Array.isArray(parsedData) ? parsedData : [parsedData];
 
       if (orders[0].Chave === 0) throw new BadRequestException(orders[0].Mensagem);
-
-
 
       return orders.map((order) => {
         const Servicos = (Array.isArray(order.Servicos?.Servico) ? order.Servicos.Servico : order.Servicos?.Servico ? [order.Servicos.Servico] : []).map((servico: any) => {

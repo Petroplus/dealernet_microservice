@@ -112,12 +112,18 @@ export class OsService {
       });
 
       if (budget.is_request_products) {
-        const dto = await this.requestPartsDto(integration, order_id, budget.id);
-
-        await this.dealernet.order.requestParts(integration.dealernet, dto).catch((error) => {
-          this.context.setWarning('Erro ao solicitar peças para a ordem');
+        const dto = await this.requestPartsDto(integration, order_id, budget.id).catch((error) => {
+          this.context.setWarning(`Erro ao solicitar peças para a placa ${order.license_plate}`);
           Logger.error(`Erro ao solicitar peças para a ordem ${order_id}`, error, 'OsService');
+          return null;
         });
+
+        if (dto) {
+          await this.dealernet.order.requestParts(integration.dealernet, dto).catch((error) => {
+            this.context.setWarning(`Erro ao solicitar peças para a placa ${order.license_plate}`);
+            Logger.error(`Erro ao solicitar peças para a ordem ${order_id}`, error, 'OsService');
+          });
+        }
       }
 
       os.push(response);
@@ -150,7 +156,7 @@ export class OsService {
         });
       }
 
-      const document = service.mechanic?.cod_consultant ?? budget.mechanic?.cod_consultor ?? connection?.mechanic_document;
+      const document = service.mechanic?.cod_consultor ?? budget.mechanic?.cod_consultor ?? connection?.mechanic_document;
 
       const Produtivo = users.find((x) => x.Usuario_DocIdentificador == formatarDoc(document));
 
@@ -253,22 +259,29 @@ export class OsService {
 
     const users = await this.dealernet.customer.findUsers(integration.dealernet, 'PRD');
 
-    const Servicos = os.Servicos.map((item) => {
-      const service = budget.services.find((x) => x.integration_id == item.TMOReferencia);
-      const document =
-        service.mechanic?.cod_consultant ?? budget.mechanic?.cod_consultor ?? integration.dealernet?.mechanic_document;
+    const Servicos = [];
+    for await (const item of os.Servicos) {
+      const service = budget.services.find(
+        (x) => x.integration_id == item.TMOReferencia && x.os_type.external_id == item.TipoOSSigla,
+      );
 
-      const Produtivo = users.find((x) => x.Usuario_DocIdentificador == formatarDoc(document));
-      return {
-        Chave: item.Chave,
-        ProdutivoDocumento: formatarDoc(Produtivo.Usuario_DocIdentificador),
-        UsuarioIndResponsavel: Produtivo.Usuario_Identificador,
-        Produtos: item.Produtos.map((product) => ({
-          Chave: product.Chave,
-          Selecionado: true,
-        })),
-      };
-    });
+      if (service) {
+        const document =
+          service.mechanic?.cod_consultor ?? budget.mechanic?.cod_consultor ?? integration.dealernet?.mechanic_document;
+
+        const Produtivo = users.find((x) => x.Usuario_DocIdentificador == formatarDoc(document));
+
+        Servicos.push({
+          Chave: item.Chave,
+          ProdutivoDocumento: formatarDoc(Produtivo.Usuario_DocIdentificador),
+          UsuarioIndResponsavel: Produtivo.Usuario_Identificador,
+          Produtos: item.Produtos.map((product) => ({
+            Chave: product.Chave,
+            Selecionado: true,
+          })),
+        });
+      }
+    }
 
     return { Chave: os.Chave, NumeroOS: os.NumeroOS, Servicos: Servicos };
   }
@@ -494,7 +507,7 @@ export class OsService {
         });
       }
 
-      const Documento = service.mechanic?.cod_consultant ?? budget.mechanic?.cod_consultor ?? connection?.mechanic_document;
+      const Documento = service.mechanic?.cod_consultor ?? budget.mechanic?.cod_consultor ?? connection?.mechanic_document;
       const Produtivo = users.find((x) => x.Usuario_DocIdentificador == formatarDoc(Documento));
 
       const Produtos: UpdateDealernetServiceProductDTO[] = [];
