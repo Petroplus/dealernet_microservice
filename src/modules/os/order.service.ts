@@ -554,14 +554,16 @@ export class OsService {
       });
     }
 
+    const doc_consultant = os.TipoOS.first().ConsultorDocumento || order.consultant?.cod_consultor;
+
     const dto: UpdateDealernetOsDTO = {
       Chave: os.Chave,
       NumeroOS: os.NumeroOS,
-      VeiculoPlacaChassi: os.VeiculoPlaca,
+      VeiculoPlacaChassi: os.VeiculoPlaca || os.VeiculoChassi,
       VeiculoKM: os.VeiculoKM,
       ClienteCodigo: os.ClienteCodigo,
       ClienteDocumento: formatarDoc(os.ClienteDocumento),
-      ConsultorDocumento: formatarDoc(os.TipoOS.first().ConsultorDocumento),
+      ConsultorDocumento: formatarDoc(doc_consultant),
       Data: os.Data,
       DataFinal: os.DataPrometida,
       Status: os.TipoOS.first().StatusAndamento,

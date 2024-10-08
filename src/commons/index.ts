@@ -39,7 +39,7 @@ export function parserXmlToJson(xml: string, options?: ParserOptions): Promise<J
 }
 
 export function formatarDoc(doc: number | string): string {
-  if (!doc) return '?';
+  if (!doc) return null;
 
   const document = doc.toString().replace(/\D/g, '');
 
