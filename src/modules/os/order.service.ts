@@ -177,6 +177,7 @@ export class OsService {
         produtivo_documento: budget.is_request_products ? formatarDoc(Produtivo.Usuario_DocIdentificador) : null,
         usuario_ind_responsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         cobra: service?.is_charged_for ?? true,
+        executar: service?.is_approved ?? true,
         setor_execucao: connection.execution_sector,
         observacao: service.notes,
         produtos: [],
@@ -548,7 +549,7 @@ export class OsService {
         UsuarioIndResponsavel: budget.is_request_products ? Produtivo.Usuario_Identificador : null,
         Cobrar: service?.is_charged_for ?? true,
         SetorExecucao: connection?.execution_sector ?? undefined,
-        Executar: service?.is_run_of_externally ? false : true,
+        Executar: service?.is_approved ?? true,
         Observacao: service.notes,
         Produtos: Produtos,
       });

@@ -87,11 +87,10 @@ export class BudgetService {
     budget: OrderBudgetEntity,
     connection: IntegrationDealernet,
   ): Promise<CreateOsDTO> {
-    //const tipo_os_sigla = order?.os_type?.external_id;
     const os_types: TipoOSItemCreateDTO[] = [];
 
     const services: ServicoCreateDTO[] = [];
-    for await (const service of budget.services.filter((x) => x.is_approved)) {
+    for await (const service of budget.services) {
       const os_type = service?.os_type ?? budget?.os_type ?? order?.os_type;
       if (!os_type)
         throw new BadRequestException('OS type not found', {
@@ -113,12 +112,13 @@ export class BudgetService {
         valor_unitario: Number(service.price) > 0 ? Number(service.price) : 0.01,
         quantidade: 1,
         cobra: service?.is_charged_for ?? true,
+        executar: service?.is_approved ?? true,
         observacao: service.notes,
         produtos: [],
       });
     }
 
-    for await (const product of budget.products.filter((x) => x.is_approved)) {
+    for await (const product of budget.products) {
       const os_type = product?.os_type ?? budget.os_type ?? order?.os_type;
       if (!os_types?.find((x) => x.tipo_os_sigla == os_type.external_id)) {
         os_types.push({

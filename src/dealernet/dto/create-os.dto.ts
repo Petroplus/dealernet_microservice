@@ -62,6 +62,9 @@ export class ServicoCreateDTO {
   cobra: boolean;
 
   @ApiProperty()
+  executar?: boolean;
+
+  @ApiProperty()
   setor_execucao?: string;
 
   @ApiProperty()

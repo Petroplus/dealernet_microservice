@@ -104,7 +104,7 @@ export class DealernetBudgetService {
 						<deal:Observacao>?</deal:Observacao>
 						<deal:ProdutivoDocumento>?</deal:ProdutivoDocumento>
 						<deal:UsuarioIndResponsavel>?</deal:UsuarioIndResponsavel>
-						<deal:Executar>?</deal:Executar>
+						<deal:Executar>${item.executar ?? true}</deal:Executar>
 						<deal:Cobrar>${item.cobra}</deal:Cobrar>
 						<deal:DataPrevisao>?</deal:DataPrevisao>
 						<deal:KitCodigo>?</deal:KitCodigo>
