@@ -1,25 +1,17 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
-import { formatarDoc } from 'src/commons';
 import { ContextService } from 'src/context/context.service';
 import { DealernetService } from 'src/dealernet/dealernet.service';
 import { CreateOsDTO, ServicoCreateDTO } from 'src/dealernet/dto/create-os.dto';
 import { ProdutoUpdateDto } from 'src/dealernet/dto/update-os.dto';
 import { TipoOSItemCreateDTO } from 'src/dealernet/order/dto/create-order.dto';
-import { UpdateDealernetOsDTO, UpdateDealernetServiceDTO } from 'src/dealernet/order/dto/update-order.dto';
 import { DealernetBudgetResponse } from 'src/dealernet/response/budget-response';
-import { DealernetOrderResponse } from 'src/dealernet/response/os-response';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
-import { UpsertOrderBudgetServiceDto } from 'src/petroplay/order/dto/upsert-order-budget-service.dto';
 import { PetroplayOrderEntity } from 'src/petroplay/order/entity/order.entity';
 import { OrderBudgetEntity } from 'src/petroplay/order/entity/order-budget.entity';
 import { PetroplayService } from 'src/petroplay/petroplay.service';
 
-import { EditDealernetServiceDTO } from '../os/dto/edit-dealernet-service.dto';
 import { OsService } from '../os/order.service';
-import { ServiceFilter } from '../service/filters/service.filter';
-
-import { CancelServiceDTO } from './dto/cancel-service.dto';
 
 @Injectable()
 export class BudgetService {

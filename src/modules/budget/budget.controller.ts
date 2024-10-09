@@ -42,6 +42,6 @@ export class BudgetController {
     @Param('order_id', ParseUUIDPipe) order_id: string,
     @Query('budget_id', ParseUUIDOptionalPipe) budget_id: string,
   ): Promise<string> {
-    return this.service.createSchema(order_id);
+    return this.service.createSchema(order_id, budget_id);
   }
 }
