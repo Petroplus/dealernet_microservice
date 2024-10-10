@@ -515,7 +515,9 @@ export class OsService {
 
       for await (const product of filter_products) {
         const produtos = await this.dealernet.findProductByReference(connection, product.integration_id);
-        const produto = produtos?.orderBy((x) => x.QuantidadeDisponivel, 'desc').first();
+        const produto = produtos
+          ?.orderBy((x) => x.QuantidadeDisponivel, 'desc')
+          .find((x) => x.ProdutoReferencia == product.integration_id);
 
         if (!produto || produto.ProdutoCodigo == 0) {
           Logger.warn(`Produto ${product.integration_id}  ${product.name} não encontrado`, 'OsService');
