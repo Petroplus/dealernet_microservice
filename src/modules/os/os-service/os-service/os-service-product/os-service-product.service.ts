@@ -106,7 +106,18 @@ export class OsServiceProductService {
     const Servicos = os.Servicos.filter(
       (s) => s.TMOReferencia === service.integration_id && s.TipoOSSigla === service.os_type.external_id,
     ).map((Servico) => ({
-      ...Servico,
+      Chave: Servico.Chave,
+      TipoOSSigla: Servico.TipoOSSigla,
+      TMOReferencia: Servico.TMOReferencia,
+      Tempo: Servico.Tempo,
+      ValorUnitario: Servico.ValorUnitario,
+      Quantidade: Servico.Quantidade,
+      ProdutivoDocumento: Servico.ProdutivoDocumento,
+      UsuarioIndResponsavel: Servico.UsuarioIndResponsavel,
+      Cobrar: Servico.Cobrar,
+      Executar: Servico.Executar,
+      Observacao: Servico.Observacao,
+      Selecionado: true,
       Produtos: Produtos,
     }));
 
