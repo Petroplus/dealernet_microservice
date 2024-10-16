@@ -101,7 +101,9 @@ export class PetroplayOrderService {
           expand: ['os_type', 'products', 'services', 'mechanic'],
         },
       })
-      .then(({ data }) => data)
+      .then(({ data }) => {
+        return data;
+      })
       .catch((err) => {
         Logger.error('Error on find order budget:', err, 'PetroplayOrderService.findOrderBudget');
         throw new BadRequestException('Error on find order budget');

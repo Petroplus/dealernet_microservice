@@ -434,7 +434,8 @@ export class OsService {
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
-    const budget = await this.petroplay.order.findOrderBudgets(order.id, budget_id).then((budgets) => budgets?.first());
+    const budgets = await this.petroplay.order.findOrderBudgets(order.id);
+    const budget = budgets.find((x) => x.id == budget_id);
     const osDTO = await this.osAttachServicesToOrder(order, budget, attachDTO, integration.dealernet);
 
     return this.dealernet.order.updateOsXmlSchema(integration.dealernet, osDTO);
@@ -450,7 +451,8 @@ export class OsService {
     const integration = await this.petroplay.integration.findByClientId(order.client_id);
     if (!integration.dealernet) throw new BadRequestException('Integration not found');
 
-    const budget = await this.petroplay.order.findOrderBudgets(order.id, budget_id).then((budgets) => budgets?.first());
+    const budgets = await this.petroplay.order.findOrderBudgets(order.id);
+    const budget = budgets.find((x) => x.id == budget_id);
     const osDTO = await this.osAttachServicesToOrder(order, budget, attachDTO, integration.dealernet);
 
     const os = await this.dealernet.order
@@ -479,7 +481,9 @@ export class OsService {
     attachDTO: AttachServiceToOrderDTO,
     connection: IntegrationDealernet,
   ): Promise<UpdateDealernetOsDTO> {
-    const os = await this.dealernet.findOsByNumber(connection, budget.os_number);
+    const budget_os = order.budgets.find((x) => !x.is_additional_budget && x.os_number);
+
+    const os = await this.dealernet.findOsByNumber(connection, budget_os.os_number);
     if (!os) throw new NotFoundException(`OS not found`);
 
     const users = await this.dealernet.customer.findUsers(connection, 'PRD');
