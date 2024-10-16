@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { OrderBudgetProductEntity } from './order-budget-product.entity';
 import { ClientOsTypeEntity } from './os-type.entity';
 
 export enum OrderItemSourceGroupEnum {
@@ -114,6 +115,9 @@ export class OrderBudgetServiceEntity {
 
   @ApiProperty()
   mechanic: { cod_consultor: string };
+
+  @ApiProperty({ type: () => OrderBudgetProductEntity })
+  products: OrderBudgetProductEntity[];
 
   constructor(partial: Partial<OrderBudgetServiceEntity>) {
     Object.assign(this, partial);
