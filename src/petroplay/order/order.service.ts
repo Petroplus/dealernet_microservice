@@ -93,14 +93,14 @@ export class PetroplayOrderService {
       });
   }
 
-  async findOrderBudgetById(order_id: string, budget_id: string): Promise<OrderBudgetEntity> {
+  async findOrderBudgetById(
+    order_id: string,
+    budget_id: string,
+    expand = ['os_type', 'products', 'services', 'mechanic'],
+  ): Promise<OrderBudgetEntity> {
     const client = await petroplay.v2();
     return client
-      .get(`/v2/orders/${order_id}/budgets/${budget_id}`, {
-        params: {
-          expand: ['os_type', 'products', 'services', 'mechanic'],
-        },
-      })
+      .get(`/v2/orders/${order_id}/budgets/${budget_id}`, { params: { expand } })
       .then(({ data }) => {
         return data;
       })

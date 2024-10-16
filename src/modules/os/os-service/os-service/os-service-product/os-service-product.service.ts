@@ -69,14 +69,10 @@ export class OsServiceProductService {
     const service = budget.services.find((s) => s.id === order_budget_service_id);
     if (!service) throw new BadRequestException('Service not found');
 
-    const Servicos = os.Servicos.filter(
-      (s) => s.TMOReferencia === service.integration_id && s.TipoOSSigla === service.os_type.external_id,
-    );
-
     const Produtos: UpdateDealernetServiceProductDTO[] = [];
 
     for await (const dto of dtos) {
-      const product = service.products.find((p) => p.id === dto.id);
+      const product = budget.products.find((p) => p.order_budget_service_id === service.id && p.id === dto.id);
 
       const os_type = product?.os_type ?? service.os_type ?? budget?.os_type ?? order?.os_type;
 
@@ -106,6 +102,13 @@ export class OsServiceProductService {
         });
       }
     }
+
+    const Servicos = os.Servicos.filter(
+      (s) => s.TMOReferencia === service.integration_id && s.TipoOSSigla === service.os_type.external_id,
+    ).map((Servico) => ({
+      ...Servico,
+      Produtos: Produtos,
+    }));
 
     const TipoOS: UpdateDealernetTipoOSDto[] = Servicos.map((s) => ({
       TipoOSSigla: s.TipoOSSigla,

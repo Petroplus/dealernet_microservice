@@ -13,6 +13,9 @@ export class OrderBudgetProductEntity {
   order_budget_id: string;
 
   @ApiProperty()
+  order_budget_service_id: string;
+
+  @ApiProperty()
   product_id: string;
 
   @ApiProperty()
