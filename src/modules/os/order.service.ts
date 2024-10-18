@@ -323,14 +323,14 @@ export class OsService {
         await this.petroplay.order.updateOrderAppointment(order.id, appointment_id, {
           was_sent_to_dms: false,
           is_error_sent_to_dms: true,
-          error_sent_to_dms_details: error?.message ?? 'Erro ao enviar apontamento para o DMS',
+          error_sent_to_dms_details: error?.description ?? error?.message ?? 'Erro ao enviar apontamento para o DMS',
         });
 
         this.context.setWarning('Erro ao adicionar apontamento na Ordem de Serviço');
         Logger.error(`Erro ao atualizar apontamento da ordem ${order_id}`, error, 'OsService');
         throw new BadRequestException('Erro ao atualizar apontamento da ordem', {
           cause: error.cause ?? error,
-          description: error?.description ?? 'Não foi possível adicionar o apontamento a ordem',
+          description: error?.description ?? error?.message ?? 'Não foi possível adicionar o apontamento a ordem',
         });
       });
 
