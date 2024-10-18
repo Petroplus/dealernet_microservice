@@ -370,7 +370,10 @@ export class DealernetOsService {
         ];
 
       if (order.Mensagem && order.Chave === 0) {
-        throw new BadRequestException(order.Mensagem);
+        throw new BadRequestException(order.Mensagem, {
+          cause: order,
+          description: order.Mensagem
+        });
       }
 
       return this.findByOsNumber(connection, order.NumeroOS);
