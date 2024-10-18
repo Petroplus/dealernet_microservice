@@ -351,7 +351,7 @@ export class OsService {
 
     if (!os) throw new NotFoundException(`OS not found`);
 
-    const appointmentsToSend = appointments.filter((x) => x.end_date && x.was_sent_to_dms == false && x.status == 'DONE');
+    const appointmentsToSend = appointments.filter((x) => x.end_date && x.was_sent_to_dms == false);
 
     const users = await this.dealernet.customer.findUsers(connection, 'PRD');
 
@@ -413,7 +413,7 @@ export class OsService {
       VeiculoKM: os.VeiculoKM,
       ClienteCodigo: os.ClienteCodigo,
       ClienteDocumento: formatarDoc(os.ClienteDocumento),
-      ConsultorDocumento: formatarDoc(os.TipoOS.first().ConsultorDocumento),
+      ConsultorDocumento: formatarDoc(os.TipoOS.first().ConsultorDocumento || order.consultant?.cod_consultor),
       Data: os.Data,
       DataFinal: os.DataPrometida,
       Status: os.TipoOS.first().StatusAndamento,
