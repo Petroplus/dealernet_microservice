@@ -29,7 +29,7 @@ export class PetroplayOrderService {
 
   async upsert(dto: UpsertOrderDto[]): Promise<void> {
     const client = await petroplay.v2();
-    await client.put('/v2/orders', dto).catch((err) => {
+    await client.put('/v2/orders', dto, { timeout: 1000 * 60 * 5 }).catch((err) => {
       console.log(err.response.data);
       Logger.error('Error on upsert order:', err, 'PetroplayOrderService.upsert');
       throw new BadRequestException('Error on upsert order');
