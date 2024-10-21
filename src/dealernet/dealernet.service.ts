@@ -4,6 +4,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { isArray } from 'class-validator';
 import { XMLParser } from 'fast-xml-parser';
 
+import { parserXmlToJson } from 'src/commons';
 import { dealernet, webClient } from 'src/commons/web-client';
 import { IntegrationDealernet } from 'src/petroplay/integration/entities/integration.entity';
 
@@ -448,12 +449,12 @@ export class DealernetService {
     try {
 
       const client = await dealernet()
-      const response = await client.post(url, xmlBody).then(({ data }) => new XMLParser().parse(data));
+      const response = await client.post(url, xmlBody).then(async ({ data }) => await parserXmlToJson(data));
       const parsedData = response['SOAP-ENV:Envelope']['SOAP-ENV:Body']['WS_FastServiceApi.ORDEMSERVICOResponse']['Sdt_fsordemservicooutlista']['SDT_FSOrdemServicoOut'];
 
       const orders = Array.isArray(parsedData) ? parsedData : [parsedData];
 
-      if (orders.filter(order => order.Chave === 0).length > 0) return [];
+      if (orders.filter(order => order.Chave == "0").length > 0) return [];
 
       return orders.map(order => {
         const Servicos = Array.isArray(order.Servicos?.Servico) ? order.Servicos.Servico : order.Servicos?.Servico ? [order.Servicos.Servico] : [];
