@@ -30,12 +30,12 @@ export class ScheduleService {
     const background = async () => {
       for await (const integration of integrations) {
         const toUpsert = await this.schema({ ...filter, client_ids: [integration.client_id] });
-        toUpsert.forEach(async (item) => {
+        for await (const item of toUpsert) {
           Logger.warn(`Sending ${item.integration_id} to Petroplay`);
           await this.petroplay.order.upsert([item]).catch((err) => {
             Logger.error('Error on upsert orders', err, 'ScheduleService.sync');
           });
-        });
+        }
       }
     };
 
