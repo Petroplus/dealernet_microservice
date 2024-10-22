@@ -23,7 +23,7 @@ export class DealernetProductService {
                     <deal:Sdt_fsprodutoin>
                       <deal:EmpresaDocumento>${connection.document}</deal:EmpresaDocumento >
                       <deal:ProdutoCodigo>?</deal:ProdutoCodigo >
-                      <deal:ProdutoDescricao>${filter.name || '?'}</deal:ProdutoDescricao>
+                      <deal:ProdutoDescricao>${filter.name ? `%${filter.name}%` : '?'}</deal:ProdutoDescricao>
                       	<deal:ProdutoReferencia>
 					                <deal:item>${filter.product_id || '?'}</deal:item>
 				                </deal:ProdutoReferencia>

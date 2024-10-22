@@ -20,7 +20,7 @@ export class DealernetServiceService {
     const body = {
       Empresa_Documento: connection.document,
       TMO_Codigo: '?',
-      TMO_Descricao: filter.name,
+      TMO_Descricao: filter.name ? `%${filter.name}%` : '?',
       TipoOS_Sigla: filter.os_type_acronym,
       TMO_Referencia: {
         item: references,
