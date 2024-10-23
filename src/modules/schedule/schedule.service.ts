@@ -71,9 +71,17 @@ export class ScheduleService {
     const os_types = await this.petroplay.client.findOsTypes(integration.client_id);
 
     const integration_ids = schedules.map((schedule) => schedule.Chave.toString());
-    const pps_orders = await this.petroplay.order.find({ integration_ids });
+    const pps_orders = await this.petroplay.order.find({ integration_ids, client_ids: [integration.client_id] });
     const orders: CreateOrderDto[] = [];
     for await (const schedule of schedules) {
+      const order = pps_orders?.find((pps_order) => pps_order?.integration_id == schedule?.Chave.toString());
+
+      const inspection = new Date(schedule.Data.substring(0, 19));
+      const schedule_date = new Date(schedule.Data).addHours(3);
+      if (order && new Date(order.inspection).toISOString() == inspection.toISOString()) {
+        continue;
+      }
+
       const customer = await this.dealernet.customer.findById(integration.dealernet, schedule.ClienteCodigo);
       const address = customer.Endereco?.orderBy((x) => x.PessoaEndereco_Codigo, 'desc').first();
       const phone = customer.Telefone?.orderBy((x) => x.PessoaTelefone_Codigo, 'desc').first();
@@ -149,9 +157,6 @@ export class ScheduleService {
         postal_code: address?.PessoaEndereco_CEP?.toString()?.toString().trim(),
       };
 
-      const order = pps_orders?.find((pps_order) => pps_order?.integration_id == schedule?.Chave.toString());
-      const inspection = schedule.Data.substring(0, 19);
-      const schedule_date = new Date(schedule.Data).addHours(3);
       if (order) {
         const dto: CreateOrderDto = {
           client_id: order.client_id,
@@ -181,7 +186,7 @@ export class ScheduleService {
           additional_information: order.additional_information,
         };
 
-        // orders.push(dto);
+        orders.push(dto);
       } else {
         const dto: CreateOrderDto = {
           client_id: integration.client_id,
