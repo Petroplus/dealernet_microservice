@@ -181,7 +181,7 @@ export class ScheduleService {
           additional_information: order.additional_information,
         };
 
-        orders.push(dto);
+        // orders.push(dto);
       } else {
         const dto: CreateOrderDto = {
           client_id: integration.client_id,
