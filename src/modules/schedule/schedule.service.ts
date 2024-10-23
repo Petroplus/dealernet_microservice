@@ -79,6 +79,7 @@ export class ScheduleService {
       const inspection = new Date(schedule.Data.substring(0, 19));
       const schedule_date = new Date(schedule.Data).addHours(3);
       if (order && new Date(order.inspection).toISOString() == inspection.toISOString()) {
+        Logger.warn(`Order ${order.integration_id} already exists and is up to date`, 'ScheduleService.scheduleToOs');
         continue;
       }
 
