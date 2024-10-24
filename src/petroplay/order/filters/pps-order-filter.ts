@@ -7,6 +7,8 @@ export class PpsOrderFilter {
   inspection_final_date?: Date;
   app_date_initial_date?: Date;
   app_date_final_date?: Date;
+  scheduled_date_initial_date?: Date;
+  scheduled_date_final_date?: Date;
   client_ids?: string[];
   ids?: string[];
   internal_ids?: number[];

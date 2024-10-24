@@ -71,7 +71,12 @@ export class ScheduleService {
     const os_types = await this.petroplay.client.findOsTypes(integration.client_id);
 
     const integration_ids = schedules.map((schedule) => schedule.Chave.toString());
-    const pps_orders = await this.petroplay.order.find({ integration_ids, client_ids: [integration.client_id] });
+    const pps_orders = await this.petroplay.order.find({
+      integration_ids,
+      client_ids: [integration.client_id],
+      scheduled_date_initial_date: new Date(schedules.first()?.Data).addDays(-7),
+      scheduled_date_final_date: new Date(schedules.last()?.Data).addDays(7),
+    });
     const orders: CreateOrderDto[] = [];
     for await (const schedule of schedules) {
       const order = pps_orders?.find((pps_order) => pps_order?.integration_id == schedule?.Chave.toString());
